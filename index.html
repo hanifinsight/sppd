@@ -324,7 +324,7 @@ mainView.addEventListener("click",async ev=>{
  if(btn.hasAttribute("data-reset")){btn.closest("form")?.reset();const id=btn.closest("form")?.querySelector('[name="id"]');if(id)id.value="";return;}
  const page=document.querySelector("aside .nav.active")?.dataset.page||"";
  let table=null, id=null;
- if(btn.dataset.edit){table=page;id=btn.dataset.edit;}
+ if(btn.dataset.edit){table=page==="pengelola"?"pejabat_pengelola":page;id=btn.dataset.edit;}
  if(btn.dataset.editTravel){table="perjalanan_dinas";id=btn.dataset.editTravel;}
  if(btn.dataset.editRekening){table="rekening_belanja";id=btn.dataset.editRekening;}
  if(btn.dataset.editKegiatan){table="kegiatan";id=btn.dataset.editKegiatan;}
@@ -332,7 +332,7 @@ mainView.addEventListener("click",async ev=>{
  if(id&&table){
   const form=mainView.querySelector(`form[data-table="${table}"]`);
   const row=(window._sppdRows?.[table]||[]).find(x=>x.id===id);
-  if(row&&form){Object.entries(row).forEach(([k,v])=>{const el=form.elements.namedItem(k);if(el)el.value=v??"";});form.elements.namedItem("id").value=id;form.scrollIntoView({behavior:"smooth",block:"center"});}
+  if(row&&form){Object.entries(row).forEach(([k,v])=>{const el=form.elements.namedItem(k);if(el)el.value=v??"";});form.elements.namedItem("id").value=id;form.elements.namedItem("jenis_peran")?.dispatchEvent(new Event("change"));form.scrollIntoView({behavior:"smooth",block:"center"});}
   return;
  }
  if(btn.dataset.inactivePejabat){if(!confirm("Akhiri penetapan pejabat ini? Riwayat tetap disimpan."))return;try{const {error}=await sb.from("pejabat_pengelola").update({aktif:false}).eq("id",btn.dataset.inactivePejabat);if(error)throw error;await loadPage("pengelola");}catch(e){await pageError(e);}return;}
