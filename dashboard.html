@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b35">
+<title>Masuk | SPPD Digital Kabupaten Pekalongan</title>
+<style>
+:root{--g:#123b35;--g2:#1d5a4e;--mint:#e9f3ef;--gold:#c7a45b;--ink:#182522;--muted:#71807b;--line:#e7ece9;--bg:#f5f7f6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer}
+.login{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr;background:white}.art{background:linear-gradient(145deg,#0c302b,#1c594d);color:white;padding:clamp(28px,6vw,64px);display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}.art:after,.art:before{content:"";position:absolute;border:1px solid #ffffff20;border-radius:50%;width:520px;height:520px;right:-180px;top:10%}.art:before{width:360px;height:360px;right:-100px;top:20%}.brand{font-weight:800;letter-spacing:.04em;position:relative;z-index:1}.crest{display:inline-grid;place-items:center;width:42px;height:42px;border:1px solid #ffffff70;border-radius:12px;color:#e7d3a3;margin-right:10px}.copy{max-width:520px;position:relative;z-index:1}.eyebrow{color:#d9c38d;text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800}.copy h1{font-size:clamp(32px,4vw,54px);line-height:1.12;margin:18px 0}.copy p{color:#d4e3dc;font-size:16px;max-width:420px}.foot{color:#b6cbc3;font-size:12px;position:relative;z-index:1}.loginbox{display:grid;place-items:center;padding:32px}.form{width:min(390px,100%)}h2{font-size:27px;margin:0 0 7px}.sub{color:var(--muted);margin:0 0 28px}.field{display:block;margin:17px 0}.field span{display:block;font-size:12px;font-weight:700;margin-bottom:7px}.field input{width:100%;border:1px solid #dce5e0;border-radius:10px;padding:13px 14px;outline:none;background:#fbfcfb}.field input:focus{border-color:var(--g2);box-shadow:0 0 0 3px #1d5a4e16}.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--g);color:white;font-weight:800}.btn:hover{background:var(--g2)}.full{width:100%;margin-top:9px}.hint{font-size:11px;color:var(--muted);margin-top:18px}.app{display:none;min-height:100vh}.top{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px}.brandtop{font-weight:800;color:var(--g)}.brandtop small{display:block;color:var(--muted);font-weight:500;font-size:10px}.user{display:flex;align-items:center;gap:10px}.avatar{width:35px;height:35px;border-radius:50%;background:var(--mint);color:var(--g);display:grid;place-items:center;font-weight:800}.layout{display:grid;grid-template-columns:245px 1fr;min-height:calc(100vh - 70px)}aside{background:#fff;border-right:1px solid var(--line);padding:22px 14px}.navlabel{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9aa7a1;font-weight:800;padding:12px}.nav{display:block;width:100%;text-align:left;padding:11px 12px;border:0;border-radius:9px;background:none;color:#5d6b65;margin:3px 0}.nav.active,.nav:hover{background:var(--mint);color:var(--g);font-weight:800}.main{padding:30px;max-width:1450px;width:100%;margin:auto}.crumb{color:var(--muted);font-size:12px;margin-bottom:8px}.heading{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;gap:15px}.heading h1{font-size:25px;margin:0 0 4px;color:#183b33}.heading p{margin:0;color:var(--muted)}.date{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:9px;color:#66746e;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}.stat,.panel{background:white;border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 12px 32px #173c3010}.stat label{color:var(--muted);font-size:12px}.stat strong{display:block;font-size:28px;margin:10px 0 2px;color:#1b3932}.stat small,.muted{color:var(--muted);font-size:11px}.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}.panel h3{margin:0 0 14px;font-size:14px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th{text-align:left;color:#87938d;font-size:10px;text-transform:uppercase;padding:11px 9px;border-bottom:1px solid var(--line)}td{padding:13px 9px;border-bottom:1px solid #f0f3f1;font-size:12px}.status{display:inline-block;border-radius:20px;padding:4px 9px;font-size:10px;font-weight:800;background:#fff4df;color:#9a6b19}.activity{padding:11px 0;border-bottom:1px solid #f0f3f1}.activity b{display:block;font-size:12px}.activity small{color:var(--muted);font-size:10px}.notice{margin-top:20px;background:#f7f5ef;border:1px solid #eee7d8;border-radius:12px;padding:14px;color:#786c53;font-size:12px}
+@media(max-width:850px){.login{grid-template-columns:1fr}.art{min-height:310px}.loginbox{padding:40px 24px}.layout{grid-template-columns:1fr}aside{display:flex;overflow:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line)}.navlabel{display:none}.nav{white-space:nowrap;width:auto}.main{padding:22px 16px}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.top{padding:0 16px}}
+@media(max-width:420px){.stats{grid-template-columns:1fr 1fr}.stat{padding:13px}.stat strong{font-size:23px}}
+
+/* === Visual refresh: SPPD executive workspace === */
+:root{--g:#123b35;--g2:#1b5b4e;--mint:#eaf4ef;--gold:#c6a66a;--ink:#172923;--muted:#718078;--line:#e5ece7;--bg:#f3f6f4;--surface:#fff;--shadow:0 8px 28px rgba(20,55,43,.055)}
+body{background:var(--bg);color:var(--ink);font-size:14px}
+button,input,select,textarea{font:inherit}
+.login{min-height:100vh;background:#fff}
+.art{background:radial-gradient(circle at 82% 18%,rgba(198,166,106,.22),transparent 28%),linear-gradient(145deg,#0b2925 0%,#12483d 58%,#1d6252 100%);padding:clamp(32px,6vw,76px)}
+.art:after,.art:before{border-color:#ffffff17}
+.crest{border-radius:14px;background:#ffffff0c;color:#e8d6ad;box-shadow:0 8px 28px #001b1640}
+.copy h1{letter-spacing:-.045em;font-weight:800}
+.copy p{line-height:1.8}
+.eyebrow{font-size:10px;letter-spacing:.2em}
+.loginbox{background:linear-gradient(135deg,#fff,#f9fbf9)}
+.form{width:min(410px,100%)}
+.form h2{letter-spacing:-.035em;font-size:30px}
+.field{margin:16px 0}
+.field span{color:#40534a;font-size:12px;letter-spacing:.01em}
+.field input,.field select,.field textarea,form select,form input:not([type=hidden]){width:100%;min-height:44px;border:1px solid #dce6df;border-radius:11px;padding:11px 13px;background:#fbfdfb;color:#1a3027;transition:border .18s,box-shadow .18s,background .18s}
+.field input:focus,.field select:focus,.field textarea:focus,form select:focus,form input:focus{border-color:#4d8873;box-shadow:0 0 0 4px #2b72551a;background:#fff;outline:0}
+.btn{border-radius:10px;padding:10px 15px;background:linear-gradient(135deg,#16483d,#1d6554);box-shadow:0 3px 8px #123b351c;transition:transform .16s,box-shadow .16s,filter .16s}
+.btn:hover{background:linear-gradient(135deg,#1b5b4e,#287663);transform:translateY(-1px);box-shadow:0 7px 15px #123b3526}
+.btn:disabled{opacity:.65;cursor:wait;transform:none}
+.full{min-height:47px}
+.app{background:var(--bg)}
+.top{height:76px;padding:0 34px;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px #183d3010}
+.brandtop{font-size:15px;letter-spacing:.035em;display:flex;align-items:center;gap:10px}
+.brandtop:before{content:"✦";display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:var(--mint);color:var(--g2);font-size:19px}
+.brandtop small{letter-spacing:0;font-size:10px}
+.user{gap:12px}
+.user b{font-size:12px}
+.avatar{width:38px;height:38px;border:1px solid #d7e8df}
+.layout{grid-template-columns:258px minmax(0,1fr);min-height:calc(100vh - 76px)}
+aside{background:#102f2a;color:#e8f1ec;border:0;padding:25px 16px;position:sticky;top:76px;height:calc(100vh - 76px);overflow:auto}
+.navlabel{color:#91aaa0;padding:17px 13px 8px;font-size:9px;letter-spacing:.17em}
+.nav{color:#c3d3cb;padding:12px 13px;border-radius:10px;margin:4px 0;font-size:12px;transition:background .16s,color .16s,transform .16s}
+.nav:hover{background:#ffffff12;color:#fff;transform:translateX(2px)}
+.nav.active{background:linear-gradient(100deg,#dcece3,#eff6f1);color:#153f34;box-shadow:inset 3px 0 #c6a66a}
+.main{padding:34px clamp(18px,3vw,44px);max-width:1600px}
+.crumb{font-size:11px;color:#89968f;margin-bottom:12px}
+.heading{align-items:center;margin-bottom:25px}
+.heading h1{font-size:27px;letter-spacing:-.035em;font-weight:800;color:#173a30}
+.heading p{font-size:12px;color:#7b8981}
+.date{border:1px solid #e2eae4;background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;color:#52665b}
+.stats{gap:17px;margin-bottom:20px}
+.stat,.panel{border:1px solid #e7ede8;border-radius:15px;box-shadow:var(--shadow)}
+.stat{padding:20px;position:relative;overflow:hidden}
+.stat:after{content:"";position:absolute;width:76px;height:76px;border-radius:50%;right:-26px;top:-27px;background:#eaf4ef}
+.stat label{font-size:11px;font-weight:700;color:#718078}
+.stat strong{font-size:31px;letter-spacing:-.04em;color:#173e32;margin:11px 0 1px}
+.stat small{font-size:10px}
+.panel{padding:22px;margin-bottom:18px}
+.panel h3{font-size:14px;font-weight:800;color:#203c31;margin-bottom:16px}
+.grid{gap:18px}
+.tablewrap{border:1px solid #edf1ee;border-radius:11px}
+table{white-space:normal}
+th{background:#f7faf8;color:#7c8982;font-size:9px;letter-spacing:.08em;padding:12px 13px}
+td{padding:13px;font-size:12px;color:#41534a}
+tbody tr:hover{background:#f8fbf9}
+tbody tr:last-child td{border-bottom:0}
+td .btn{font-size:10px;padding:7px 10px;box-shadow:none}
+.status{background:#edf5ef;color:#387454}
+.notice{border-radius:11px;background:#f8f5ed;border-color:#eee5d3;color:#766644;line-height:1.65}
+#pageContent>form{max-width:100%}
+#pageContent hr{border-color:#edf1ee!important}
+#pageContent form .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+#pageContent form .field{min-width:0}
+#pageContent form .btn{margin-top:4px}
+#pageContent form button[data-reset]{background:#eef4f0;color:#315a48;box-shadow:none}
+#pageContent form button[data-reset]:hover{background:#e1eee6}
+#pageContent .tablewrap{margin-top:12px}
+#pageContent .tablewrap .btn{margin:2px}
+#pageContent>div[style*="text-align:center"]{padding:48px 20px!important}
+.activity{padding:14px 0}
+.activity b{color:#344b40}
+.activity small{display:block;margin-top:4px}
+@media(max-width:900px){
+ .layout{grid-template-columns:1fr}
+ aside{position:sticky;top:76px;height:auto;z-index:15;display:flex;gap:5px;overflow-x:auto;padding:9px 12px;scrollbar-width:thin}
+ .navlabel{display:none}
+ .nav{flex:0 0 auto;width:auto;margin:0;padding:10px 13px}
+ .nav.active{box-shadow:inset 0 -3px #c6a66a}
+ .main{padding:24px 18px}
+}
+@media(max-width:600px){
+ .top{height:68px;padding:0 13px}
+ .brandtop{font-size:12px;gap:7px}
+ .brandtop:before{width:32px;height:32px}
+ .brandtop small{font-size:9px}
+ .user{gap:7px}
+ .user>div:nth-child(2){display:none}
+ .user .btn{padding:8px 10px;font-size:11px}
+ aside{top:68px}
+ .heading{align-items:flex-start;flex-direction:column}
+ .heading h1{font-size:23px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .stat{padding:14px}
+ .stat strong{font-size:25px}
+ .panel{padding:15px}
+ #pageContent form .grid{grid-template-columns:1fr}
+ .tablewrap{overflow-x:auto}
+ table{min-width:600px}
+ .login .art{min-height:290px;padding:28px 24px}
+ .copy h1{font-size:37px}
+ .loginbox{padding:34px 22px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* Responsive refinement: mobile-first behavior */
+html{scroll-behavior:smooth}
+img,svg,canvas{max-width:100%;height:auto}
+.app,.layout,.main,#pageContent{min-width:0}
+input,select,textarea,button{max-width:100%}
+@media(max-width:1100px){
+ .layout{grid-template-columns:220px minmax(0,1fr)}
+ .main{padding:26px 22px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+ .layout{display:block}
+ aside{display:flex;align-items:center;gap:5px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:76px;width:100%;height:auto;min-height:58px;padding:8px 12px}
+ aside .nav{display:inline-flex;align-items:center;flex:0 0 auto;width:auto;min-height:40px;margin:0}
+ .main{width:100%;max-width:none}
+}
+@media(max-width:600px){
+ body{font-size:13px}
+ .top{position:sticky;top:0}
+ .layout{min-height:calc(100vh - 68px)}
+ aside{top:68px;min-height:54px}
+ .nav{font-size:11px;padding:9px 11px}
+ .main{padding:19px 13px}
+ .crumb{font-size:10px}
+ .heading{gap:10px;margin-bottom:18px}
+ .heading h1{font-size:22px;line-height:1.25}
+ .heading p{font-size:11px;line-height:1.55}
+ .date{font-size:10px;padding:7px 10px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{min-width:0;padding:13px;border-radius:12px}
+ .stat label{font-size:10px}
+ .stat strong{font-size:24px;overflow-wrap:anywhere}
+ .panel{min-width:0;padding:14px;border-radius:12px}
+ #pageContent{overflow:hidden}
+ #pageContent form .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+ #pageContent form .field{width:100%}
+ #pageContent form .btn{margin:4px 4px 4px 0}
+ .tablewrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .tablewrap table{min-width:620px}
+ .notice{font-size:11px;padding:12px}
+ .login{display:grid;grid-template-columns:1fr}
+ .login .art{min-height:260px}
+ .loginbox{min-width:0;width:100%;padding:28px 18px}
+ .form{width:100%;max-width:420px}
+}
+@media(max-width:360px){
+ .brandtop small{max-width:155px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .user .btn{font-size:10px;padding:7px 8px}
+ .stats{gap:7px}
+ .stat{padding:10px}
+ .stat strong{font-size:21px}
+ .main{padding-left:10px;padding-right:10px}
+}
+
+</style></head>
+<body>
+<section class="app" id="app"><header class="top"><div class="brandtop">✦ SPPD DIGITAL<small>Sekretariat Daerah Kabupaten Pekalongan</small></div><div class="user"><div class="avatar" id="userAvatar">U</div><div><b id="userLabel">Pengguna</b><small id="userRole" style="display:block;color:#71807b">Memuat profil</small></div><button class="btn" onclick="logout()">Keluar</button></div></header>
+<div class="layout"><aside><div class="navlabel">Menu utama</div><button class="nav active" data-page="dashboard">▦　Dashboard</button><button class="nav" data-page="bagian">▤　Data Bagian</button><button class="nav" data-page="pegawai">♙　Data Pegawai</button><button class="nav" data-page="anggaran">▣　Kegiatan & Anggaran</button><button class="nav" data-page="perjalanan">➜　Perjalanan Dinas</button><button class="nav" data-page="dokumen">▧　Dokumen & Arsip</button><button class="nav" data-page="laporan">▤　Laporan</button><div class="navlabel">Pengaturan</div><button class="nav" data-page="master">▦　Data Master</button><button class="nav" data-page="pejabat">♙　Pejabat Penandatangan</button><button class="nav" data-page="pengelola_pa">▣　PA / KPA</button><button class="nav" data-page="pengelola_pptk">▣　PPTK</button><button class="nav" data-page="pengelola_bendahara">▣　Bendahara Pengeluaran</button><button class="nav" data-page="akun">⚙　Manajemen Akun</button></aside>
+<main class="main"><div class="crumb">Beranda / Dashboard</div><div class="heading"><div><h1>Dashboard Admin Global</h1><p>Ringkasan pengelolaan perjalanan dinas seluruh Bagian.</p></div><div class="date">Tahun Anggaran 2026</div></div>
+<div class="stats"><div class="stat"><label>Total Bagian</label><strong id="statBagian">—</strong><small>Data database</small></div><div class="stat"><label>Total Pegawai</label><strong id="statPegawai">—</strong><small>Data database</small></div><div class="stat"><label>Perjalanan Dinas</label><strong id="statPerjalanan">—</strong><small>Data database</small></div><div class="stat"><label>Pos Anggaran</label><strong id="statAnggaran">—</strong><small>Data database</small></div></div>
+<div class="grid"><div class="panel"><h3>Perjalanan Dinas Terbaru</h3><div class="tablewrap"><table><thead><tr><th>Nomor</th><th>Bagian</th><th>Tanggal</th><th>Status</th></tr></thead><tbody><tr><td colspan="4" style="text-align:center;color:#71807b;padding:35px">Belum ada transaksi perjalanan dinas.</td></tr></tbody></table></div></div><div class="panel"><h3>Aktivitas Sistem</h3><div class="activity"><b>Database SPPD disiapkan</b><small>Fondasi sistem telah tersedia</small></div><div class="activity"><b>Dashboard Admin Global</b><small>Antarmuka aplikasi</small></div><div class="activity"><b>Integrasi Supabase</b><small>Integrasi database aktif</small></div></div></div>
+<div class="notice" id="dashboardNotice"><b>Status koneksi</b><br>Menunggu login Supabase...</div></main></div></section>
+
+<script type="module">
+
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const URL="https://yxcroppwpjnxdgugjtqk.supabase.co";
+const KEY="sb_publishable_ZQX9XkOOCO2qK9NkdpKItw_pZ7qatLp";
+const sb=createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+let profile=null;
+const mainView=document.querySelector(".main");
+const dashboardMarkup=mainView.innerHTML;
+const pageInfo={
+  bagian:["Data Bagian","Kelola unit/bagian di lingkungan Sekretariat Daerah."],
+  pegawai:["Data Pegawai","Kelola identitas, NIP, status kepegawaian, pangkat, dan jabatan pegawai."],
+  master:["Data Master","Kelola referensi pangkat/golongan dan jenis jabatan."],
+  pejabat:["Pejabat Penandatangan","Atur penandatangan SP dan SPPD atas nama Sekretaris Daerah."],
+  pengelola_pa:["Pengaturan PA / KPA","Tetapkan PA dan KPA, termasuk penugasan Plt./Plh."],
+  pengelola_pptk:["Pengaturan PPTK","Tetapkan PPTK per kegiatan/subkegiatan, termasuk penugasan Plt./Plh."],
+  pengelola_bendahara:["Pengaturan Bendahara Pengeluaran","Tetapkan Bendahara Pengeluaran dan Bendahara Pengeluaran Pembantu, termasuk penugasan Plt./Plh."],
+  anggaran:["Kegiatan & Anggaran","Kelola subkegiatan, rekening belanja, pagu, dan perubahan anggaran."],
+  perjalanan:["Perjalanan Dinas","Kelola pengajuan, peserta, tujuan, jadwal, dan status perjalanan dinas."],
+  dokumen:["Dokumen & Arsip","Kelola dokumen Surat Perintah, SPPD, lampiran, dan arsip perjalanan."],
+  laporan:["Laporan","Lihat rekapitulasi perjalanan dinas dan penggunaan anggaran."],
+  akun:["Manajemen Akun","Kelola akun pengguna, peran, dan status akses aplikasi."]
+};
+function esc(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+function field(label,name,value="",type="text",required=true){return `<label class="field"><span>${label}</span><input name="${name}" type="${type}" value="${esc(value)}" ${required?"required":""}></label>`;}
+function selectField(label,name,items,value=""){return `<label class="field"><span>${label}</span><select name="${name}" required><option value="">Pilih ${label}</option>${items.map(x=>`<option value="${esc(x.id)}" ${x.id===value?"selected":""}>${esc(x.label)}</option>`).join("")}</select></label>`;}
+let editState={};
+async function fetchRows(table){const {data,error}=await sb.from(table).select("*").order("created_at",{ascending:false});if(error)throw error;return data||[];}
+async function pageError(error){const el=document.getElementById("pageMessage");if(el){el.textContent=error.message||String(error);el.style.display="block";}}
+function fmtDate(v){if(!v)return "—";return new Date(v+"T00:00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"});}
+async function printTripDocument(tripId,kind,win){
+ const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===tripId);if(!trip)throw new Error("Data perjalanan tidak ditemukan.");
+ const [{data:parts,error:pe},{data:activity,error:ae},{data:budget,error:be},{data:signs,error:se}]=await Promise.all([
+  sb.from("perjalanan_peserta").select("*").eq("perjalanan_id",tripId).order("created_at"),
+  sb.from("kegiatan").select("*").eq("id",trip.kegiatan_id).maybeSingle(),
+  sb.from("anggaran").select("*").eq("id",trip.anggaran_id).maybeSingle(),
+  sb.from("pejabat_dokumen").select("*").eq("aktif",true).eq("jenis_peran",kind==="sp"?"penandatangan_sp":"ppk_sppd")
+ ]);
+ if(pe)throw pe;if(ae)throw ae;if(be)throw be;if(se)throw se;if(!parts?.length)throw new Error("Tambahkan peserta sebelum mencetak dokumen.");
+ const sign=signs?.[0];if(!sign)throw new Error("Pejabat penandatangan dokumen ini belum diatur.");
+ const q=await sb.from("pegawai").select("*").eq("id",sign.pegawai_id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw new Error("Data pejabat penandatangan tidak ditemukan.");
+ const signer=q.data,escp=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const people=parts.map((p,i)=>({no:i+1,name:p.nama_snapshot||"—",nip:p.nip_snapshot||"—",rank:p.pangkat_snapshot||"—",job:p.jabatan_snapshot||"—"}));
+ const range=fmtDate(trip.tanggal_berangkat)+" s.d. "+fmtDate(trip.tanggal_kembali),dest=escp(trip.tempat_tujuan)+(trip.provinsi_tujuan?", "+escp(trip.provinsi_tujuan):"");
+ const peopleRows=people.map(p=>'<tr><td>'+p.no+'.</td><td>'+escp(p.name)+'</td><td>'+escp(p.nip)+'</td><td>'+escp(p.rank)+'</td><td>'+escp(p.job)+'</td></tr>').join("");
+ const isSekda=String(signer.jabatan||"").trim().toLowerCase()==="sekretaris daerah";
+ const signClause=isSekda?"":"a.n. SEKRETARIS DAERAH<br>";
+ const signJob=isSekda?"SEKRETARIS DAERAH":(sign.jabatan_dokumen||signer.nomenklatur_jabatan||signer.jabatan||"Pejabat yang ditunjuk");
+ const signBlock='<div class="sign"><div>Kajen, '+fmtDate(new Date().toISOString().slice(0,10))+'</div><div>'+signClause+escp(signJob)+'<div class="space"></div><b><u>'+escp(signer.nama)+'</u></b><br>NIP. '+escp(signer.nip||"—")+'</div></div>';
+ const tugas='<section class="sheet"><header><b>PEMERINTAH KABUPATEN PEKALONGAN</b><br><b>SEKRETARIAT DAERAH</b><p>Jalan Alun-alun Utara Nomor 1 Kajen Pekalongan, Kode Pos 51161, Telepon (0285) 381000,<br>Faksimile (0285) 381006, Laman setda.pekalongankab.go.id, Pos-el setda@pekalongankab.go.id</p></header><h2>SURAT TUGAS</h2><p>Nomor : __________________________</p><p>Yang bertanda tangan di bawah ini:</p><table class="plain"><tr><td width="22%">Nama</td><td>:</td><td>'+escp(signer.nama)+'</td></tr><tr><td>Jabatan</td><td>:</td><td>'+escp(sign.jabatan_dokumen)+'</td></tr></table><h3>MEMERINTAHKAN</h3><p>Kepada:</p><table class="people"><thead><tr><th>No.</th><th>Nama</th><th>NIP</th><th>Pangkat/Gol.</th><th>Jabatan</th></tr></thead><tbody>'+peopleRows+'</tbody></table><p style="margin-top:20px">Untuk : '+escp(trip.maksud_perjalanan)+'</p><table class="plain"><tr><td width="22%">Hari/Tanggal</td><td>:</td><td>'+escp(range)+'</td></tr><tr><td>Tempat</td><td>:</td><td>'+dest+'</td></tr></table><p style="margin-top:22px">Demikian Surat Tugas ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggung jawab.</p>'+signBlock+'</section>';
+ const days=trip.tanggal_berangkat&&trip.tanggal_kembali?Math.max(1,Math.round((new Date(trip.tanggal_kembali)-new Date(trip.tanggal_berangkat))/86400000)+1)+" hari":"—";
+ const spd='<section class="sheet"><header><b>PEMERINTAH KABUPATEN PEKALONGAN</b><br><b>SEKRETARIAT DAERAH</b><p>Jalan Alun-alun Utara Nomor 1 Kajen Pekalongan, Kode Pos 51161, Telepon (0285) 381000,<br>Faksimile (0285) 381006, Laman setda.pekalongankab.go.id, Pos-el setda@pekalongankab.go.id</p></header><h2>SURAT PERJALANAN DINAS (SPD)</h2><table class="spd"><tr><td>1.</td><td>Pejabat Pembuat Komitmen</td><td>:</td><td>'+escp(signer.nama)+'<br>'+escp(sign.jabatan_dokumen)+'</td></tr><tr><td>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>:</td><td>'+people.map(p=>escp(p.name)+" / "+escp(p.nip)).join("<br>")+'</td></tr><tr><td>3.</td><td>a. Pangkat dan Golongan<br>b. Jabatan/Instansi<br>c. Tingkat Biaya Perjalanan Dinas</td><td>:</td><td>'+people.map(p=>escp(p.rank)+"<br>"+escp(p.job)).join("<br>")+'<br>—</td></tr><tr><td>4.</td><td>Maksud perjalanan dinas</td><td>:</td><td>'+escp(trip.maksud_perjalanan)+'</td></tr><tr><td>5.</td><td>Alat angkut yang dipergunakan</td><td>:</td><td>'+escp(trip.alat_angkut||"Kendaraan Dinas")+'</td></tr><tr><td>6.</td><td>a. Tempat Berangkat<br>b. Tempat Tujuan</td><td>:</td><td>'+escp(trip.tempat_berangkat||"Kajen")+'<br>'+dest+'</td></tr><tr><td>7.</td><td>a. Lamanya Perjalanan Dinas<br>b. Tanggal berangkat<br>c. Tanggal harus kembali</td><td>:</td><td>'+days+'<br>'+fmtDate(trip.tanggal_berangkat)+'<br>'+fmtDate(trip.tanggal_kembali)+'</td></tr><tr><td>8.</td><td>Pengikut</td><td>:</td><td>'+people.map(p=>p.no+". "+escp(p.name)).join("<br>")+'</td></tr><tr><td>9.</td><td>Pembebanan Anggaran<br>a. Instansi<br>b. Akun</td><td>:</td><td>Setda Kabupaten Pekalongan<br>'+escp(activity?.nama_subkegiatan||"—")+'<br>'+escp(budget?.nama_rekening||budget?.uraian||"—")+'</td></tr><tr><td>10.</td><td>Keterangan Lain-Lain</td><td>:</td><td>—</td></tr></table>'+signBlock+'</section>';
+ const html='<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Cetak '+(kind==="sp"?"Surat Tugas":"SPPD")+'</title><style>@page{size:A4 portrait;margin:18mm}*{box-sizing:border-box}body{font:11pt "Times New Roman",serif;color:#000;margin:0}.sheet{page-break-after:always;min-height:260mm}.sheet:last-child{page-break-after:auto}header{text-align:center;border-bottom:3px double #000;padding-bottom:7px;line-height:1.25}header p{font-size:9pt;margin:5px 0 0}h2{text-align:center;text-decoration:underline;font-size:13pt;margin:22px 0 12px}h3{text-align:center;margin:22px 0 12px;font-size:11pt}.plain,.people,.spd{width:100%;border-collapse:collapse}.plain td{padding:3px 5px;vertical-align:top}.people th,.people td,.spd td{border:1px solid #000;padding:6px;vertical-align:top}.people th{text-align:center}.spd td:first-child{width:7%;text-align:center}.spd td:nth-child(2){width:36%}.spd td:nth-child(3){width:4%;text-align:center}.sign{display:grid;grid-template-columns:1fr 1fr;text-align:center;margin:25px 0 0 48%;line-height:1.45}.space{height:60px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+(kind==="sp"?tugas:spd)+'</body></html>';
+ win.document.open();win.document.write(html);win.document.close();win.focus();setTimeout(()=>win.print(),450);
+}
+async function loadPage(page){
+ const info=pageInfo[page]; if(!info)return;
+ mainView.innerHTML=`<div class="crumb">Beranda / ${info[0]}</div><div class="heading"><div><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="date">Tahun Anggaran 2026</div></div><div id="pageMessage" class="notice" style="display:none"></div><div id="pageContent" class="panel">Memuat data...</div>`;
+ const host=document.getElementById("pageContent");
+ try{
+  if(page==="bagian"){
+   const rows=await fetchRows("bagian");window._sppdRows={...(window._sppdRows||{}),bagian:rows};
+   host.innerHTML=`<h3>Tambah / Ubah Bagian</h3><form id="dataForm" data-table="bagian"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${field("Nama Bagian","nama_bagian")}${field("Nama Instansi","nama_instansi","Sekretariat Daerah")}</div><label class="field"><span>Status</span><select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></label><button class="btn" type="submit">Simpan Bagian</button> <button class="btn" type="button" data-reset>Form Baru</button></form><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Daftar Bagian (${rows.length})</h3><div class="tablewrap"><table><thead><tr><th>Nama Bagian</th><th>Instansi</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.nama_bagian)}</td><td>${esc(r.nama_instansi||"-")}</td><td>${r.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-edit="${r.id}">Ubah</button> <button class="btn" type="button" data-delete="${r.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada data bagian.</td></tr>'}</tbody></table></div>`;
+  }else if(page==="master"){
+   const [pangkat,jabatan]=await Promise.all([fetchRows("master_pangkat_golongan"),fetchRows("master_jabatan")]);
+   window._sppdRows={...(window._sppdRows||{}),master_pangkat_golongan:pangkat,master_jabatan:jabatan};
+   host.innerHTML=`<h3>Master Pangkat / Golongan</h3><form data-table="master_pangkat_golongan"><div class="grid"><label class="field"><span>Nama Pangkat / Golongan</span><input name="nama" required placeholder="Contoh: Penata (III/c)"></label><label class="field"><span>Urutan</span><input name="urutan" type="number" value="0"></label></div><button class="btn" type="submit">Tambah Pangkat / Golongan</button></form><div class="tablewrap"><table><thead><tr><th>Nama</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${pangkat.map(x=>`<tr><td>${esc(x.nama)}</td><td>${x.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-delete-master="master_pangkat_golongan" data-id="${x.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="3">Master belum diisi.</td></tr>'}</tbody></table></div>
+   <hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Master Jabatan</h3><form data-table="master_jabatan"><div class="grid"><label class="field"><span>Nama Jabatan</span><input name="nama" required placeholder="Contoh: Analis Kebijakan Ahli Muda"></label><label class="field"><span>Urutan</span><input name="urutan" type="number" value="0"></label></div><button class="btn" type="submit">Tambah Jabatan</button></form><div class="tablewrap"><table><thead><tr><th>Nama</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${jabatan.map(x=>`<tr><td>${esc(x.nama)}</td><td>${x.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-delete-master="master_jabatan" data-id="${x.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="3">Master belum diisi.</td></tr>'}</tbody></table></div>`;
+
+  }else if(["pengelola_pa","pengelola_pptk","pengelola_bendahara"].includes(page)){
+   const [rows,pegawai,bagian,kegiatan,masterJabatan,penugasanKegiatan]=await Promise.all([fetchRows("pejabat_pengelola"),fetchRows("pegawai"),fetchRows("bagian"),fetchRows("kegiatan"),fetchRows("master_jabatan"),fetchRows("pejabat_pengelola_kegiatan")]);
+   window._sppdRows={...(window._sppdRows||{}),pejabat_pengelola:rows,pegawai,bagian,kegiatan,master_jabatan:masterJabatan,pejabat_pengelola_kegiatan:penugasanKegiatan};
+   const allRoleLabels={"PA":"Pengguna Anggaran (PA)","KPA":"Kuasa Pengguna Anggaran (KPA)","PPTK":"Pejabat Pelaksana Teknis Kegiatan (PPTK)","Bendahara Pengeluaran":"Bendahara Pengeluaran","Bendahara Pengeluaran Pembantu":"Bendahara Pengeluaran Pembantu"};
+   const pageRoles=page==="pengelola_pa"?["PA","KPA"]:page==="pengelola_pptk"?["PPTK"]:["Bendahara Pengeluaran","Bendahara Pengeluaran Pembantu"];
+   const roleLabels=Object.fromEntries(pageRoles.map(k=>[k,allRoleLabels[k]]));
+   const isEselonIIorIII=p=>{const m=masterJabatan.find(x=>x.nama===p?.jabatan);const e=String(m?.eselon||"").toUpperCase();return e.startsWith("II.")||e.startsWith("III.");};
+   const people=pegawai.filter(p=>p.aktif&&(page!=="pengelola_pa"||isEselonIIorIII(p))).map(p=>({id:p.id,label:p.nama+" · "+[p.nip,p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" · ")}));
+   const bOpts=bagian.filter(x=>x.aktif).map(x=>({id:x.id,label:x.nama_bagian}));
+   const kOpts=kegiatan.filter(x=>x.aktif).map(x=>({id:x.id,label:[x.kode_subkegiatan,x.nama_subkegiatan,x.tahun_anggaran].filter(Boolean).join(" · ")}));
+   const scope=x=>x.jenis_peran==="PPTK"?penugasanKegiatan.filter(a=>a.pejabat_pengelola_id===x.id).map(a=>{const k=kegiatan.find(k=>k.id===a.kegiatan_id);return k?[k.kode_subkegiatan,k.nama_subkegiatan].filter(Boolean).join(" · "):"Sub kegiatan tidak ditemukan";}).join("; ")||"Belum ada kegiatan":(x.bagian_id?(bagian.find(b=>b.id===x.bagian_id)?.nama_bagian||"Bagian tidak ditemukan"):"Sekretariat Daerah");
+   host.innerHTML='<div class="panel" style="padding:20px;margin-bottom:20px"><h3>Tambah / Ubah Penetapan Pejabat</h3><form data-table="pejabat_pengelola"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">'+selectField("Jenis Penugasan","jenis_peran",pageRoles.map(id=>({id,label:roleLabels[id]})))+selectField("Nama Pegawai","pegawai_id",people)+'</div><div class="grid" style="grid-template-columns:1fr 1fr"><label class="field" id="pengelolaBagianField"><span>Bagian / Unit Kerja</span><select name="bagian_id"><option value="">Pilih Bagian</option>'+bOpts.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join("")+'</select></label><label class="field" id="pengelolaKegiatanField"><span>Kegiatan / Sub Kegiatan (dapat memilih lebih dari satu)</span><select name="kegiatan_ids" multiple size="6" style="min-height:145px;padding:9px">'+kOpts.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label)+'</option>').join("")+'</select><small class="muted">Gunakan Ctrl (komputer) atau pilih beberapa item pada perangkat yang mendukung multi-select.</small></label>'+selectField("Status Penugasan","status_penugasan",[{id:"definitif",label:"Definitif"},{id:"plt",label:"Plt. (Pelaksana Tugas)"},{id:"plh",label:"Plh. (Pelaksana Harian)"}])+'</div><div class="grid" style="grid-template-columns:1fr 1fr">'+'</div>'+'<input type="hidden" name="aktif" value="true"><button class="btn" type="submit">Simpan Penetapan</button> <button class="btn" type="button" data-reset>Form Baru</button></form><p class="muted">PA dan Bendahara Pengeluaran berlaku pada tingkat Sekretariat Daerah. KPA dan Bendahara Pengeluaran Pembantu per Bagian. PPTK ditetapkan untuk setiap sub kegiatan. Penetapan Plt./Plh. dicatat berdasarkan status penugasan.</p></div><h3>Riwayat Penetapan ('+rows.length+')</h3><div class="tablewrap"><table><thead><tr><th>Peran</th><th>Nama / NIP</th><th>Lingkup</th><th>Status</th><th>Kondisi</th><th>Aksi</th></tr></thead><tbody>'+rows.map(x=>{const p=pegawai.find(y=>y.id===x.pegawai_id);return '<tr><td>'+esc(roleLabels[x.jenis_peran]||x.jenis_peran)+'</td><td>'+esc(p?.nama||"-")+'<br><small>'+esc(p?.nip||"")+'</small></td><td>'+esc(scope(x))+'</td><td>'+({definitif:"Definitif",plt:"Plt.",plh:"Plh."}[x.status_penugasan]||x.status_penugasan)+'</td><td>'+(x.aktif?"Aktif":"Nonaktif")+'</td><td><button class="btn" type="button" data-edit="'+x.id+'">Ubah</button> '+(x.aktif?'<button class="btn" type="button" data-inactive-pejabat="'+x.id+'">Akhiri</button>':'')+'</td></tr>';}).join("")+'</tbody></table></div>';
+   const f=host.querySelector('form[data-table="pejabat_pengelola"]'),role=f.elements.namedItem("jenis_peran"),bf=host.querySelector("#pengelolaBagianField"),kf=host.querySelector("#pengelolaKegiatanField"),bs=f.elements.namedItem("bagian_id"),ks=f.elements.namedItem("kegiatan_ids");
+   const sync=()=>{const v=role.value,nb=["KPA","Bendahara Pengeluaran Pembantu"].includes(v),nk=v==="PPTK";bf.style.display=nb?"block":"none";kf.style.display=nk?"block":"none";bs.required=nb;ks.required=nk;if(!nb)bs.value="";if(!nk)Array.from(ks.options).forEach(o=>o.selected=false);};role.addEventListener("change",sync);sync();
+  }else if(page==="pejabat"){
+   const [pegawai,pejabat,masterJabatan]=await Promise.all([fetchRows("pegawai"),fetchRows("pejabat_dokumen"),fetchRows("master_jabatan")]);
+   window._sppdRows={...(window._sppdRows||{}),pegawai,pejabat_dokumen:pejabat,master_jabatan:masterJabatan};
+   const eligible=pegawai.filter(p=>{
+    if(!p.aktif)return false;
+    const master=masterJabatan.find(m=>m.nama===p.jabatan);
+    const eselon=String(master?.eselon||"").toUpperCase();
+    const title=[p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" ");
+    return eselon.startsWith("II.")||eselon.startsWith("III.")||/\bKPA\b/i.test(title);
+   });
+   const options=eligible.map(p=>({id:p.id,label:p.nama+" · "+[p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" ")}));
+   const roles={penandatangan_sp:"Penandatangan SP",ppk_sppd:"Penandatangan SPPD"};
+   host.innerHTML=`<div class="panel" style="padding:20px;margin-bottom:20px"><h3>Pengaturan Pejabat Penandatangan</h3><p class="muted">Pejabat SP dan SPPD dapat berbeda. Keduanya bertindak <b>a.n. Sekretaris Daerah</b>. Pilihan nama pegawai mencakup pejabat dengan eselon II dan III, serta pegawai yang nomenklatur jabatannya memuat KPA.</p><form data-table="pejabat_dokumen"><div class="grid" style="grid-template-columns:1fr 1fr"><label class="field"><span>Dokumen</span><select name="jenis_peran" required><option value="">Pilih jenis dokumen</option><option value="penandatangan_sp">Surat Perintah (SP)</option><option value="ppk_sppd">Surat Perjalanan Dinas (SPPD)</option></select></label>${selectField("Pejabat (Eselon II / III atau KPA)","pegawai_id",options)}<label class="field"><span>Jabatan dalam Dokumen</span><input name="jabatan_dokumen" required placeholder="Contoh: Kepala Bagian Umum"></label></div><input type="hidden" name="aktif" value="true"><button class="btn" type="submit">Simpan Penandatangan</button></form><p class="muted" style="margin-top:12px">Kualifikasi eselon II dan III ditentukan dari pemetaan Data Master Jabatan. Penetapan KPA harus tercermin pada nomenklatur jabatan pegawai.</p></div><h3>Penandatangan Aktif</h3><div class="tablewrap"><table><thead><tr><th>Dokumen</th><th>Nama</th><th>Jabatan</th><th>Klausul</th><th>Aksi</th></tr></thead><tbody>${pejabat.filter(x=>x.aktif).map(x=>{const p=pegawai.find(y=>y.id===x.pegawai_id);return `<tr><td>${roles[x.jenis_peran]||esc(x.jenis_peran)}</td><td>${esc(p?.nama||"-")}</td><td>${esc(x.jabatan_dokumen)}</td><td>${p?.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":"a.n. Sekretaris Daerah"}</td><td><button class="btn" type="button" data-delete-master="pejabat_dokumen" data-id="${x.id}">Hapus</button></td></tr>`;}).join("")||'<tr><td colspan="5">Belum ada pejabat yang ditetapkan.</td></tr>'}</tbody></table></div>`;
+  }else if(page==="pegawai"){
+   const [rows,bagian,pangkat,jabatan]=await Promise.all([fetchRows("pegawai"),fetchRows("bagian"),fetchRows("master_pangkat_golongan"),fetchRows("master_jabatan")]);
+   window._sppdRows={...(window._sppdRows||{}),pegawai:rows,master_pangkat_golongan:pangkat,master_jabatan:jabatan};
+   host.innerHTML=`<h3>Tambah / Ubah Pegawai</h3><form id="dataForm" data-table="pegawai"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${field("Nama Pegawai","nama")}${field("NIP","nip","", "text",false)}${selectField("Bagian","bagian_id",bagian.map(x=>({id:x.id,label:x.nama_bagian})))}${selectField("Status Kepegawaian","status_kepegawaian",["PNS","PPPK","NON_ASN","LAINNYA"].map(x=>({id:x,label:x})))}${selectField("Pangkat / Golongan","pangkat_golongan",[...pangkat.filter(x=>x.aktif).map(x=>({id:x.nama,label:x.nama})),...([...new Set(rows.map(x=>x.pangkat_golongan).filter(Boolean))].filter(v=>!pangkat.some(x=>x.nama===v)).map(v=>({id:v,label:v+" (data lama)"})))])}${selectField("Jenis Jabatan","jabatan",jabatan.filter(x=>x.aktif).map(x=>({id:x.nama,label:x.nama})))}${field("Nomenklatur Jabatan","nomenklatur_jabatan","","text",false)}${field("Instansi","instansi","Sekretariat Daerah","text",false)}</div><label class="field"><span>Status</span><select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></label><button class="btn" type="submit">Simpan Pegawai</button> <button class="btn" type="button" data-reset>Form Baru</button></form><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Daftar Pegawai (${rows.length})</h3><div class="tablewrap"><table><thead><tr><th>Nama</th><th>NIP</th><th>Bagian</th><th>Pangkat / Golongan</th><th>Jabatan</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.nama)}</td><td>${esc(r.nip||"-")}</td><td>${esc(bagian.find(x=>x.id===r.bagian_id)?.nama_bagian||"-")}</td><td>${esc(r.pangkat_golongan||"-")}</td><td>${esc(r.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[r.jabatan,r.nomenklatur_jabatan].filter(Boolean).join(" "))}</td><td>${esc(r.status_kepegawaian)} · ${r.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-edit="${r.id}">Ubah</button> <button class="btn" type="button" data-delete="${r.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="7">Belum ada data pegawai.</td></tr>'}</tbody></table></div>`;
+
+   const jabatanSelect=host.querySelector('[name="jabatan"]');
+   const nomenklaturField=host.querySelector('[name="nomenklatur_jabatan"]')?.closest(".field");
+   const nomenklaturInput=host.querySelector('[name="nomenklatur_jabatan"]');
+   const syncNomenklatur=()=>{const isSekda=jabatanSelect?.value==="Sekretaris Daerah";if(nomenklaturField)nomenklaturField.style.display=isSekda?"none":"block";if(nomenklaturInput){nomenklaturInput.required=!isSekda;if(isSekda)nomenklaturInput.value="";}};
+   jabatanSelect?.addEventListener("change",syncNomenklatur);syncNomenklatur();
+
+
+  }else if(page==="perjalanan"){
+   const [rows,kegiatan,anggaran,pegawai]=await Promise.all([fetchRows("perjalanan_dinas"),fetchRows("kegiatan"),fetchRows("anggaran"),fetchRows("pegawai")]);
+   window._sppdRows={...(window._sppdRows||{}),perjalanan_dinas:rows,kegiatan,anggaran,pegawai};
+   const selected=window._selectedTripId||rows[0]?.id||"";window._selectedTripId=selected;
+   const pr=selected?await sb.from("perjalanan_peserta").select("*").eq("perjalanan_id",selected):{data:[],error:null};if(pr.error)throw pr.error;
+   const tripRows=rows.map(r=>'<tr><td><b>'+esc(r.tempat_tujuan)+'</b><br><small>'+esc(r.maksud_perjalanan)+'</small></td><td>'+esc(r.tanggal_berangkat)+' – '+esc(r.tanggal_kembali)+'</td><td>'+esc(r.status)+'</td><td><button class="btn" type="button" data-detail-trip="'+r.id+'">Detail</button> <button class="btn" type="button" data-print-sp="'+r.id+'">Cetak Surat Tugas</button> <button class="btn" type="button" data-print-sppd="'+r.id+'">Cetak SPPD</button> <button class="btn" type="button" data-select-trip="'+r.id+'">Peserta</button> <button class="btn" type="button" data-edit-travel="'+r.id+'">Ubah</button> <button class="btn" type="button" data-delete-travel="'+r.id+'">Hapus</button></td></tr>').join("");
+   const pesertaRows=(pr.data||[]).map(p=>'<tr><td>'+esc(p.nama_snapshot||pegawai.find(x=>x.id===p.pegawai_id)?.nama||"-")+'</td><td>'+esc(p.nip_snapshot||"-")+'</td><td>'+esc(p.pangkat_snapshot||"-")+'</td><td>'+esc(p.jabatan_snapshot||"-")+'</td><td><button class="btn" type="button" data-delete-participant="'+p.id+'">Hapus</button></td></tr>').join("");
+   host.innerHTML='<h3>Tambah / Ubah Perjalanan Dinas</h3><form id="dataForm" data-table="perjalanan_dinas"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">'+selectField("Kegiatan","kegiatan_id",kegiatan.map(x=>({id:x.id,label:x.nama_subkegiatan+" · "+x.tahun_anggaran})))+selectField("Pos Anggaran","anggaran_id",anggaran.map(x=>({id:x.id,label:"Rp "+Number(x.pagu_awal).toLocaleString("id-ID")})))+field("Nomor Undangan","nomor_undangan","", "text",false)+field("Tanggal Undangan","tanggal_undangan","", "date",false)+field("Lokasi Acara","lokasi_acara")+field("Maksud Perjalanan","maksud_perjalanan")+field("Tempat Berangkat","tempat_berangkat","Kajen")+field("Tempat Tujuan","tempat_tujuan")+`<label class="field"><span>Provinsi Tujuan</span><input type="text" name="provinsi_tujuan" list="daftarProvinsi" placeholder="Ketik untuk mencari provinsi..." autocomplete="off" required><datalist id="daftarProvinsi"><option value="Aceh"><option value="Sumatera Utara"><option value="Sumatera Barat"><option value="Riau"><option value="Kepulauan Riau"><option value="Jambi"><option value="Sumatera Selatan"><option value="Kepulauan Bangka Belitung"><option value="Bengkulu"><option value="Lampung"><option value="DKI Jakarta"><option value="Jawa Barat"><option value="Jawa Tengah"><option value="DI Yogyakarta"><option value="Jawa Timur"><option value="Banten"><option value="Nusa Tenggara Barat"><option value="Nusa Tenggara Timur"><option value="Bali"><option value="Kalimantan Barat"><option value="Kalimantan Tengah"><option value="Kalimantan Selatan"><option value="Kalimantan Timur"><option value="Kalimantan Utara"><option value="Sulawesi Utara"><option value="Gorontalo"><option value="Sulawesi Tengah"><option value="Sulawesi Barat"><option value="Sulawesi Selatan"><option value="Sulawesi Tenggara"><option value="Maluku"><option value="Maluku Utara"><option value="Papua"><option value="Papua Barat"><option value="Papua Selatan"><option value="Papua Tengah"><option value="Papua Pegunungan"><option value="Papua Barat Daya"></datalist></label>`+field("Tanggal Acara Mulai","tanggal_acara_mulai","", "date")+field("Tanggal Acara Selesai","tanggal_acara_selesai","", "date")+field("Tanggal Berangkat","tanggal_berangkat","", "date")+field("Tanggal Kembali","tanggal_kembali","", "date")+field("Alat Angkut","alat_angkut","", "text",false)+'</div><label class="field"><span>Jenis Perjalanan</span><select name="jenis_perjalanan"><option value="luar_kota">Luar Kota / Dinas Biasa</option><option value="dalam_kota">Dalam Kota</option></select></label><label class="field"><span>Status</span><select name="status"><option value="draft">Draft</option><option value="published">Diterbitkan</option><option value="cancelled">Dibatalkan</option></select></label><button class="btn" type="submit">Simpan Perjalanan</button> <button class="btn" type="button" data-reset>Form Baru</button></form><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Daftar Perjalanan ('+rows.length+')</h3><div class="tablewrap"><table><thead><tr><th>Tujuan / Maksud</th><th>Jadwal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+ (tripRows||'<tr><td colspan="4">Belum ada perjalanan dinas.</td></tr>')+'</tbody></table></div>';
+   host.innerHTML+=`<div id="pesertaModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(5,25,21,.58);padding:24px;overflow:auto;align-items:center;justify-content:center"><section class="panel" style="width:min(900px,100%);max-height:90vh;overflow:auto;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><h3 style="margin:0">Peserta Perjalanan</h3><p class="muted" style="margin:6px 0 0">Tujuan: ${esc(rows.find(x=>x.id===selected)?.tempat_tujuan||"")}</p></div><button class="btn" type="button" data-close-participants>Tutup</button></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><form id="pesertaForm" data-table="perjalanan_peserta"><input type="hidden" name="perjalanan_id" value="${selected}">${selectField("Pegawai","pegawai_id",pegawai.filter(x=>x.aktif).map(x=>({id:x.id,label:x.nama+(x.nip?" · "+x.nip:"")}))) }<button class="btn" type="submit">Tambahkan Peserta</button></form><div class="tablewrap" style="margin-top:16px"><table><thead><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Jabatan</th><th>Aksi</th></tr></thead><tbody>${pesertaRows||'<tr><td colspan="5">Belum ada peserta.</td></tr>'}</tbody></table></div></section></div>`;
+   if(window._openParticipantModal){const modal=document.getElementById("pesertaModal");if(modal)modal.style.display="flex";window._openParticipantModal=false;}
+
+  }else if(page==="dokumen"){
+   const [perjalanan,arsip]=await Promise.all([fetchRows("perjalanan_dinas"),fetchRows("arsip_dokumen")]);
+   window._sppdRows={...(window._sppdRows||{}),perjalanan_dinas:perjalanan,arsip_dokumen:arsip};
+   const tripOptions=perjalanan.map(x=>({id:x.id,label:x.tempat_tujuan+" · "+x.tanggal_berangkat+" · "+x.status}));
+   const labels={undangan:"Undangan",sp:"Surat Perintah (SP)",sppd:"Surat Perjalanan Dinas (SPPD)",lampiran_sp:"Lampiran SP",lampiran_sppd:"Lampiran SPPD"};
+   host.innerHTML=`<div class="panel" style="padding:20px;margin-bottom:20px"><h3>Unggah Dokumen Perjalanan</h3><p class="muted">Simpan file PDF atau DOCX dan hubungkan dengan perjalanan dinas terkait. Dokumen disimpan secara privat.</p><form id="arsipUploadForm"><div class="grid" style="grid-template-columns:1fr 1fr">${selectField("Perjalanan Dinas","perjalanan_id",tripOptions)}<label class="field"><span>Jenis Dokumen</span><select name="jenis_dokumen" required><option value="">Pilih jenis dokumen</option><option value="undangan">Undangan</option><option value="sp">Surat Perintah (SP)</option><option value="sppd">Surat Perjalanan Dinas (SPPD)</option><option value="lampiran_sp">Lampiran SP</option><option value="lampiran_sppd">Lampiran SPPD</option></select></label>${field("Nomor Dokumen","nomor_dokumen","","text",false)}${field("Tanggal Terbit","tanggal_terbit","","date",false)}</div><label class="field"><span>File (PDF atau DOCX, maksimal 20 MB)</span><input type="file" name="file_dokumen" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required></label><button class="btn" type="submit">Unggah & Simpan Arsip</button><div id="arsipUploadMessage" class="notice" style="display:none;margin-top:12px"></div></form></div><h3>Daftar Dokumen & Arsip (${arsip.length})</h3><div class="tablewrap"><table><thead><tr><th>Perjalanan</th><th>Jenis Dokumen</th><th>Nomor / Tanggal</th><th>Versi</th><th>Format</th><th>Aksi</th></tr></thead><tbody>${arsip.map(a=>{const p=perjalanan.find(x=>x.id===a.perjalanan_id);return `<tr><td>${esc(p?.tempat_tujuan||"Perjalanan tidak ditemukan")}<br><small>${esc(p?.tanggal_berangkat||"")}</small></td><td>${labels[a.jenis_dokumen]||esc(a.jenis_dokumen)}</td><td>${esc(a.nomor_dokumen||"-")}<br><small>${esc(a.tanggal_terbit||"-")}</small></td><td>${a.versi}</td><td>${esc(a.format_file.toUpperCase())}</td><td><button class="btn" type="button" data-open-archive="${esc(a.file_path)}">Buka</button></td></tr>`;}).join("")||'<tr><td colspan="6">Belum ada dokumen yang diarsipkan.</td></tr>'}</tbody></table></div>`;
+  }else if(page==="anggaran"){
+   const [kegiatan,bagian,rekening,anggaran]=await Promise.all([fetchRows("kegiatan"),fetchRows("bagian"),fetchRows("rekening_belanja"),fetchRows("anggaran")]);
+   host.innerHTML=`<h3>Master Rekening Belanja</h3><form id="rekeningForm" data-table="rekening_belanja"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 2fr">${field("Kode Rekening","kode_rekening")}${field("Nama Rekening","nama_rekening")}</div><button class="btn" type="submit">Simpan Rekening</button></form><div class="tablewrap" style="margin:14px 0 24px"><table><thead><tr><th>Kode</th><th>Nama Rekening</th><th>Aksi</th></tr></thead><tbody>${rekening.map(r=>`<tr><td>${esc(r.kode_rekening)}</td><td>${esc(r.nama_rekening)}</td><td><button class="btn" type="button" data-edit-rekening="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="3">Belum ada rekening belanja.</td></tr>'}</tbody></table></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Tambah Kegiatan</h3><form id="kegiatanForm" data-table="kegiatan"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${selectField("Bagian","bagian_id",bagian.map(x=>({id:x.id,label:x.nama_bagian}))) }${field("Kode Subkegiatan","kode_subkegiatan","", "text",false)}${field("Nama Subkegiatan","nama_subkegiatan")}${field("Tahun Anggaran","tahun_anggaran","2026","number")}</div><button class="btn" type="submit">Simpan Kegiatan</button></form><div class="tablewrap" style="margin:14px 0 24px"><table><thead><tr><th>Kode</th><th>Nama Subkegiatan</th><th>Tahun</th><th>Aksi</th></tr></thead><tbody>${kegiatan.map(r=>`<tr><td>${esc(r.kode_subkegiatan||"-")}</td><td>${esc(r.nama_subkegiatan)}</td><td>${r.tahun_anggaran}</td><td><button class="btn" type="button" data-edit-kegiatan="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada kegiatan.</td></tr>'}</tbody></table></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Alokasi Anggaran</h3><form id="anggaranForm" data-table="anggaran"><input type="hidden" name="id">${selectField("Kegiatan","kegiatan_id",kegiatan.map(x=>({id:x.id,label:x.nama_subkegiatan+" ("+x.tahun_anggaran+")"}))) }${selectField("Rekening Belanja","rekening_id",rekening.map(x=>({id:x.id,label:x.kode_rekening+" - "+x.nama_rekening}))) }${field("Pagu Awal (Rp)","pagu_awal","0","number")}<button class="btn" type="submit">Simpan Anggaran</button></form><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Kegiatan</th><th>Rekening</th><th>Pagu Awal</th><th>Aksi</th></tr></thead><tbody>${anggaran.map(r=>`<tr><td>${esc(kegiatan.find(x=>x.id===r.kegiatan_id)?.nama_subkegiatan||"-")}</td><td>${esc(rekening.find(x=>x.id===r.rekening_id)?.nama_rekening||"-")}</td><td>Rp ${Number(r.pagu_awal).toLocaleString("id-ID")}</td><td><button class="btn" type="button" data-edit-anggaran="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada alokasi anggaran.</td></tr>'}</tbody></table></div>`;
+   window._sppdRows={...(window._sppdRows||{}),kegiatan,bagian,rekening_belanja:rekening,anggaran};
+  }else{
+   host.innerHTML=`<div style="padding:24px;text-align:center"><h3>${info[0]}</h3><p class="muted">Modul ini akan dilanjutkan setelah modul data dasar selesai.</p><span class="status">Tahap berikutnya</span></div>`;
+  }
+ }catch(e){host.innerHTML=`<div class="notice">Data tidak dapat dimuat: ${esc(e.message)}</div>`;}
+}
+function showPage(page){
+ document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ if(page==="dashboard"){mainView.innerHTML=dashboardMarkup;return;}
+ loadPage(page);
+}
+document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+mainView.addEventListener("click",async ev=>{
+ const btn=ev.target.closest("button");if(!btn)return;
+ if(btn.hasAttribute("data-reset")){btn.closest("form")?.reset();const id=btn.closest("form")?.querySelector('[name="id"]');if(id)id.value="";const multi=btn.closest("form")?.elements.namedItem("kegiatan_ids");if(multi)Array.from(multi.options).forEach(o=>o.selected=false);return;}
+ const page=document.querySelector("aside .nav.active")?.dataset.page||"";
+ let table=null, id=null;
+ if(btn.dataset.edit){table=page.startsWith("pengelola_")?"pejabat_pengelola":page;id=btn.dataset.edit;}
+ if(btn.dataset.editTravel){table="perjalanan_dinas";id=btn.dataset.editTravel;}
+ if(btn.dataset.editRekening){table="rekening_belanja";id=btn.dataset.editRekening;}
+ if(btn.dataset.editKegiatan){table="kegiatan";id=btn.dataset.editKegiatan;}
+ if(btn.dataset.editAnggaran){table="anggaran";id=btn.dataset.editAnggaran;}
+ if(id&&table){
+  const form=mainView.querySelector(`form[data-table="${table}"]`);
+  const row=(window._sppdRows?.[table]||[]).find(x=>x.id===id);
+  if(row&&form){Object.entries(row).forEach(([k,v])=>{const el=form.elements.namedItem(k);if(el&&k!=="kegiatan_id")el.value=v??"";});form.elements.namedItem("id").value=id;form.elements.namedItem("jenis_peran")?.dispatchEvent(new Event("change"));if(row.jenis_peran==="PPTK"){const assigned=(window._sppdRows?.pejabat_pengelola_kegiatan||[]).filter(a=>a.pejabat_pengelola_id===id).map(a=>a.kegiatan_id);const multi=form.elements.namedItem("kegiatan_ids");Array.from(multi.options).forEach(o=>o.selected=assigned.includes(o.value));}form.scrollIntoView({behavior:"smooth",block:"center"});}
+  return;
+ }
+ if(btn.dataset.inactivePejabat){if(!confirm("Akhiri penetapan pejabat ini? Riwayat tetap disimpan."))return;try{const {error}=await sb.from("pejabat_pengelola").update({aktif:false}).eq("id",btn.dataset.inactivePejabat);if(error)throw error;await loadPage(document.querySelector("aside .nav.active")?.dataset.page||"pengelola_pa");}catch(e){await pageError(e);}return;}
+ if(btn.dataset.deleteMaster){
+  if(!confirm("Hapus pilihan master ini? Data pegawai yang sudah menggunakan pilihan ini mungkin tidak dapat dihapus karena relasi data."))return;
+  try{const {error}=await sb.from(btn.dataset.deleteMaster).delete().eq("id",btn.dataset.id);if(error)throw error;await loadPage("master");}catch(e){await pageError(e);}return;
+ }
+
+ if(btn.dataset.printSp||btn.dataset.printSppd){const printWin=window.open("about:blank","_blank");if(!printWin){await pageError(new Error("Browser memblokir jendela cetak. Izinkan pop-up untuk situs ini lalu coba lagi."));return;}try{await printTripDocument(btn.dataset.printSp||btn.dataset.printSppd,btn.dataset.printSp?"sp":"sppd",printWin);}catch(e){printWin.close();await pageError(e);}return;}
+ if(btn.dataset.openArchive){
+  try{const {data,error}=await sb.storage.from("sppd-arsip").createSignedUrl(btn.dataset.openArchive,300);if(error)throw error;window.open(data.signedUrl,"_blank","noopener");}catch(e){await pageError(e);}return;
+ }
+ if(btn.dataset.detailTrip){
+  try{
+   const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===btn.dataset.detailTrip);
+   if(!trip)throw new Error("Data perjalanan tidak ditemukan.");
+   const [{data:parts,error:partErr},{data:activity,error:activityErr},{data:budget,error:budgetErr}]=await Promise.all([
+    sb.from("perjalanan_peserta").select("*").eq("perjalanan_id",trip.id),
+    sb.from("kegiatan").select("*").eq("id",trip.kegiatan_id).maybeSingle(),
+    sb.from("anggaran").select("*").eq("id",trip.anggaran_id).maybeSingle()
+   ]);
+   if(partErr)throw partErr;if(activityErr)throw activityErr;if(budgetErr)throw budgetErr;
+   const peserta=(parts||[]).map((p,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(p.nama_snapshot||"—")+'</td><td>'+esc(p.nip_snapshot||"—")+'</td><td>'+esc(p.pangkat_snapshot||"—")+'</td><td>'+esc(p.jabatan_snapshot||"—")+'</td></tr>').join("")||'<tr><td colspan="5">Belum ada peserta.</td></tr>';
+   const rows=[["Jenis Perjalanan",trip.jenis_perjalanan==="dalam_kota"?"Dalam Kota":"Luar Kota / Dinas Biasa"],["Kegiatan",activity?.nama_subkegiatan||"—"],["Pos Anggaran",budget?.nama_rekening||budget?.uraian||"—"],["Nomor Undangan",trip.nomor_undangan],["Tanggal Undangan",trip.tanggal_undangan],["Lokasi Acara",trip.lokasi_acara],["Maksud Perjalanan",trip.maksud_perjalanan],["Tempat Berangkat",trip.tempat_berangkat],["Tempat Tujuan",trip.tempat_tujuan],["Provinsi Tujuan",trip.provinsi_tujuan],["Tanggal Acara",(trip.tanggal_acara_mulai||"—")+" s.d. "+(trip.tanggal_acara_selesai||"—")],["Tanggal Perjalanan",(trip.tanggal_berangkat||"—")+" s.d. "+(trip.tanggal_kembali||"—")],["Alat Angkut",trip.alat_angkut],["Status",trip.status]];
+   const detail=rows.map(([k,v])=>'<tr><th style="text-align:left;padding:8px;width:34%">'+esc(k)+'</th><td style="padding:8px">'+esc(v||"—")+'</td></tr>').join("");
+   let modal=document.getElementById("detailTripModal");
+   if(!modal){modal=document.createElement("div");modal.id="detailTripModal";modal.style.cssText="position:fixed;inset:0;z-index:1100;background:rgba(5,25,21,.62);padding:18px;overflow:auto;display:flex;align-items:center;justify-content:center";document.body.appendChild(modal);}
+   modal.innerHTML='<section class="panel" style="width:min(900px,100%);max-height:92vh;overflow:auto;margin:auto;padding:22px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><h3 style="margin:0">Detail Perjalanan Dinas</h3><p class="muted" style="margin:5px 0">Rincian perjalanan dan peserta</p></div><button class="btn" type="button" data-close-detail>Tutup</button></div><h4>Informasi Perjalanan</h4><div class="tablewrap"><table><tbody>'+detail+'</tbody></table></div><h4 style="margin-top:20px">Peserta ('+(parts||[]).length+')</h4><div class="tablewrap"><table><thead><tr><th>No.</th><th>Nama</th><th>NIP</th><th>Pangkat / Golongan</th><th>Jabatan</th></tr></thead><tbody>'+peserta+'</tbody></table></div></section>';
+   modal.style.display="flex";
+   modal.querySelector("[data-close-detail]")?.addEventListener("click",()=>modal.remove());
+   modal.addEventListener("click",ev=>{if(ev.target===modal)modal.remove();});
+  }catch(e){await pageError(e);}return;
+ }
+ if(btn.hasAttribute("data-close-detail")){const modal=document.getElementById("detailTripModal");if(modal)modal.remove();return;}
+ if(btn.dataset.selectTrip){window._selectedTripId=btn.dataset.selectTrip;window._openParticipantModal=true;await loadPage("perjalanan");return;}
+ if(btn.hasAttribute("data-close-participants")){const modal=document.getElementById("pesertaModal");if(modal)modal.style.display="none";return;}
+ if(btn.dataset.deleteTravel){if(!confirm("Hapus perjalanan ini?"))return;try{const {error}=await sb.from("perjalanan_dinas").delete().eq("id",btn.dataset.deleteTravel);if(error)throw error;window._selectedTripId=null;await loadPage("perjalanan");}catch(e){await pageError(e);}return;}
+ if(btn.dataset.deleteParticipant){if(!confirm("Hapus peserta ini?"))return;try{const {error}=await sb.from("perjalanan_peserta").delete().eq("id",btn.dataset.deleteParticipant);if(error)throw error;await loadPage("perjalanan");}catch(e){await pageError(e);}return;}
+ if(btn.dataset.delete){
+  if(!confirm("Hapus data ini? Tindakan tidak dapat dibatalkan."))return;
+  try{const {error}=await sb.from(page).delete().eq("id",btn.dataset.delete);if(error)throw error;await loadPage(page);}catch(e){await pageError(e);}
+ }
+});
+mainView.addEventListener("input",ev=>{
+ const search=ev.target.closest("[data-province-search]");if(!search)return;
+ const select=search.parentElement.querySelector('select[name="provinsi_tujuan"]');
+ const term=search.value.trim().toLocaleLowerCase("id");
+ const current=select.value;
+ Array.from(select.options).forEach((opt,index)=>{if(index===0){opt.hidden=false;return;}opt.hidden=!!term&&!opt.text.toLocaleLowerCase("id").includes(term);});
+ if(current&&!Array.from(select.options).some(o=>o.value===current&&!o.hidden))select.value="";
+});
+
+mainView.addEventListener("submit",async ev=>{
+ const form=ev.target.closest("#arsipUploadForm");if(!form)return;
+ ev.preventDefault();
+ const msg=document.getElementById("arsipUploadMessage");
+ const show=(t,ok=false)=>{msg.textContent=t;msg.style.display="block";msg.style.background=ok?"#edf7ef":"#fff4e5";msg.style.color=ok?"#28633e":"#805313";};
+ const fd=new FormData(form),tripId=fd.get("perjalanan_id"),kind=fd.get("jenis_dokumen"),file=fd.get("file_dokumen");
+ if(!tripId||!kind||!file||!file.size){show("Lengkapi perjalanan, jenis dokumen, dan file.");return;}
+ const ext=file.name.split(".").pop().toLowerCase();
+ if(!["pdf","docx"].includes(ext)){show("Format file harus PDF atau DOCX.");return;}
+ if(file.size>20*1024*1024){show("Ukuran file melebihi batas 20 MB.");return;}
+ const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===tripId);
+ if(!trip){show("Perjalanan dinas tidak ditemukan. Muat ulang halaman.");return;}
+ const btn=form.querySelector('button[type="submit"]');btn.disabled=true;btn.textContent="Mengunggah...";
+ const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+ const path=tripId+"/"+kind+"/"+Date.now()+"_"+safeName;
+ try{
+  const up=await sb.storage.from("sppd-arsip").upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+  if(up.error)throw up.error;
+  const versions=(window._sppdRows?.arsip_dokumen||[]).filter(x=>x.perjalanan_id===tripId&&x.jenis_dokumen===kind&&x.format_file===ext).map(x=>Number(x.versi)||1);
+  const row={perjalanan_id:tripId,jenis_dokumen:kind,format_file:ext,file_path:path,nomor_dokumen:(fd.get("nomor_dokumen")||"").trim()||null,tanggal_terbit:fd.get("tanggal_terbit")||null,versi:Math.max(0,...versions)+1,status:"aktif",created_by:profile?.id||null};
+  const ins=await sb.from("arsip_dokumen").insert(row);
+  if(ins.error){await sb.storage.from("sppd-arsip").remove([path]);throw ins.error;}
+  await loadPage("dokumen");
+  const result=document.getElementById("pageMessage");if(result){result.textContent="Dokumen berhasil diunggah dan diarsipkan.";result.style.display="block";result.style.background="#edf7ef";result.style.color="#28633e";}
+ }catch(e){show("Gagal menyimpan dokumen: "+(e.message||String(e)));}
+ finally{btn.disabled=false;btn.textContent="Unggah & Simpan Arsip";}
+});
+mainView.addEventListener("submit",async ev=>{
+ const form=ev.target.closest("form[data-table]");if(!form)return;ev.preventDefault();
+ const table=form.dataset.table;const fd=new FormData(form);const id=fd.get("id");const data=Object.fromEntries(fd.entries());delete data.id;
+ if(data.aktif!==undefined)data.aktif=data.aktif==="true";
+ if(table==="perjalanan_dinas" && !id)data.dibuat_oleh=profile?.id||null;
+ if(table==="perjalanan_peserta"){const pg=(window._sppdRows?.pegawai||[]).find(x=>x.id===data.pegawai_id);if(!pg){await pageError(new Error("Pegawai tidak ditemukan. Muat ulang halaman dan pilih pegawai yang tersedia."));return;}data.nama_snapshot=pg.nama;data.nip_snapshot=pg.nip||null;data.pangkat_snapshot=pg.pangkat_golongan||null;data.jabatan_snapshot=pg.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[pg.jabatan,pg.nomenklatur_jabatan].filter(Boolean).join(" ")||null;}
+ if(data.nomenklatur_jabatan==="")data.nomenklatur_jabatan=null;
+ if(data.jabatan==="Sekretaris Daerah")data.nomenklatur_jabatan=null;
+ if(data.jabatan && data.jabatan!=="Sekretaris Daerah" && !data.nomenklatur_jabatan){await pageError(new Error("Nomenklatur jabatan wajib diisi."));return;}
+
+ let selectedKegiatanIds=[];const pengelolaRole=data.jenis_peran;
+ if(table==="pejabat_pengelola"){
+  const role=data.jenis_peran;
+  if(!["PA","KPA","PPTK","Bendahara Pengeluaran","Bendahara Pengeluaran Pembantu"].includes(role)){await pageError(new Error("Pilih jenis pejabat yang valid."));return;}
+  selectedKegiatanIds=Array.from(form.elements.namedItem("kegiatan_ids")?.selectedOptions||[]).map(o=>o.value).filter(Boolean);delete data.kegiatan_ids;
+  data.bagian_id=data.bagian_id||null;data.kegiatan_id=role==="PPTK"?(selectedKegiatanIds[0]||null):null;
+  if(["KPA","Bendahara Pengeluaran Pembantu"].includes(role)&&!data.bagian_id){await pageError(new Error("Pilih Bagian."));return;}
+  if(role==="PPTK"&&!selectedKegiatanIds.length){await pageError(new Error("Pilih minimal satu kegiatan/subkegiatan untuk PPTK."));return;}
+  if(["PA","Bendahara Pengeluaran"].includes(role)){data.bagian_id=null;data.kegiatan_id=null;}
+  if(role!=="PPTK")data.kegiatan_id=null;
+  const person=(window._sppdRows?.pegawai||[]).find(p=>p.id===data.pegawai_id);if(!person||!person.aktif){await pageError(new Error("Pilih pegawai aktif."));return;}
+  const conflict=(window._sppdRows?.pejabat_pengelola||[]).find(x=>x.aktif&&x.id!==id&&x.jenis_peran===role&&(role==="PPTK"?x.pegawai_id===data.pegawai_id:(x.bagian_id||null)===(data.bagian_id||null)&&(x.kegiatan_id||null)===(data.kegiatan_id||null)));if(conflict){await pageError(new Error(role==="PPTK"?"Pegawai ini sudah memiliki penetapan PPTK aktif. Gunakan Ubah untuk menambahkan kegiatan.":"Sudah ada penetapan aktif untuk peran dan lingkup ini. Akhiri penetapan sebelumnya terlebih dahulu."));return;}
+ }
+ if(table==="pejabat_dokumen"){
+  if(!["penandatangan_sp","ppk_sppd"].includes(data.jenis_peran)){await pageError(new Error("Pilih dokumen SP atau SPPD."));return;}
+  const person=(window._sppdRows?.pegawai||[]).find(p=>p.id===data.pegawai_id);
+  const master=(window._sppdRows?.master_jabatan||[]).find(m=>m.nama===person?.jabatan);
+  const title=[person?.jabatan,person?.nomenklatur_jabatan].filter(Boolean).join(" ");
+  const eselon=String(master?.eselon||"").toUpperCase();
+  const qualified=eselon.startsWith("II.")||eselon.startsWith("III.")||/\bKPA\b/i.test(title);
+  if(!person||!person.aktif||!qualified){await pageError(new Error("Pejabat harus pegawai aktif dengan kualifikasi minimal Eselon III atau KPA."));return;}
+  data.jabatan_dokumen=data.jabatan_dokumen.trim();
+ }
+ if(data.nip==="")data.nip=null;if(data.bagian_id==="")data.bagian_id=null;if(data.kode_subkegiatan==="")data.kode_subkegiatan=null;
+ if(data.pagu_awal!==undefined)data.pagu_awal=Number(data.pagu_awal);
+ if(data.tahun_anggaran!==undefined)data.tahun_anggaran=Number(data.tahun_anggaran);
+ if(data.urutan!==undefined)data.urutan=Number(data.urutan);
+ try{
+  let savedId=id;
+  if(table==="pejabat_pengelola"){const q=id?await sb.from(table).update(data).eq("id",id).select("id").single():await sb.from(table).insert(data).select("id").single();if(q.error)throw q.error;savedId=q.data.id;const picked=pengelolaRole==="PPTK"?selectedKegiatanIds:[];const del=await sb.from("pejabat_pengelola_kegiatan").delete().eq("pejabat_pengelola_id",savedId);if(del.error)throw del.error;if(picked.length){const ins=await sb.from("pejabat_pengelola_kegiatan").insert(picked.map(kegiatan_id=>({pejabat_pengelola_id:savedId,kegiatan_id})));if(ins.error)throw ins.error;}}
+  else{const q=id?await sb.from(table).update(data).eq("id",id):await sb.from(table).insert(data);if(q.error)throw q.error;}
+  const current=document.querySelector("aside .nav.active")?.dataset.page||"dashboard";
+  await loadPage(current);
+  const msg=document.getElementById("pageMessage");
+  if(msg){msg.textContent="Data berhasil disimpan.";msg.style.display="block";msg.style.background="#edf7ef";msg.style.borderColor="#d7eadb";msg.style.color="#28633e";}
+ }catch(e){await pageError(e);}
+});
+document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+async function rowCount(t){const r=await sb.from(t).select("*",{count:"exact",head:true});if(r.error)throw r.error;return r.count||0;}
+async function dashboard(){document.getElementById("app").style.display="block";document.getElementById("userLabel").textContent=profile.username||"Pengguna";document.getElementById("userRole").textContent=profile.role==="admin"?"Admin Global":"Operator";document.getElementById("userAvatar").textContent=(profile.username||"U").charAt(0).toUpperCase();const n=document.getElementById("dashboardNotice");try{const v=await Promise.all([rowCount("bagian"),rowCount("pegawai"),rowCount("perjalanan_dinas"),rowCount("anggaran")]);["statBagian","statPegawai","statPerjalanan","statAnggaran"].forEach((id,i)=>document.getElementById(id).textContent=v[i]);n.innerHTML="<b>Terhubung ke Supabase</b><br>Ringkasan berhasil dibaca dari database.";}catch(e){n.textContent="Sesi aktif, tetapi data ringkasan gagal dimuat: "+e.message;}}
+window.logout=async function(){await sb.auth.signOut();profile=null;window.location.replace("./index.html");};
+async function restoreDashboardSession(){
+ try{
+  const {data,error}=await sb.auth.getSession();if(error)throw error;
+  const session=data?.session;if(!session?.user){window.location.replace("./index.html");return;}
+  const q=await sb.from("user_akun").select("id,username,role,aktif,must_change_password,pegawai_id").eq("id",session.user.id).maybeSingle();
+  if(q.error)throw q.error;
+  if(!q.data||!q.data.aktif||q.data.must_change_password){await sb.auth.signOut();window.location.replace("./index.html");return;}
+  profile=q.data;await dashboard();
+ }catch(e){console.error("Pemulihan sesi gagal:",e);await sb.auth.signOut();window.location.replace("./index.html");}
+}
+restoreDashboardSession();
+</script>
+</body>
+</html>
