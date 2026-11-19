@@ -64,6 +64,43 @@ async function buildTripDocumentHtml(tripId,kind){
  const html='<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Cetak '+(kind==="sp"?"Surat Tugas":"SPPD")+'</title><style>@page{size:A4 portrait;margin:18mm}*{box-sizing:border-box}body{font:11pt "Times New Roman",serif;color:#000;margin:0}.sheet{page-break-after:always;min-height:260mm}.sheet:last-child{page-break-after:auto}header{text-align:center;border-bottom:3px double #000;padding-bottom:7px;line-height:1.25}header p{font-size:9pt;margin:5px 0 0}h2{text-align:center;text-decoration:underline;font-size:13pt;margin:22px 0 12px}h3{text-align:center;margin:22px 0 12px;font-size:11pt}.plain,.people,.spd{width:100%;border-collapse:collapse}.plain td{padding:3px 5px;vertical-align:top}.people th,.people td,.spd td{border:1px solid #000;padding:6px;vertical-align:top}.people th{text-align:center}.spd td:first-child{width:7%;text-align:center}.spd td:nth-child(2){width:36%}.spd td:nth-child(3){width:4%;text-align:center}.sign{display:grid;grid-template-columns:1fr 1fr;text-align:center;margin:25px 0 0 48%;line-height:1.45}.space{height:60px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+(kind==="sp"?tugas:spd)+'</body></html>';
  return html;
 }
+async function openTripDetailPage(tripId){
+ const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===tripId)||await (async()=>{const q=await sb.from("perjalanan_dinas").select("*").eq("id",tripId).single();if(q.error)throw q.error;return q.data;})();
+ const [{data:parts,error:pe},{data:pegawai,error:pg},{data:kegiatan,error:ke},{data:anggaran,error:ae}]=await Promise.all([
+  sb.from("perjalanan_peserta").select("*").eq("perjalanan_id",tripId).order("created_at"),
+  sb.from("pegawai").select("*").eq("aktif",true).order("nama"),
+  sb.from("kegiatan").select("*").eq("id",trip.kegiatan_id).maybeSingle(),
+  sb.from("anggaran").select("*").eq("id",trip.anggaran_id).maybeSingle()
+ ]);
+ if(pe)throw pe;if(pg)throw pg;if(ke)throw ke;if(ae)throw ae;
+ window._tripDetailId=tripId;window._tripDetailRows=parts||[];window._tripDetailPegawai=pegawai||[];
+ const assigned=new Set((parts||[]).map(p=>p.pegawai_id));
+ const available=(pegawai||[]).filter(p=>!assigned.has(p.id));
+ const info=[["Tujuan",trip.tempat_tujuan],["Maksud",trip.maksud_perjalanan],["Jadwal",trip.tanggal_berangkat+" s.d. "+trip.tanggal_kembali],["Kegiatan",kegiatan?.nama_subkegiatan],["Pos Anggaran",anggaran?.nama_rekening||anggaran?.uraian],["Status",trip.status]];
+ mainView.innerHTML='<div class="crumb">Beranda / Perjalanan Dinas / Detail</div><div class="heading"><div><h1>Detail Perjalanan Dinas</h1><p>Kelola informasi perjalanan dan pilih seluruh peserta dalam satu proses.</p></div><button class="btn" type="button" data-back-trip>← Kembali ke Perjalanan</button></div><section class="panel"><h3>Informasi Perjalanan</h3><div class="tablewrap"><table><tbody>'+info.map(([k,v])=>'<tr><th style="text-align:left;width:25%">'+esc(k)+'</th><td>'+esc(v||"—")+'</td></tr>').join("")+'</tbody></table></div></section><section class="panel"><h3>Peserta Perjalanan ('+(parts||[]).length+')</h3><p class="muted">Pilih satu atau beberapa pegawai sekaligus. Tidak dibatasi dua orang.</p><form id="tripParticipantsForm"><label class="field"><span>Pilih Pegawai (bisa lebih dari satu)</span><select name="pegawai_ids" multiple size="9" style="min-height:220px">'+available.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+' · '+esc(p.nip||"Tanpa NIP")+'</option>').join("")+'</select></label><p class="muted">Gunakan Ctrl (Windows) atau Cmd (Mac) untuk memilih beberapa nama. Pada perangkat sentuh, ketuk nama yang diperlukan.</p><button class="btn" type="submit" '+(!available.length?'disabled':'')+'>Tambahkan Peserta Terpilih</button><div id="tripParticipantMessage" class="notice" style="display:none"></div></form><div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Jabatan</th><th>Aksi</th></tr></thead><tbody>'+(parts||[]).map(p=>'<tr><td>'+esc(p.nama_snapshot||"—")+'</td><td>'+esc(p.nip_snapshot||"—")+'</td><td>'+esc(p.pangkat_snapshot||"—")+'</td><td>'+esc(p.jabatan_snapshot||"—")+'</td><td><button class="btn" type="button" data-remove-trip-participant="'+esc(p.id)+'">Hapus</button></td></tr>').join("")||'<tr><td colspan="5">Belum ada peserta.</td></tr>'+'</tbody></table></div></section>';
+ const form=document.getElementById("tripParticipantsForm");
+ form.addEventListener("submit",async ev=>{
+  ev.preventDefault();const ids=Array.from(form.elements.pegawai_ids.selectedOptions).map(o=>o.value);
+  const msg=document.getElementById("tripParticipantMessage");
+  if(!ids.length){msg.textContent="Pilih minimal satu pegawai.";msg.style.display="block";return;}
+  const btn=form.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Menyimpan...";
+  try{
+   const current=window._tripDetailRows||[];const already=new Set(current.map(p=>p.pegawai_id));
+   const chosen=ids.filter(id=>!already.has(id));if(!chosen.length)throw new Error("Pegawai yang dipilih sudah menjadi peserta.");
+   const people=window._tripDetailPegawai||[];
+   const payload=chosen.map(id=>{const p=people.find(x=>x.id===id);return {perjalanan_id:tripId,pegawai_id:p.id,nama_snapshot:p.nama,nip_snapshot:p.nip||null,pangkat_snapshot:p.pangkat_golongan||null,jabatan_snapshot:p.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" ")||null};});
+   const q=await sb.from("perjalanan_peserta").insert(payload);if(q.error)throw q.error;
+   await openTripDetailPage(tripId);
+  }catch(e){msg.textContent="Gagal menambahkan peserta: "+(e.message||e);msg.style.display="block";btn.disabled=false;btn.textContent="Tambahkan Peserta Terpilih";}
+ });
+ mainView.querySelectorAll("[data-remove-trip-participant]").forEach(btn=>btn.addEventListener("click",async()=>{
+  if(!confirm("Hapus peserta ini dari perjalanan?"))return;
+  btn.disabled=true;const q=await sb.from("perjalanan_peserta").delete().eq("id",btn.dataset.removeTripParticipant);
+  if(q.error){alert("Gagal menghapus peserta: "+q.error.message);btn.disabled=false;return;}
+  await openTripDetailPage(tripId);
+ }));
+ mainView.querySelector("[data-back-trip]").addEventListener("click",()=>loadPage("perjalanan"));
+}
 async function loadPage(page){
  const info=pageInfo[page]; if(!info)return;
  mainView.innerHTML=`<div class="crumb">Beranda / ${info[0]}</div><div class="heading"><div><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="date">Tahun Anggaran 2026</div></div><div id="pageMessage" class="notice" style="display:none"></div><div id="pageContent" class="panel">Memuat data...</div>`;
@@ -177,6 +214,9 @@ mainView.addEventListener("click",async ev=>{
   try{const {data,error}=await sb.storage.from("sppd-arsip").createSignedUrl(btn.dataset.openArchive,300);if(error)throw error;window.open(data.signedUrl,"_blank","noopener");}catch(e){await pageError(e);}return;
  }
  if(btn.dataset.detailTrip){
+  try{await openTripDetailPage(btn.dataset.detailTrip);}catch(e){await pageError(e);}return;
+ }
+ if(false){
   try{
    const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===btn.dataset.detailTrip);
    if(!trip)throw new Error("Data perjalanan tidak ditemukan.");
