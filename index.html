@@ -315,5 +315,29 @@ async function dashboard(){document.getElementById("login").style.display="none"
 window.handleLogin=async function(ev){ev.preventDefault();clearErr();const u=document.getElementById("username").value.trim().toLowerCase();const p=document.querySelector("#loginForm input[type=password]").value;const b=document.getElementById("loginBtn");b.disabled=true;b.textContent="Memeriksa...";try{const res=await fetch(URL+"/functions/v1/username-login",{method:"POST",headers:{"Content-Type":"application/json","apikey":KEY},body:JSON.stringify({username:u,password:p})});const data=await res.json();if(!res.ok)throw new Error(data.error||"Login gagal.");const s=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(s.error)throw s.error;const q=await sb.from("user_akun").select("id,username,role,aktif,must_change_password,pegawai_id").eq("id",data.user.id).maybeSingle();if(q.error)throw q.error;if(!q.data){await sb.auth.signOut();throw new Error("Login Auth berhasil, tetapi profil belum dibuat di tabel user_akun. Akun perlu dipasangkan oleh Admin sistem.");}profile=q.data;if(!profile.aktif){await sb.auth.signOut();throw new Error("Akun tidak aktif. Hubungi Admin Global.");}if(profile.must_change_password){document.getElementById("loginForm").querySelectorAll("label,.sub,#loginBtn").forEach(x=>x.style.display="none");document.getElementById("loginMessage").textContent="Ganti password awal sebelum melanjutkan.";document.getElementById("changePass").style.display="block";return;}await dashboard();}catch(e){err(e.message||"Login gagal.");}finally{b.disabled=false;b.textContent="Masuk";}};
 window.changeInitialPassword=async function(){clearErr();const p=document.getElementById("newPassword").value;const c=document.getElementById("confirmPassword").value;if(p.length<8)return err("Password minimal 8 karakter.");if(p!==c)return err("Konfirmasi password tidak sama.");try{const r=await sb.auth.updateUser({password:p});if(r.error)throw r.error;const q=await sb.from("user_akun").select("id,username,role,aktif,must_change_password,pegawai_id").eq("id",profile.id).single();if(q.error)throw q.error;if(q.data.must_change_password)throw new Error("Password berubah, tetapi status perubahan belum diperbarui.");profile=q.data;await dashboard();}catch(e){err(e.message||"Gagal mengganti password.");}};
 window.logout=async function(){await sb.auth.signOut();profile=null;document.getElementById("app").style.display="none";document.getElementById("login").style.display="grid";document.getElementById("loginForm").reset();document.getElementById("changePass").style.display="none";document.getElementById("loginForm").querySelectorAll("label,.sub,#loginBtn").forEach(x=>x.style.display="");document.getElementById("loginMessage").textContent="Login menggunakan akun SPPD yang terdaftar.";clearErr();};
+async function restoreSession(){
+ try{
+  const {data,error}=await sb.auth.getSession();
+  if(error)throw error;
+  const session=data?.session;
+  if(!session?.user)return;
+  const q=await sb.from("user_akun").select("id,username,role,aktif,must_change_password,pegawai_id").eq("id",session.user.id).maybeSingle();
+  if(q.error)throw q.error;
+  if(!q.data||!q.data.aktif){await sb.auth.signOut();return;}
+  profile=q.data;
+  if(profile.must_change_password){
+   document.getElementById("login").style.display="grid";
+   document.getElementById("app").style.display="none";
+   document.getElementById("loginMessage").textContent="Silakan masuk dan selesaikan perubahan password awal.";
+   return;
+  }
+  await dashboard();
+ }catch(e){
+  console.error("Pemulihan sesi gagal:",e);
+  document.getElementById("login").style.display="grid";
+  document.getElementById("app").style.display="none";
+ }
+}
+restoreSession();
 </script>
 </body></html>
