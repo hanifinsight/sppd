@@ -427,10 +427,11 @@ mainView.addEventListener("submit",async ev=>{
  if(data.jabatan==="Sekretaris Daerah")data.nomenklatur_jabatan=null;
  if(data.jabatan && data.jabatan!=="Sekretaris Daerah" && !data.nomenklatur_jabatan){await pageError(new Error("Nomenklatur jabatan wajib diisi."));return;}
 
+ let selectedKegiatanIds=[];const pengelolaRole=data.jenis_peran;
  if(table==="pejabat_pengelola"){
   const role=data.jenis_peran;
   if(!["PA","KPA","PPTK","Bendahara Pengeluaran","Bendahara Pengeluaran Pembantu"].includes(role)){await pageError(new Error("Pilih jenis pejabat yang valid."));return;}
-  const selectedKegiatanIds=Array.from(form.elements.namedItem("kegiatan_ids")?.selectedOptions||[]).map(o=>o.value).filter(Boolean);
+  selectedKegiatanIds=Array.from(form.elements.namedItem("kegiatan_ids")?.selectedOptions||[]).map(o=>o.value).filter(Boolean);delete data.kegiatan_ids;
   data.bagian_id=data.bagian_id||null;data.kegiatan_id=role==="PPTK"?(selectedKegiatanIds[0]||null):null;
   if(["KPA","Bendahara Pengeluaran Pembantu"].includes(role)&&!data.bagian_id){await pageError(new Error("Pilih Bagian."));return;}
   if(role==="PPTK"&&!selectedKegiatanIds.length){await pageError(new Error("Pilih minimal satu kegiatan/subkegiatan untuk PPTK."));return;}
@@ -455,7 +456,7 @@ mainView.addEventListener("submit",async ev=>{
  if(data.urutan!==undefined)data.urutan=Number(data.urutan);
  try{
   let savedId=id;
-  if(table==="pejabat_pengelola"){const q=id?await sb.from(table).update(data).eq("id",id).select("id").single():await sb.from(table).insert(data).select("id").single();if(q.error)throw q.error;savedId=q.data.id;const picked=role==="PPTK"?selectedKegiatanIds:[];const del=await sb.from("pejabat_pengelola_kegiatan").delete().eq("pejabat_pengelola_id",savedId);if(del.error)throw del.error;if(picked.length){const ins=await sb.from("pejabat_pengelola_kegiatan").insert(picked.map(kegiatan_id=>({pejabat_pengelola_id:savedId,kegiatan_id})));if(ins.error)throw ins.error;}}
+  if(table==="pejabat_pengelola"){const q=id?await sb.from(table).update(data).eq("id",id).select("id").single():await sb.from(table).insert(data).select("id").single();if(q.error)throw q.error;savedId=q.data.id;const picked=pengelolaRole==="PPTK"?selectedKegiatanIds:[];const del=await sb.from("pejabat_pengelola_kegiatan").delete().eq("pejabat_pengelola_id",savedId);if(del.error)throw del.error;if(picked.length){const ins=await sb.from("pejabat_pengelola_kegiatan").insert(picked.map(kegiatan_id=>({pejabat_pengelola_id:savedId,kegiatan_id})));if(ins.error)throw ins.error;}}
   else{const q=id?await sb.from(table).update(data).eq("id",id):await sb.from(table).insert(data);if(q.error)throw q.error;}
   const current=document.querySelector("aside .nav.active")?.dataset.page||"dashboard";
   await loadPage(current);
