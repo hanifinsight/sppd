@@ -281,6 +281,8 @@ mainView.addEventListener("submit",async ev=>{
   const {error}=await q;if(error)throw error;
   const current=document.querySelector("aside .nav.active")?.dataset.page||"dashboard";
   await loadPage(current);
+  const msg=document.getElementById("pageMessage");
+  if(msg){msg.textContent="Data berhasil disimpan.";msg.style.display="block";msg.style.background="#edf7ef";msg.style.borderColor="#d7eadb";msg.style.color="#28633e";}
  }catch(e){await pageError(e);}
 });
 document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
