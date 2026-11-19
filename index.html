@@ -17,7 +17,7 @@
  <div class="loginbox"><form class="form" onsubmit="handleLogin(event)" id="loginForm"><div class="eyebrow" style="color:#9b8149">Selamat datang</div><h2>Masuk ke akun Anda</h2><p class="sub">Gunakan username dan password yang telah diberikan administrator.</p><label class="field"><span>Username</span><input id="username" autocomplete="username" placeholder="Masukkan username" required></label><label class="field"><span>Password</span><input type="password" autocomplete="current-password" placeholder="Masukkan password" required></label><button class="btn full" id="loginBtn">Masuk</button><p class="hint" id="loginMessage">Login menggunakan akun SPPD yang terdaftar.</p><div id="loginError" class="notice" style="display:none"></div><div id="changePass" style="display:none"><h3>Ganti Password Awal</h3><label class="field"><span>Password baru (minimal 8 karakter)</span><input id="newPassword" type="password" minlength="8"></label><label class="field"><span>Ulangi password baru</span><input id="confirmPassword" type="password" minlength="8"></label><button type="button" class="btn full" onclick="changeInitialPassword()">Simpan Password Baru</button></div></form></div>
 </section>
 <section class="app" id="app"><header class="top"><div class="brandtop">✦ SPPD DIGITAL<small>Sekretariat Daerah Kabupaten Pekalongan</small></div><div class="user"><div class="avatar" id="userAvatar">U</div><div><b id="userLabel">Pengguna</b><small id="userRole" style="display:block;color:#71807b">Memuat profil</small></div><button class="btn" onclick="logout()">Keluar</button></div></header>
-<div class="layout"><aside><div class="navlabel">Menu utama</div><button class="nav active">▦　Dashboard</button><button class="nav">▤　Data Bagian</button><button class="nav">♙　Data Pegawai</button><button class="nav">▣　Kegiatan & Anggaran</button><button class="nav">➜　Perjalanan Dinas</button><button class="nav">▧　Dokumen & Arsip</button><button class="nav">▤　Laporan</button><div class="navlabel">Pengaturan</div><button class="nav">⚙　Manajemen Akun</button></aside>
+<div class="layout"><aside><div class="navlabel">Menu utama</div><button class="nav active" data-page="dashboard">▦　Dashboard</button><button class="nav" data-page="bagian">▤　Data Bagian</button><button class="nav" data-page="pegawai">♙　Data Pegawai</button><button class="nav" data-page="anggaran">▣　Kegiatan & Anggaran</button><button class="nav" data-page="perjalanan">➜　Perjalanan Dinas</button><button class="nav" data-page="dokumen">▧　Dokumen & Arsip</button><button class="nav" data-page="laporan">▤　Laporan</button><div class="navlabel">Pengaturan</div><button class="nav" data-page="akun">⚙　Manajemen Akun</button></aside>
 <main class="main"><div class="crumb">Beranda / Dashboard</div><div class="heading"><div><h1>Dashboard Admin Global</h1><p>Ringkasan pengelolaan perjalanan dinas seluruh Bagian.</p></div><div class="date">Tahun Anggaran 2026</div></div>
 <div class="stats"><div class="stat"><label>Total Bagian</label><strong id="statBagian">—</strong><small>Data database</small></div><div class="stat"><label>Total Pegawai</label><strong id="statPegawai">—</strong><small>Data database</small></div><div class="stat"><label>Perjalanan Dinas</label><strong id="statPerjalanan">—</strong><small>Data database</small></div><div class="stat"><label>Pos Anggaran</label><strong id="statAnggaran">—</strong><small>Data database</small></div></div>
 <div class="grid"><div class="panel"><h3>Perjalanan Dinas Terbaru</h3><div class="tablewrap"><table><thead><tr><th>Nomor</th><th>Bagian</th><th>Tanggal</th><th>Status</th></tr></thead><tbody><tr><td colspan="4" style="text-align:center;color:#71807b;padding:35px">Belum ada transaksi perjalanan dinas.</td></tr></tbody></table></div></div><div class="panel"><h3>Aktivitas Sistem</h3><div class="activity"><b>Database SPPD disiapkan</b><small>Fondasi sistem telah tersedia</small></div><div class="activity"><b>Dashboard Admin Global</b><small>Prototype antarmuka</small></div><div class="activity"><b>Integrasi Supabase</b><small>Menunggu tahap implementasi frontend</small></div></div></div>
@@ -28,6 +28,31 @@ const URL="https://yxcroppwpjnxdgugjtqk.supabase.co";
 const KEY="sb_publishable_ZQX9XkOOCO2qK9NkdpKItw_pZ7qatLp";
 const sb=createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 let profile=null;
+const mainView=document.querySelector(".main");
+const dashboardMarkup=mainView.innerHTML;
+const pageInfo={
+  bagian:["Data Bagian","Kelola unit/bagian di lingkungan Sekretariat Daerah."],
+  pegawai:["Data Pegawai","Kelola identitas, NIP, status kepegawaian, pangkat, dan jabatan pegawai."],
+  anggaran:["Kegiatan & Anggaran","Kelola subkegiatan, rekening belanja, pagu, dan perubahan anggaran."],
+  perjalanan:["Perjalanan Dinas","Kelola pengajuan, peserta, tujuan, jadwal, dan status perjalanan dinas."],
+  dokumen:["Dokumen & Arsip","Kelola dokumen Surat Perintah, SPPD, lampiran, dan arsip perjalanan."],
+  laporan:["Laporan","Lihat rekapitulasi perjalanan dinas dan penggunaan anggaran."],
+  akun:["Manajemen Akun","Kelola akun pengguna, peran, dan status akses aplikasi."]
+};
+function showPage(page){
+  document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+  if(page==="dashboard"){mainView.innerHTML=dashboardMarkup;return;}
+  const info=pageInfo[page]; if(!info)return;
+  mainView.innerHTML=`<div class="crumb">Beranda / ${info[0]}</div>
+    <div class="heading"><div><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="date">Tahun Anggaran 2026</div></div>
+    <div class="panel" style="min-height:230px;display:grid;place-items:center;text-align:center">
+      <div><div style="font-size:34px;margin-bottom:12px;color:#1d5a4e">◈</div>
+      <h3 style="font-size:17px;margin-bottom:8px">${info[0]}</h3>
+      <p class="muted" style="font-size:13px;max-width:520px;margin:0 auto 12px">Menu sudah aktif. Form input, tabel data, pencarian, dan tindakan pada modul ini akan dibangun pada tahap berikutnya dan dihubungkan ke database Supabase.</p>
+      <span class="status">Modul dalam tahap pengembangan</span></div>
+    </div>`;
+}
+document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 function err(t){const e=document.getElementById("loginError");e.textContent=t;e.style.display="block";}
 function clearErr(){const e=document.getElementById("loginError");e.textContent="";e.style.display="none";}
 async function rowCount(t){const r=await sb.from(t).select("*",{count:"exact",head:true});if(r.error)throw r.error;return r.count||0;}
