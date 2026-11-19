@@ -28,6 +28,17 @@ let editState={};
 async function fetchRows(table){const {data,error}=await sb.from(table).select("*").order("created_at",{ascending:false});if(error)throw error;return data||[];}
 async function pageError(error){const el=document.getElementById("pageMessage");if(el){el.textContent=error.message||String(error);el.style.display="block";}}
 function fmtDate(v){if(!v)return "—";return new Date(v+"T00:00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"});}
+async function openTripDocumentPreview(tripId,kind){
+ const html=await buildTripDocumentHtml(tripId,kind);
+ let modal=document.getElementById("documentPreviewModal");
+ if(!modal){modal=document.createElement("div");modal.id="documentPreviewModal";modal.className="document-preview-modal";document.body.appendChild(modal);}
+ const title=kind==="sp"?"Preview Surat Perintah":"Preview SPPD";
+ modal.innerHTML='<section class="document-preview-window"><header class="document-preview-header"><div><b>'+title+'</b><small>Periksa dokumen sebelum mencetak atau menyimpan PDF</small></div><div class="document-preview-actions"><button type="button" class="btn" data-print-preview>Cetak / Simpan PDF</button><button type="button" class="btn preview-close" data-close-doc-preview>Tutup</button></div></header><iframe title="'+title+'" class="document-preview-frame"></iframe></section>';
+ const frame=modal.querySelector("iframe");frame.srcdoc=html;modal.style.display="flex";
+ modal.querySelector("[data-close-doc-preview]").addEventListener("click",()=>modal.remove());
+ modal.addEventListener("click",ev=>{if(ev.target===modal)modal.remove();});
+ modal.querySelector("[data-print-preview]").addEventListener("click",()=>{frame.contentWindow.focus();frame.contentWindow.print();});
+}
 async function buildTripDocumentHtml(tripId,kind){
  const trip=(window._sppdRows?.perjalanan_dinas||[]).find(x=>x.id===tripId);if(!trip)throw new Error("Data perjalanan tidak ditemukan.");
  const [{data:parts,error:pe},{data:activity,error:ae},{data:budget,error:be},{data:signs,error:se}]=await Promise.all([
@@ -161,7 +172,7 @@ mainView.addEventListener("click",async ev=>{
   try{const {error}=await sb.from(btn.dataset.deleteMaster).delete().eq("id",btn.dataset.id);if(error)throw error;await loadPage("master");}catch(e){await pageError(e);}return;
  }
 
- if(btn.dataset.previewSp||btn.dataset.previewSppd){const tripId=btn.dataset.previewSp||btn.dataset.previewSppd,kind=btn.dataset.previewSp?"sp":"sppd";try{const html=await buildTripDocumentHtml(tripId,kind);let modal=document.getElementById("documentPreviewModal");if(!modal){modal=document.createElement("div");modal.id="documentPreviewModal";modal.className="document-preview-modal";document.body.appendChild(modal);}const title=kind==="sp"?"Preview Surat Perintah":"Preview SPPD";modal.innerHTML='<section class="document-preview-window"><header class="document-preview-header"><div><b>'+title+'</b><small>Periksa dokumen sebelum mencetak atau menyimpan PDF</small></div><div class="document-preview-actions"><button type="button" class="btn" data-print-preview>Cetak / Simpan PDF</button><button type="button" class="btn preview-close" data-close-doc-preview>Tutup</button></div></header><iframe title="'+title+'" class="document-preview-frame"></iframe></section>';const frame=modal.querySelector("iframe");frame.srcdoc=html;modal.style.display="flex";modal.querySelector("[data-close-doc-preview]").addEventListener("click",()=>modal.remove());modal.addEventListener("click",ev=>{if(ev.target===modal)modal.remove();});modal.querySelector("[data-print-preview]").addEventListener("click",()=>{frame.contentWindow.focus();frame.contentWindow.print();});}catch(e){await pageError(e);}return;}
+ if(btn.dataset.previewSp||btn.dataset.previewSppd){const tripId=btn.dataset.previewSp||btn.dataset.previewSppd,kind=btn.dataset.previewSp?"sp":"sppd";try{await openTripDocumentPreview(tripId,kind);}catch(e){await pageError(e);alert("Preview dokumen gagal dibuka: "+(e.message||e));}return;}
  if(btn.dataset.openArchive){
   try{const {data,error}=await sb.storage.from("sppd-arsip").createSignedUrl(btn.dataset.openArchive,300);if(error)throw error;window.open(data.signedUrl,"_blank","noopener");}catch(e){await pageError(e);}return;
  }
@@ -183,12 +194,17 @@ mainView.addEventListener("click",async ev=>{
    modal.innerHTML='<section class="panel trip-detail-window" style="width:min(960px,100%);max-height:92vh;overflow:auto;margin:auto;padding:22px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div><h3 style="margin:0">Detail &amp; Kelola Perjalanan</h3><p class="muted" style="margin:5px 0">Pusat pengelolaan dokumen, peserta, dan data perjalanan</p></div><button class="btn" type="button" data-close-detail>Tutup</button></div><div class="trip-management-grid"><button type="button" data-detail-action="participants" class="trip-management-card"><b>Kelola Peserta</b><span>Tambah atau hapus peserta perjalanan</span></button><button type="button" data-detail-action="sp" class="trip-management-card"><b>Surat Perintah</b><span>Lihat pratinjau dan cetak / simpan PDF</span></button><button type="button" data-detail-action="sppd" class="trip-management-card"><b>SPPD</b><span>Lihat pratinjau dan cetak / simpan PDF</span></button><button type="button" data-detail-action="edit" class="trip-management-card"><b>Ubah Data Perjalanan</b><span>Perbarui tujuan, jadwal, dan informasi lainnya</span></button><button type="button" data-detail-action="delete" class="trip-management-card trip-management-danger"><b>Hapus Perjalanan</b><span>Hapus data perjalanan ini</span></button></div><h4>Informasi Perjalanan</h4><div class="tablewrap"><table><tbody>'+detail+'</tbody></table></div><h4 style="margin-top:20px">Peserta ('+(parts||[]).length+')</h4><div class="tablewrap"><table><thead><tr><th>No.</th><th>Nama</th><th>NIP</th><th>Pangkat / Golongan</th><th>Jabatan</th></tr></thead><tbody>'+peserta+'</tbody></table></div></section>';
    modal.style.display="flex";
    modal.querySelector("[data-close-detail]")?.addEventListener("click",()=>modal.remove());
-   modal.querySelectorAll("[data-detail-action]").forEach(action=>action.addEventListener("click",()=>{
-    const type=action.dataset.detailAction;modal.remove();
+   modal.querySelectorAll("[data-detail-action]").forEach(action=>action.addEventListener("click",async()=>{
+    const type=action.dataset.detailAction;
+    if(type==="sp"||type==="sppd"){
+     action.disabled=true;const original=action.innerHTML;action.innerHTML="<b>Menyiapkan preview...</b><span>Mohon tunggu sebentar</span>";
+     try{await openTripDocumentPreview(trip.id,type);modal.remove();}
+     catch(e){action.disabled=false;action.innerHTML=original;let err=modal.querySelector(".trip-action-error");if(!err){err=document.createElement("div");err.className="notice trip-action-error";modal.querySelector(".trip-management-grid").after(err);}err.textContent="Preview gagal dibuka: "+(e.message||e);}
+     return;
+    }
+    modal.remove();
     const proxy=document.createElement("button");proxy.type="button";
     if(type==="participants")proxy.dataset.selectTrip=trip.id;
-    if(type==="sp")proxy.dataset.previewSp=trip.id;
-    if(type==="sppd")proxy.dataset.previewSppd=trip.id;
     if(type==="edit")proxy.dataset.editTravel=trip.id;
     if(type==="delete")proxy.dataset.deleteTravel=trip.id;
     mainView.appendChild(proxy);proxy.click();proxy.remove();
