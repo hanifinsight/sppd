@@ -188,3 +188,14 @@ input,select,textarea,button{max-width:100%}
 .document-preview-actions .preview-close{background:#eef4f0;color:#315a48;box-shadow:none}
 .document-preview-frame{display:block;flex:1;width:100%;border:0;background:#fff}
 @media(max-width:600px){.document-preview-modal{padding:0}.document-preview-window{height:100vh;border-radius:0}.document-preview-header{align-items:flex-start;flex-direction:column}.document-preview-actions{width:100%}.document-preview-actions .btn{flex:1}.trip-action-menu{right:0;min-width:200px}}
+
+
+/* Trip detail management center: no dropdown; large, direct action targets */
+.trip-management-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0 24px}
+.trip-management-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:88px;padding:16px;border:1px solid #dfe9e2;border-radius:12px;background:#f8fbf9;color:#1d4939;text-align:left;cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.trip-management-card:hover{background:#edf6f0;border-color:#a9c8b4;transform:translateY(-1px)}
+.trip-management-card b{font-size:13px}
+.trip-management-card span{font-size:11px;color:#718078;line-height:1.5}
+.trip-management-card.trip-management-danger{background:#fff8f7;border-color:#f0d9d5;color:#9a3933}
+.trip-management-card.trip-management-danger:hover{background:#fff0ee;border-color:#dfaaa3}
+@media(max-width:600px){.trip-management-grid{grid-template-columns:1fr;gap:9px}.trip-management-card{min-height:72px;padding:13px}.trip-detail-window{padding:15px!important}}
