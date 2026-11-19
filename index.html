@@ -298,7 +298,7 @@ mainView.addEventListener("submit",async ev=>{
  const table=form.dataset.table;const fd=new FormData(form);const id=fd.get("id");const data=Object.fromEntries(fd.entries());delete data.id;
  if(data.aktif!==undefined)data.aktif=data.aktif==="true";
  if(table==="perjalanan_dinas" && !id)data.dibuat_oleh=profile?.id||null;
- if(table==="perjalanan_peserta"){const pg=(window._sppdRows?.pegawai||[]).find(x=>x.id===data.pegawai_id);if(!pg)throw new Error("Pegawai tidak ditemukan.");data.nama_snapshot=pg.nama;data.nip_snapshot=pg.nip;data.pangkat_snapshot=pg.pangkat_golongan;data.jabatan_snapshot=pg.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[pg.jabatan,pg.nomenklatur_jabatan].filter(Boolean).join(" ");}
+ if(table==="perjalanan_peserta"){const pg=(window._sppdRows?.pegawai||[]).find(x=>x.id===data.pegawai_id);if(!pg){await pageError(new Error("Pegawai tidak ditemukan. Muat ulang halaman dan pilih pegawai yang tersedia."));return;}data.nama_snapshot=pg.nama;data.nip_snapshot=pg.nip||null;data.pangkat_snapshot=pg.pangkat_golongan||null;data.jabatan_snapshot=pg.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[pg.jabatan,pg.nomenklatur_jabatan].filter(Boolean).join(" ")||null;}
  if(data.nomenklatur_jabatan==="")data.nomenklatur_jabatan=null;
  if(data.jabatan==="Sekretaris Daerah")data.nomenklatur_jabatan=null;
  if(data.jabatan && data.jabatan!=="Sekretaris Daerah" && !data.nomenklatur_jabatan){await pageError(new Error("Nomenklatur jabatan wajib diisi."));return;}
