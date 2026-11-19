@@ -39,19 +39,68 @@ const pageInfo={
   laporan:["Laporan","Lihat rekapitulasi perjalanan dinas dan penggunaan anggaran."],
   akun:["Manajemen Akun","Kelola akun pengguna, peran, dan status akses aplikasi."]
 };
-function showPage(page){
-  document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
-  if(page==="dashboard"){mainView.innerHTML=dashboardMarkup;return;}
-  const info=pageInfo[page]; if(!info)return;
-  mainView.innerHTML=`<div class="crumb">Beranda / ${info[0]}</div>
-    <div class="heading"><div><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="date">Tahun Anggaran 2026</div></div>
-    <div class="panel" style="min-height:230px;display:grid;place-items:center;text-align:center">
-      <div><div style="font-size:34px;margin-bottom:12px;color:#1d5a4e">◈</div>
-      <h3 style="font-size:17px;margin-bottom:8px">${info[0]}</h3>
-      <p class="muted" style="font-size:13px;max-width:520px;margin:0 auto 12px">Menu sudah aktif. Form input, tabel data, pencarian, dan tindakan pada modul ini akan dibangun pada tahap berikutnya dan dihubungkan ke database Supabase.</p>
-      <span class="status">Modul dalam tahap pengembangan</span></div>
-    </div>`;
+function esc(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+function field(label,name,value="",type="text",required=true){return `<label class="field"><span>${label}</span><input name="${name}" type="${type}" value="${esc(value)}" ${required?"required":""}></label>`;}
+function selectField(label,name,items,value=""){return `<label class="field"><span>${label}</span><select name="${name}" required><option value="">Pilih ${label}</option>${items.map(x=>`<option value="${esc(x.id)}" ${x.id===value?"selected":""}>${esc(x.label)}</option>`).join("")}</select></label>`;}
+let editState={};
+async function fetchRows(table){const {data,error}=await sb.from(table).select("*").order("created_at",{ascending:false});if(error)throw error;return data||[];}
+async function pageError(error){const el=document.getElementById("pageMessage");if(el){el.textContent=error.message||String(error);el.style.display="block";}}
+async function loadPage(page){
+ const info=pageInfo[page]; if(!info)return;
+ mainView.innerHTML=`<div class="crumb">Beranda / ${info[0]}</div><div class="heading"><div><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="date">Tahun Anggaran 2026</div></div><div id="pageMessage" class="notice" style="display:none"></div><div id="pageContent" class="panel">Memuat data...</div>`;
+ const host=document.getElementById("pageContent");
+ try{
+  if(page==="bagian"){
+   const rows=await fetchRows("bagian");
+   host.innerHTML=`<h3>Tambah / Ubah Bagian</h3><form id="dataForm" data-table="bagian"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${field("Nama Bagian","nama_bagian")}${field("Nama Instansi","nama_instansi","Sekretariat Daerah")}</div><label class="field"><span>Status</span><select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></label><button class="btn" type="submit">Simpan Bagian</button> <button class="btn" type="button" data-reset>Form Baru</button></form><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Daftar Bagian (${rows.length})</h3><div class="tablewrap"><table><thead><tr><th>Nama Bagian</th><th>Instansi</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.nama_bagian)}</td><td>${esc(r.nama_instansi||"-")}</td><td>${r.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-edit="${r.id}">Ubah</button> <button class="btn" type="button" data-delete="${r.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada data bagian.</td></tr>'}</tbody></table></div>`;
+  }else if(page==="pegawai"){
+   const [rows,bagian]=await Promise.all([fetchRows("pegawai"),fetchRows("bagian")]);
+   host.innerHTML=`<h3>Tambah / Ubah Pegawai</h3><form id="dataForm" data-table="pegawai"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${field("Nama Pegawai","nama")}${field("NIP","nip","", "text",false)}${selectField("Bagian","bagian_id",bagian.map(x=>({id:x.id,label:x.nama_bagian}))) }${selectField("Status Kepegawaian","status_kepegawaian",["PNS","PPPK","NON_ASN","LAINNYA"].map(x=>({id:x,label:x}))) }${field("Pangkat / Golongan","pangkat_golongan","", "text",false)}${field("Jabatan","jabatan","", "text",false)}${field("Instansi","instansi","Sekretariat Daerah","text",false)}</div><label class="field"><span>Status</span><select name="aktif"><option value="true">Aktif</option><option value="false">Nonaktif</option></select></label><button class="btn" type="submit">Simpan Pegawai</button> <button class="btn" type="button" data-reset>Form Baru</button></form><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Daftar Pegawai (${rows.length})</h3><div class="tablewrap"><table><thead><tr><th>Nama</th><th>NIP</th><th>Bagian</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.nama)}</td><td>${esc(r.nip||"-")}</td><td>${esc(bagian.find(x=>x.id===r.bagian_id)?.nama_bagian||"-")}</td><td>${esc(r.status_kepegawaian)} · ${r.aktif?"Aktif":"Nonaktif"}</td><td><button class="btn" type="button" data-edit="${r.id}">Ubah</button> <button class="btn" type="button" data-delete="${r.id}">Hapus</button></td></tr>`).join("")||'<tr><td colspan="5">Belum ada data pegawai.</td></tr>'}</tbody></table></div>`;
+  }else if(page==="anggaran"){
+   const [kegiatan,bagian,rekening,anggaran]=await Promise.all([fetchRows("kegiatan"),fetchRows("bagian"),fetchRows("rekening_belanja"),fetchRows("anggaran")]);
+   host.innerHTML=`<h3>Master Rekening Belanja</h3><form id="rekeningForm" data-table="rekening_belanja"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 2fr">${field("Kode Rekening","kode_rekening")}${field("Nama Rekening","nama_rekening")}</div><button class="btn" type="submit">Simpan Rekening</button></form><div class="tablewrap" style="margin:14px 0 24px"><table><thead><tr><th>Kode</th><th>Nama Rekening</th><th>Aksi</th></tr></thead><tbody>${rekening.map(r=>`<tr><td>${esc(r.kode_rekening)}</td><td>${esc(r.nama_rekening)}</td><td><button class="btn" type="button" data-edit-rekening="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="3">Belum ada rekening belanja.</td></tr>'}</tbody></table></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Tambah Kegiatan</h3><form id="kegiatanForm" data-table="kegiatan"><input type="hidden" name="id"><div class="grid" style="grid-template-columns:1fr 1fr">${selectField("Bagian","bagian_id",bagian.map(x=>({id:x.id,label:x.nama_bagian}))) }${field("Kode Subkegiatan","kode_subkegiatan","", "text",false)}${field("Nama Subkegiatan","nama_subkegiatan")}${field("Tahun Anggaran","tahun_anggaran","2026","number")}</div><button class="btn" type="submit">Simpan Kegiatan</button></form><div class="tablewrap" style="margin:14px 0 24px"><table><thead><tr><th>Kode</th><th>Nama Subkegiatan</th><th>Tahun</th><th>Aksi</th></tr></thead><tbody>${kegiatan.map(r=>`<tr><td>${esc(r.kode_subkegiatan||"-")}</td><td>${esc(r.nama_subkegiatan)}</td><td>${r.tahun_anggaran}</td><td><button class="btn" type="button" data-edit-kegiatan="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada kegiatan.</td></tr>'}</tbody></table></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"><h3>Alokasi Anggaran</h3><form id="anggaranForm" data-table="anggaran"><input type="hidden" name="id">${selectField("Kegiatan","kegiatan_id",kegiatan.map(x=>({id:x.id,label:x.nama_subkegiatan+" ("+x.tahun_anggaran+")"}))) }${selectField("Rekening Belanja","rekening_id",rekening.map(x=>({id:x.id,label:x.kode_rekening+" - "+x.nama_rekening}))) }${field("Pagu Awal (Rp)","pagu_awal","0","number")}<button class="btn" type="submit">Simpan Anggaran</button></form><div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Kegiatan</th><th>Rekening</th><th>Pagu Awal</th><th>Aksi</th></tr></thead><tbody>${anggaran.map(r=>`<tr><td>${esc(kegiatan.find(x=>x.id===r.kegiatan_id)?.nama_subkegiatan||"-")}</td><td>${esc(rekening.find(x=>x.id===r.rekening_id)?.nama_rekening||"-")}</td><td>Rp ${Number(r.pagu_awal).toLocaleString("id-ID")}</td><td><button class="btn" type="button" data-edit-anggaran="${r.id}">Ubah</button></td></tr>`).join("")||'<tr><td colspan="4">Belum ada alokasi anggaran.</td></tr>'}</tbody></table></div>`;
+   window._sppdRows={kegiatan,bagian,rekening,anggaran};
+  }else{
+   host.innerHTML=`<div style="padding:24px;text-align:center"><h3>${info[0]}</h3><p class="muted">Modul ini akan dilanjutkan setelah modul data dasar selesai.</p><span class="status">Tahap berikutnya</span></div>`;
+  }
+ }catch(e){host.innerHTML=`<div class="notice">Data tidak dapat dimuat: ${esc(e.message)}</div>`;}
 }
+function showPage(page){
+ document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ if(page==="dashboard"){mainView.innerHTML=dashboardMarkup;return;}
+ loadPage(page);
+}
+document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+mainView.addEventListener("click",async ev=>{
+ const btn=ev.target.closest("button");if(!btn)return;
+ if(btn.hasAttribute("data-reset")){btn.closest("form")?.reset();const id=btn.closest("form")?.querySelector('[name="id"]');if(id)id.value="";return;}
+ const id=btn.dataset.edit||btn.dataset.editRekening||btn.dataset.editKegiatan||btn.dataset.editAnggaran;
+ if(id){
+  const form=btn.closest("main").querySelector("form[data-table]")||document.getElementById("dataForm");
+  const table=form?.dataset.table;const groups=window._sppdRows||{};
+  const row=(groups[table]||[]).find(x=>x.id===id)|| (table==="bagian"||table==="pegawai"?null:null);
+  if(row&&form){Object.entries(row).forEach(([k,v])=>{const el=form.elements.namedItem(k);if(el)el.value=v??"";});form.elements.namedItem("id").value=id;form.scrollIntoView({behavior:"smooth",block:"center"});}
+  return;
+ }
+ if(btn.dataset.delete){
+  if(!confirm("Hapus data ini? Tindakan tidak dapat dibatalkan."))return;
+  try{const {error}=await sb.from("bagian").delete().eq("id",btn.dataset.delete);if(error)throw error;await loadPage("bagian");}catch(e){await pageError(e);}
+ }
+});
+mainView.addEventListener("submit",async ev=>{
+ const form=ev.target.closest("form[data-table]");if(!form)return;ev.preventDefault();
+ const table=form.dataset.table;const fd=new FormData(form);const id=fd.get("id");const data=Object.fromEntries(fd.entries());delete data.id;
+ if(data.aktif!==undefined)data.aktif=data.aktif==="true";
+ if(data.nip==="")data.nip=null;if(data.bagian_id==="")data.bagian_id=null;if(data.kode_subkegiatan==="")data.kode_subkegiatan=null;
+ if(data.pagu_awal!==undefined)data.pagu_awal=Number(data.pagu_awal);
+ if(data.tahun_anggaran!==undefined)data.tahun_anggaran=Number(data.tahun_anggaran);
+ try{
+  const q=id?sb.from(table).update(data).eq("id",id):sb.from(table).insert(data);
+  const {error}=await q;if(error)throw error;
+  const current=document.querySelector("aside .nav.active")?.dataset.page||"dashboard";
+  await loadPage(current);
+ }catch(e){await pageError(e);}
+});
 document.querySelectorAll("aside .nav[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 function err(t){const e=document.getElementById("loginError");e.textContent=t;e.style.display="block";}
 function clearErr(){const e=document.getElementById("loginError");e.textContent="";e.style.display="none";}
