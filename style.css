@@ -167,3 +167,24 @@ input,select,textarea,button{max-width:100%}
  .main{padding-left:10px;padding-right:10px}
 }
 
+
+
+/* Perjalanan dinas: compact action menu and in-app document preview */
+.trip-action-cell{white-space:nowrap;min-width:145px}
+.trip-actions{display:inline-block;position:relative;vertical-align:middle;margin-left:4px}
+.trip-actions>summary{list-style:none;display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.trip-actions>summary::-webkit-details-marker{display:none}
+.trip-action-menu{position:absolute;right:0;top:calc(100% + 7px);z-index:40;min-width:210px;padding:6px;background:#fff;border:1px solid #e2eae4;border-radius:11px;box-shadow:0 14px 36px rgba(20,55,43,.16);display:grid;gap:2px;white-space:normal}
+.trip-action-menu button{border:0;background:transparent;text-align:left;padding:10px 11px;border-radius:7px;color:#29463a;font-size:12px;cursor:pointer}
+.trip-action-menu button:hover{background:#edf5ef}
+.trip-action-menu button.danger{color:#a33d3d}
+.document-preview-modal{display:none;position:fixed;inset:0;z-index:1500;background:rgba(5,25,21,.72);padding:18px;align-items:center;justify-content:center}
+.document-preview-window{width:min(1100px,100%);height:min(94vh,1000px);background:#f1f4f2;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.document-preview-header{background:#fff;border-bottom:1px solid #e4ebe6;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.document-preview-header>div:first-child{display:grid;gap:3px;color:#1b3d32}
+.document-preview-header small{font-size:11px;color:#718078;font-weight:400}
+.document-preview-actions{display:flex;gap:8px;flex-wrap:wrap}
+.document-preview-actions .btn{font-size:11px}
+.document-preview-actions .preview-close{background:#eef4f0;color:#315a48;box-shadow:none}
+.document-preview-frame{display:block;flex:1;width:100%;border:0;background:#fff}
+@media(max-width:600px){.document-preview-modal{padding:0}.document-preview-window{height:100vh;border-radius:0}.document-preview-header{align-items:flex-start;flex-direction:column}.document-preview-actions{width:100%}.document-preview-actions .btn{flex:1}.trip-action-menu{right:0;min-width:200px}}
