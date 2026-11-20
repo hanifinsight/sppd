@@ -53,7 +53,18 @@ async function buildTripDocumentHtml(tripId,kind){
  const signQuery=await sb.from("pejabat_dokumen").select("*").eq("id",storedId).maybeSingle();if(signQuery.error)throw signQuery.error;
  const sign=signQuery.data;if(!sign)throw new Error("Data penandatangan yang tersimpan tidak ditemukan.");
  const q=await sb.from("pegawai").select("*").eq("id",sign.pegawai_id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw new Error("Data pejabat penandatangan tidak ditemukan.");
- const signer=q.data,signerName=(kind==="sp"?trip.penandatangan_sp_nama_snapshot:trip.ppk_sppd_nama_snapshot)||signer.nama,signerJob=(kind==="sp"?trip.penandatangan_sp_jabatan_snapshot:trip.ppk_sppd_jabatan_snapshot)||sign.jabatan_dokumen,escp=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const signer=q.data;
+ const [{data:tripPeople,error:tpErr},{data:masterRanks,error:mrErr}]=await Promise.all([
+  sb.from("pegawai").select("id,jabatan").in("id",parts.map(p=>p.pegawai_id).filter(Boolean)),
+  sb.from("master_jabatan").select("nama,eselon").eq("aktif",true)
+ ]);
+ if(tpErr)throw tpErr;if(mrErr)throw mrErr;
+ const rankOf=person=>{const jab=String(person?.jabatan||"").trim().toLowerCase();const m=(masterRanks||[]).find(x=>String(x.nama||"").trim().toLowerCase()===jab);const e=String(m?.eselon||"").toUpperCase();if(e.startsWith("I."))return 1;if(e.startsWith("II."))return 2;if(e.startsWith("III."))return 3;if(e.startsWith("IV."))return 4;return 99;};
+ const travellerRanks=parts.map(p=>{const person=(tripPeople||[]).find(x=>x.id===p.pegawai_id)||{id:p.pegawai_id,jabatan:""};return {id:p.pegawai_id,rank:rankOf(person)};}).filter(x=>[2,3].includes(x.rank));
+ const signerRank=rankOf(signer);
+ const signerEligible=travellerRanks.every(t=>t.rank===3?signerRank<=2:(signerRank<2||signer.id===t.id));
+ if(!signerEligible)throw new Error("Penandatangan tersimpan tidak memenuhi ketentuan eselon peserta. Anis Rosidi merupakan pejabat Eselon II, sehingga pejabat Eselon III tidak dapat menandatangani. Buka Detail Perjalanan, pilih pejabat yang memenuhi syarat, lalu simpan kembali.");
+ const signerName=(kind==="sp"?trip.penandatangan_sp_nama_snapshot:trip.ppk_sppd_nama_snapshot)||signer.nama,signerJob=(kind==="sp"?trip.penandatangan_sp_jabatan_snapshot:trip.ppk_sppd_jabatan_snapshot)||sign.jabatan_dokumen,escp=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const people=parts.map((p,i)=>({no:i+1,name:p.nama_snapshot||"—",nip:p.nip_snapshot||"—",rank:p.pangkat_snapshot||"—",job:p.jabatan_snapshot||"—"}));
  const range=fmtDate(trip.tanggal_berangkat)+" s.d. "+fmtDate(trip.tanggal_kembali),dest=escp(trip.tempat_tujuan)+(trip.provinsi_tujuan?", "+escp(trip.provinsi_tujuan):"");
  const peopleRows=people.map(p=>'<tr><td>'+p.no+'.</td><td>'+escp(p.name)+'</td><td>'+escp(p.nip)+'</td><td>'+escp(p.rank)+'</td><td>'+escp(p.job)+'</td></tr>').join("");
