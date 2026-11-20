@@ -126,7 +126,7 @@ async function openTripDetailPage(tripId){
   const btn=form.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Menyimpan...";
   try{
    const current=window._tripDetailRows||[];const already=new Set(current.map(p=>p.pegawai_id));
-   const chosen=ids.filter(id=>!already.has(id));if(!chosen.length)throw new Error("Pegawai yang dipilih sudah menjadi peserta.");
+   const chosen=ids.filter(id=>!already.has(id));
    const people=window._tripDetailPegawai||[];
    const payload=chosen.map(id=>{const p=people.find(x=>x.id===id);return {perjalanan_id:tripId,pegawai_id:p.id,nama_snapshot:p.nama,nip_snapshot:p.nip||null,pangkat_snapshot:p.pangkat_golongan||null,jabatan_snapshot:p.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" ")||null};});
    const sp=allowedFor("sp",ids).find(x=>x.id===form.elements.penandatangan_sp_id.value);
