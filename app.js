@@ -345,12 +345,12 @@ mainView.addEventListener("submit",async ev=>{
  if(data.urutan!==undefined)data.urutan=Number(data.urutan);
  if(table==="perjalanan_dinas"&&!id){
   const [spCfg,sppdCfg]=await Promise.all([
-   sb.from("pejabat_dokumen").select("id,pegawai_id,jabatan_dokumen,pegawai:pegawai_id(nama)").eq("jenis_peran","penandatangan_sp").eq("aktif",true).order("created_at",{ascending:false}).limit(1).maybeSingle(),
+   sb.from("pejabat_dokumen").select("id,pegawai_id,jabatan_dokumen").eq("jenis_peran","penandatangan_sp").eq("aktif",true).order("created_at",{ascending:false}).limit(1).maybeSingle(),
    sb.from("pejabat_dokumen").select("id,pegawai_id,jabatan_dokumen,pegawai:pegawai_id(nama)").eq("jenis_peran","ppk_sppd").eq("aktif",true).order("created_at",{ascending:false}).limit(1).maybeSingle()
   ]);
   if(spCfg.error)throw spCfg.error;if(sppdCfg.error)throw sppdCfg.error;
-  if(spCfg.data){data.penandatangan_sp_id=spCfg.data.id;data.penandatangan_sp_nama_snapshot=spCfg.data.pegawai?.nama||null;data.penandatangan_sp_jabatan_snapshot=spCfg.data.jabatan_dokumen;}
-  if(sppdCfg.data){data.ppk_sppd_id=sppdCfg.data.id;data.ppk_sppd_nama_snapshot=sppdCfg.data.pegawai?.nama||null;data.ppk_sppd_jabatan_snapshot=sppdCfg.data.jabatan_dokumen;}
+  if(spCfg.data){const p=await sb.from("pegawai").select("nama").eq("id",spCfg.data.pegawai_id).maybeSingle();if(p.error)throw p.error;data.penandatangan_sp_id=spCfg.data.id;data.penandatangan_sp_nama_snapshot=p.data?.nama||null;data.penandatangan_sp_jabatan_snapshot=spCfg.data.jabatan_dokumen;}
+  if(sppdCfg.data){const p=await sb.from("pegawai").select("nama").eq("id",sppdCfg.data.pegawai_id).maybeSingle();if(p.error)throw p.error;data.ppk_sppd_id=sppdCfg.data.id;data.ppk_sppd_nama_snapshot=p.data?.nama||null;data.ppk_sppd_jabatan_snapshot=sppdCfg.data.jabatan_dokumen;}
  }
  try{
   let savedId=id;
