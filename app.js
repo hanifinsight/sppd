@@ -48,22 +48,17 @@ async function buildTripDocumentHtml(tripId,kind){
   sb.from("pejabat_dokumen").select("*").eq("aktif",true).eq("jenis_peran",kind==="sp"?"penandatangan_sp":"ppk_sppd")
  ]);
  if(pe)throw pe;if(ae)throw ae;if(be)throw be;if(se)throw se;if(!parts?.length)throw new Error("Tambahkan peserta sebelum mencetak dokumen.");
- const storedId=kind==="sp"?trip.penandatangan_sp_id:trip.ppk_sppd_id;
- if(!storedId)throw new Error("Penandatangan untuk dokumen ini belum dipilih. Buka Detail Perjalanan Dinas, pilih penandatangan, lalu simpan terlebih dahulu.");
- const signQuery=await sb.from("pejabat_dokumen").select("*").eq("id",storedId).maybeSingle();if(signQuery.error)throw signQuery.error;
- const sign=signQuery.data;if(!sign)throw new Error("Data penandatangan yang tersimpan tidak ditemukan.");
- const q=await sb.from("pegawai").select("*").eq("id",sign.pegawai_id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw new Error("Data pejabat penandatangan tidak ditemukan.");
- const signer=q.data;
- const [{data:tripPeople,error:tpErr},{data:masterRanks,error:mrErr}]=await Promise.all([
-  sb.from("pegawai").select("id,jabatan").in("id",parts.map(p=>p.pegawai_id).filter(Boolean)),
-  sb.from("master_jabatan").select("nama,eselon").eq("aktif",true)
- ]);
- if(tpErr)throw tpErr;if(mrErr)throw mrErr;
- const rankOf=person=>{const jab=String(person?.jabatan||"").trim().toLowerCase();const m=(masterRanks||[]).find(x=>String(x.nama||"").trim().toLowerCase()===jab);const e=String(m?.eselon||"").toUpperCase();if(e.startsWith("I."))return 1;if(e.startsWith("II."))return 2;if(e.startsWith("III."))return 3;if(e.startsWith("IV."))return 4;return 99;};
- const travellerRanks=parts.map(p=>{const person=(tripPeople||[]).find(x=>x.id===p.pegawai_id)||{id:p.pegawai_id,jabatan:""};return {id:p.pegawai_id,rank:rankOf(person)};}).filter(x=>[2,3].includes(x.rank));
- const signerRank=rankOf(signer);
- const signerEligible=travellerRanks.every(t=>t.rank===3?signerRank<=2:(signerRank<2||signer.id===t.id));
- if(!signerEligible)throw new Error("Penandatangan tersimpan tidak memenuhi ketentuan eselon peserta. Anis Rosidi merupakan pejabat Eselon II, sehingga pejabat Eselon III tidak dapat menandatangani. Buka Detail Perjalanan, pilih pejabat yang memenuhi syarat, lalu simpan kembali.");
+ const storedId=kind==="sp"?trip.penandatangan_sp_id:trip.kpa_sppd_id;
+ if(!storedId)throw new Error(kind==="sp"?"Penandatangan SP belum dipilih.":"KPA untuk kegiatan ini belum ditetapkan pada menu PA/KPA.");
+ let sign,signer;
+ if(kind==="sp"){
+  const sq=await sb.from("pejabat_dokumen").select("*").eq("id",storedId).maybeSingle();if(sq.error)throw sq.error;sign=sq.data;
+ }else{
+  const sq=await sb.from("pejabat_pengelola").select("*").eq("id",storedId).eq("jenis_peran","KPA").maybeSingle();if(sq.error)throw sq.error;sign=sq.data;
+ }
+ if(!sign)throw new Error("Data penandatangan tidak ditemukan.");
+ const q=await sb.from("pegawai").select("*").eq("id",sign.pegawai_id).maybeSingle();if(q.error)throw q.error;signer=q.data;
+ if(!signer)throw new Error("Data pejabat penandatangan tidak ditemukan.");
  const signerName=(kind==="sp"?trip.penandatangan_sp_nama_snapshot:trip.ppk_sppd_nama_snapshot)||signer.nama,signerJob=(kind==="sp"?trip.penandatangan_sp_jabatan_snapshot:trip.ppk_sppd_jabatan_snapshot)||sign.jabatan_dokumen,escp=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const people=parts.map((p,i)=>({no:i+1,name:p.nama_snapshot||"—",nip:p.nip_snapshot||"—",rank:p.pangkat_snapshot||"—",job:p.jabatan_snapshot||"—"}));
  const range=fmtDate(trip.tanggal_berangkat)+" s.d. "+fmtDate(trip.tanggal_kembali),dest=escp(trip.tempat_tujuan)+(trip.provinsi_tujuan?", "+escp(trip.provinsi_tujuan):"");
@@ -93,15 +88,18 @@ async function openTripDetailPage(tripId){
  const assigned=new Set((parts||[]).map(p=>p.pegawai_id));
  const available=(pegawai||[]).filter(p=>p.aktif&&!assigned.has(p.id));
  const rankOf=p=>{const e=String(masterJabatan.find(m=>m.nama===p?.jabatan)?.eselon||"").toUpperCase();if(e.startsWith("I."))return 1;if(e.startsWith("II."))return 2;if(e.startsWith("III."))return 3;if(e.startsWith("IV."))return 4;return 99;};
+ const kpaQuery=await sb.from("pejabat_pengelola").select("*").eq("jenis_peran","KPA").eq("aktif",true).eq("bagian_id",kegiatan?.bagian_id||"00000000-0000-0000-0000-000000000000").maybeSingle();
+ if(kpaQuery.error)throw kpaQuery.error;
+ const kpa=kpaQuery.data?{...kpaQuery.data,person:pegawai.find(p=>p.id===kpaQuery.data.pegawai_id)}:null;
  const allowedFor=(kind,extraIds=[])=>{
   const selectedPeople=[...(parts||[]).map(x=>pegawai.find(p=>p.id===x.pegawai_id)||{id:x.pegawai_id,jabatan:x.jabatan_snapshot}),...extraIds.map(id=>pegawai.find(p=>p.id===id)).filter(Boolean)];
   const senior=selectedPeople.filter(p=>[2,3].includes(rankOf(p)));
   return signs.filter(s=>s.aktif&&s.jenis_peran===(kind==="sp"?"penandatangan_sp":"ppk_sppd")).map(s=>({...s,person:pegawai.find(p=>p.id===s.pegawai_id)})).filter(s=>s.person&&(!senior.length||senior.every(t=>{const r=rankOf(t),sr=rankOf(s.person);return r===3?sr<=2:(sr<2||s.person.id===t.id);}))).sort((a,b)=>rankOf(a.person)-rankOf(b.person)||a.person.nama.localeCompare(b.person.nama));
  };
  const allowed=kind=>allowedFor(kind,[]);
- const signerOptions=(kind,selected,extraIds=[])=>'<option value="">Pilih penandatangan</option>'+allowedFor(kind,extraIds).map(s=>'<option value="'+esc(s.id)+'" '+(s.id===selected?'selected':'')+'>'+esc(s.person.nama)+' · '+esc([s.person.jabatan,s.person.nomenklatur_jabatan].filter(Boolean).join(' '))+'</option>').join('');
+ const signerOptions=(kind,selected,extraIds=[])=>kind==="sppd"?(kpa?'<option value="'+esc(kpa.id)+'" selected>'+esc(kpa.person?.nama||"KPA")+' · KPA kegiatan</option>':'<option value="">KPA kegiatan belum ditetapkan</option>'):'<option value="">Pilih penandatangan</option>'+allowedFor("sp",extraIds).map(s=>'<option value="'+esc(s.id)+'" '+(s.id===selected?'selected':'')+'>'+esc(s.person.nama)+' · '+esc([s.person.jabatan,s.person.nomenklatur_jabatan].filter(Boolean).join(' '))+'</option>').join('');
  const info=[["Tujuan",trip.tempat_tujuan],["Maksud",trip.maksud_perjalanan],["Jadwal",trip.tanggal_berangkat+" s.d. "+trip.tanggal_kembali],["Kegiatan",kegiatan?.nama_subkegiatan],["Pos Anggaran",anggaran?.nama_rekening||anggaran?.uraian],["Status",trip.status]];
- mainView.innerHTML='<div class="crumb">Beranda / Perjalanan Dinas / Detail</div><div class="heading"><div><h1>Detail Perjalanan Dinas</h1><p>Kelola informasi perjalanan dan pilih seluruh peserta dalam satu proses.</p></div><button class="btn" type="button" data-back-trip>← Kembali ke Perjalanan</button></div><section class="panel"><h3>Aksi Perjalanan</h3><div class="trip-management-grid"><button type="button" class="trip-management-card" data-detail-page-action="sp"><b>Surat Perintah</b><span>Preview dan cetak / simpan PDF</span></button><button type="button" class="trip-management-card" data-detail-page-action="sppd"><b>SPPD</b><span>Preview dan cetak / simpan PDF</span></button><button type="button" class="trip-management-card" data-detail-page-action="edit"><b>Ubah Data Perjalanan</b><span>Perbarui data perjalanan</span></button><button type="button" class="trip-management-card trip-management-danger" data-detail-page-action="delete"><b>Hapus Perjalanan</b><span>Hapus data perjalanan ini</span></button></div></section><section class="panel"><h3>Informasi Perjalanan</h3><div class="tablewrap"><table><tbody>'+info.map(([k,v])=>'<tr><th style="text-align:left;width:25%">'+esc(k)+'</th><td>'+esc(v||"—")+'</td></tr>').join("")+'</tbody></table></div></section><section class="panel"><h3>Peserta Perjalanan ('+(parts||[]).length+')</h3><p class="muted">Pilih satu atau beberapa pegawai sekaligus. Tidak dibatasi dua orang.</p><form id="tripParticipantsForm"><label class="field"><span>Pilih Pegawai (bisa lebih dari satu)</span><select name="pegawai_ids" multiple size="9" style="min-height:220px">'+available.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+' · '+esc(p.nip||"Tanpa NIP")+'</option>').join("")+'</select></label><p class="muted">Gunakan Ctrl (Windows) atau Cmd (Mac) untuk memilih beberapa nama. Pilihan penandatangan akan disesuaikan setelah peserta dipilih.</p><div class="grid" style="grid-template-columns:1fr 1fr"><label class="field"><span>Penandatangan Surat Perintah (SP)</span><select name="penandatangan_sp_id" required>'+signerOptions("sp",trip.penandatangan_sp_id)+'</select></label><label class="field"><span>Penandatangan SPPD</span><select name="ppk_sppd_id" required>'+signerOptions("sppd",trip.ppk_sppd_id)+'</select></label></div><p class="muted">Pilih kedua penandatangan secara manual. Pilihan disimpan bersama peserta perjalanan.</p><button class="btn" type="submit" '+(!available.length?'disabled':'')+'>Simpan Peserta & Penandatangan</button><div id="tripParticipantMessage" class="notice" style="display:none"></div></form><div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Jabatan</th><th>Aksi</th></tr></thead><tbody>'+(parts||[]).map(p=>'<tr><td>'+esc(p.nama_snapshot||"—")+'</td><td>'+esc(p.nip_snapshot||"—")+'</td><td>'+esc(p.pangkat_snapshot||"—")+'</td><td>'+esc(p.jabatan_snapshot||"—")+'</td><td><button class="btn" type="button" data-remove-trip-participant="'+esc(p.id)+'">Hapus</button></td></tr>').join("")||'<tr><td colspan="5">Belum ada peserta.</td></tr>'+'</tbody></table></div></section>';
+ mainView.innerHTML='<div class="crumb">Beranda / Perjalanan Dinas / Detail</div><div class="heading"><div><h1>Detail Perjalanan Dinas</h1><p>Kelola informasi perjalanan dan pilih seluruh peserta dalam satu proses.</p></div><button class="btn" type="button" data-back-trip>← Kembali ke Perjalanan</button></div><section class="panel"><h3>Aksi Perjalanan</h3><div class="trip-management-grid"><button type="button" class="trip-management-card" data-detail-page-action="sp"><b>Surat Perintah</b><span>Preview dan cetak / simpan PDF</span></button><button type="button" class="trip-management-card" data-detail-page-action="sppd"><b>SPPD</b><span>Preview dan cetak / simpan PDF</span></button><button type="button" class="trip-management-card" data-detail-page-action="edit"><b>Ubah Data Perjalanan</b><span>Perbarui data perjalanan</span></button><button type="button" class="trip-management-card trip-management-danger" data-detail-page-action="delete"><b>Hapus Perjalanan</b><span>Hapus data perjalanan ini</span></button></div></section><section class="panel"><h3>Informasi Perjalanan</h3><div class="tablewrap"><table><tbody>'+info.map(([k,v])=>'<tr><th style="text-align:left;width:25%">'+esc(k)+'</th><td>'+esc(v||"—")+'</td></tr>').join("")+'</tbody></table></div></section><section class="panel"><h3>Peserta Perjalanan ('+(parts||[]).length+')</h3><p class="muted">Pilih satu atau beberapa pegawai sekaligus. Tidak dibatasi dua orang.</p><form id="tripParticipantsForm"><label class="field"><span>Pilih Pegawai (bisa lebih dari satu)</span><select name="pegawai_ids" multiple size="9" style="min-height:220px">'+available.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.nama)+' · '+esc(p.nip||"Tanpa NIP")+'</option>').join("")+'</select></label><p class="muted">Gunakan Ctrl (Windows) atau Cmd (Mac) untuk memilih beberapa nama. Pilihan penandatangan akan disesuaikan setelah peserta dipilih.</p><div class="grid" style="grid-template-columns:1fr 1fr"><label class="field"><span>Penandatangan Surat Perintah (SP)</span><select name="penandatangan_sp_id" required>'+signerOptions("sp",trip.penandatangan_sp_id)+'</select></label><label class="field"><span>Penandatangan SPPD</span><select name="kpa_sppd_id" disabled>'+signerOptions("sppd",trip.kpa_sppd_id)+'</select></label></div><p class="muted">Pilih kedua penandatangan secara manual. Pilihan disimpan bersama peserta perjalanan.</p><button class="btn" type="submit" '+(!available.length?'disabled':'')+'>Simpan Peserta & Penandatangan</button><div id="tripParticipantMessage" class="notice" style="display:none"></div></form><div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Jabatan</th><th>Aksi</th></tr></thead><tbody>'+(parts||[]).map(p=>'<tr><td>'+esc(p.nama_snapshot||"—")+'</td><td>'+esc(p.nip_snapshot||"—")+'</td><td>'+esc(p.pangkat_snapshot||"—")+'</td><td>'+esc(p.jabatan_snapshot||"—")+'</td><td><button class="btn" type="button" data-remove-trip-participant="'+esc(p.id)+'">Hapus</button></td></tr>').join("")||'<tr><td colspan="5">Belum ada peserta.</td></tr>'+'</tbody></table></div></section>';
  mainView.querySelectorAll("[data-detail-page-action]").forEach(btn=>btn.addEventListener("click",async()=>{
   const type=btn.dataset.detailPageAction;
   if(type==="sp"||type==="sppd"){btn.disabled=true;try{await openTripDocumentPreview(tripId,type);}catch(e){alert("Preview gagal dibuka: "+(e.message||e));}finally{btn.disabled=false;}return;}
@@ -111,7 +109,7 @@ async function openTripDetailPage(tripId){
  const form=document.getElementById("tripParticipantsForm");
  const refreshSignerChoices=()=>{
   const ids=Array.from(form.elements.pegawai_ids.selectedOptions).map(o=>o.value);
-  for(const [field,kind] of [["penandatangan_sp_id","sp"],["ppk_sppd_id","sppd"]]){
+  for(const [field,kind] of [["penandatangan_sp_id","sp"]]){
    const select=form.elements[field],previous=select.value;
    select.innerHTML=signerOptions(kind,previous,ids);
    if(!Array.from(select.options).some(o=>o.value===previous))select.value="";
@@ -130,12 +128,13 @@ async function openTripDetailPage(tripId){
    const people=window._tripDetailPegawai||[];
    const payload=chosen.map(id=>{const p=people.find(x=>x.id===id);return {perjalanan_id:tripId,pegawai_id:p.id,nama_snapshot:p.nama,nip_snapshot:p.nip||null,pangkat_snapshot:p.pangkat_golongan||null,jabatan_snapshot:p.jabatan==="Sekretaris Daerah"?"Sekretaris Daerah":[p.jabatan,p.nomenklatur_jabatan].filter(Boolean).join(" ")||null};});
    const sp=allowedFor("sp",ids).find(x=>x.id===form.elements.penandatangan_sp_id.value);
-   const sppd=allowedFor("sppd",ids).find(x=>x.id===form.elements.ppk_sppd_id.value);
-   if(!sp||!sppd)throw new Error("Pilih penandatangan SP dan SPPD yang memenuhi ketentuan eselon peserta.");
+   const sppd=kpa;
+   if(!sp)throw new Error("Pilih penandatangan SP yang memenuhi ketentuan eselon peserta.");
+   if(!sppd)throw new Error("KPA untuk kegiatan ini belum ditetapkan pada menu PA/KPA.");
    if(payload.length){const q=await sb.from("perjalanan_peserta").insert(payload);if(q.error)throw q.error;}
    const update=await sb.from("perjalanan_dinas").update({
     penandatangan_sp_id:sp.id,penandatangan_sp_nama_snapshot:sp.person.nama,penandatangan_sp_jabatan_snapshot:sp.jabatan_dokumen,
-    ppk_sppd_id:sppd.id,ppk_sppd_nama_snapshot:sppd.person.nama,ppk_sppd_jabatan_snapshot:sppd.jabatan_dokumen
+    kpa_sppd_id:sppd.id,ppk_sppd_nama_snapshot:sppd.person.nama,ppk_sppd_jabatan_snapshot:[sppd.person.jabatan,sppd.person.nomenklatur_jabatan].filter(Boolean).join(" ")
    }).eq("id",tripId);
    if(update.error)throw update.error;
    await openTripDetailPage(tripId);
