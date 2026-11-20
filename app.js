@@ -49,8 +49,9 @@ async function buildTripDocumentHtml(tripId,kind){
  ]);
  if(pe)throw pe;if(ae)throw ae;if(be)throw be;if(se)throw se;if(!parts?.length)throw new Error("Tambahkan peserta sebelum mencetak dokumen.");
  const storedId=kind==="sp"?trip.penandatangan_sp_id:trip.ppk_sppd_id;
- let sign=storedId?await (async()=>{const z=await sb.from("pejabat_dokumen").select("*").eq("id",storedId).maybeSingle();if(z.error)throw z.error;return z.data;})():signs?.[0];
- if(!sign)throw new Error("Pejabat penandatangan dokumen ini belum diatur. Atur terlebih dahulu pada menu Pejabat Penandatangan, lalu buat ulang draf perjalanan.");
+ if(!storedId)throw new Error("Penandatangan untuk dokumen ini belum dipilih. Buka Detail Perjalanan Dinas, pilih penandatangan, lalu simpan terlebih dahulu.");
+ const signQuery=await sb.from("pejabat_dokumen").select("*").eq("id",storedId).maybeSingle();if(signQuery.error)throw signQuery.error;
+ const sign=signQuery.data;if(!sign)throw new Error("Data penandatangan yang tersimpan tidak ditemukan.");
  const q=await sb.from("pegawai").select("*").eq("id",sign.pegawai_id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw new Error("Data pejabat penandatangan tidak ditemukan.");
  const signer=q.data,signerName=(kind==="sp"?trip.penandatangan_sp_nama_snapshot:trip.ppk_sppd_nama_snapshot)||signer.nama,signerJob=(kind==="sp"?trip.penandatangan_sp_jabatan_snapshot:trip.ppk_sppd_jabatan_snapshot)||sign.jabatan_dokumen,escp=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const people=parts.map((p,i)=>({no:i+1,name:p.nama_snapshot||"—",nip:p.nip_snapshot||"—",rank:p.pangkat_snapshot||"—",job:p.jabatan_snapshot||"—"}));
@@ -97,6 +98,7 @@ async function openTripDetailPage(tripId){
  signForm.addEventListener("submit",async ev=>{
   ev.preventDefault();const msg=document.getElementById("tripSignatoryMessage"),btn=signForm.querySelector('button[type="submit"]');
   const spId=signForm.elements.penandatangan_sp_id.value,sppdId=signForm.elements.ppk_sppd_id.value;
+  if(!(window._tripDetailRows||[]).length){msg.textContent="Tambahkan peserta perjalanan terlebih dahulu agar sistem dapat menentukan pilihan penandatangan.";msg.style.display="block";return;}
   const sp=allowed("sp").find(x=>x.id===spId),sppd=allowed("sppd").find(x=>x.id===sppdId);
   if(!sp||!sppd){msg.textContent="Pilih penandatangan yang sesuai dengan peserta perjalanan dan telah terdaftar pada menu Setting.";msg.style.display="block";return;}
   btn.disabled=true;btn.textContent="Menyimpan...";
