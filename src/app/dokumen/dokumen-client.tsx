@@ -4,7 +4,7 @@ import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle, Archive, ArrowDownToLine, CheckCircle2, FileText, FileUp,
-  FolderOpen, Search, ShieldCheck, UploadCloud
+  FolderOpen, Printer, Search, ShieldCheck, UploadCloud
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./dokumen.module.css";
@@ -265,6 +265,9 @@ export default function DokumenClient({
                     <span>{doc.signerTitle}</span>
                   </div>
                   <div className={styles.docActions}>
+                    <a className={styles.printButton} href={`/dokumen/cetak/${doc.type}/${doc.id}`} target="_blank" rel="noreferrer">
+                      <Printer size={15} /> Cetak / PDF
+                    </a>
                     {files.some((file) => file.status === "aktif") ? (
                       <span className={styles.archivedBadge}><CheckCircle2 size={14} />Diarsipkan</span>
                     ) : (
