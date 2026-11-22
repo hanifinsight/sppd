@@ -35,6 +35,7 @@ type TripForm = {
   bbm: string; tol: string;
 };
 type ValidationResult = { valid: boolean; errors: string[]; warnings: string[]; jumlah_peserta?: number; jumlah_hari?: number };
+type IssueForm = { nomor_sp: string; nomor_sppd: string; tanggal_terbit: string; penandatangan_sp_id: string };
 type PreviewResult = {
   validasi?: ValidationResult;
   biaya?: {
@@ -80,6 +81,14 @@ export default function PerjalananClient({
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [issuingTrip, setIssuingTrip] = useState<TripRecord | null>(null);
+  const [issueForm, setIssueForm] = useState<IssueForm>({
+    nomor_sp: "", nomor_sppd: "",
+    tanggal_terbit: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+    penandatangan_sp_id: ""
+  });
+  const [issueError, setIssueError] = useState("");
+  const [issueBusy, setIssueBusy] = useState(false);
 
   const activeDrafts = trips.filter((trip) => trip.status === "draft").length;
   const publishedTrips = trips.filter((trip) => trip.status === "published").length;
@@ -237,6 +246,61 @@ export default function PerjalananClient({
     } finally { setActionBusy(null); }
   }
 
+  function openIssue(trip: TripRecord) {
+    setIssuingTrip(trip);
+    setIssueError("");
+    setIssueForm({
+      nomor_sp: "",
+      nomor_sppd: "",
+      tanggal_terbit: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+      penandatangan_sp_id: trip.penandatangan_sp_id || signers[0]?.id || ""
+    });
+  }
+
+  async function publishTrip(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!issuingTrip) return;
+    setIssueError("");
+    if (!issueForm.nomor_sp.trim() || !issueForm.nomor_sppd.trim() || !issueForm.tanggal_terbit || !issueForm.penandatangan_sp_id) {
+      setIssueError("Lengkapi nomor SP, nomor SPPD, tanggal terbit, dan penandatangan SP.");
+      return;
+    }
+    const activity = activities.find((row) => row.id === issuingTrip.kegiatan_id);
+    const kpa = activity ? kpas.find((row) => row.bagian_id === activity.bagian_id) : undefined;
+    if (!kpa) {
+      setIssueError("KPA aktif untuk Bagian kegiatan belum dikonfigurasi. Hubungi Admin Global.");
+      return;
+    }
+    setIssueBusy(true);
+    try {
+      const supabase = createClient();
+      const { data: validationData, error: validationError } = await supabase.rpc("sppd_validasi_draft", {
+        p_perjalanan_id: issuingTrip.id
+      });
+      if (validationError) throw new Error(validationError.message);
+      const result = validationData as ValidationResult;
+      if (!result.valid) {
+        throw new Error("Draf belum lolos validasi: " + (result.errors ?? []).join("; "));
+      }
+      const { data, error } = await supabase.rpc("sppd_terbitkan", {
+        p_perjalanan_id: issuingTrip.id,
+        p_nomor_sp: issueForm.nomor_sp.trim(),
+        p_nomor_sppd: issueForm.nomor_sppd.trim(),
+        p_tanggal_terbit: issueForm.tanggal_terbit,
+        p_penandatangan_sp_id: issueForm.penandatangan_sp_id
+      });
+      if (error) throw new Error(error.message);
+      const resultData = data as { total_biaya?: number; nama_kpa?: string };
+      setNotice("SP dan SPPD berhasil diterbitkan. Penandatangan SPPD otomatis: " + (resultData.nama_kpa ?? kpa.nama) + ". Total komitmen " + money(Number(resultData.total_biaya ?? 0)) + ".");
+      setIssuingTrip(null);
+      router.refresh();
+    } catch (error) {
+      setIssueError(error instanceof Error ? error.message : "Penerbitan SP/SPPD gagal.");
+    } finally {
+      setIssueBusy(false);
+    }
+  }
+
   const statusName = (status: string) => status === "draft" ? "Draf" : status === "published" ? "Diterbitkan" : status === "cancelled" ? "Dibatalkan" : status;
   const statusClass = (status: string) => status === "published" ? "done" : status === "cancelled" ? "muted" : "pending";
 
@@ -278,6 +342,7 @@ export default function PerjalananClient({
                   {trip.status === "draft" && <button onClick={() => openEdit(trip)} title="Ubah draf"><Edit3 size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}
                 </div></td>
               </tr>
             )) : <tr><td colSpan={7} className="trip-empty"><Plane size={24}/><b>Belum ada perjalanan yang cocok</b><span>Buat pengajuan baru atau ubah kata kunci pencarian.</span></td></tr>}</tbody>
@@ -364,6 +429,46 @@ export default function PerjalananClient({
             <div className="trip-modal-footer"><span><Clock3 size={14}/> Disimpan sebagai draf, belum diterbitkan.</span><div>
               <button type="button" className="secondary-btn" onClick={() => setShowForm(false)} disabled={busy}>Tutup</button>
               <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan draf</>}</button>
+            </div></div>
+          </form>
+        </section>
+      </div>}
+
+      {issuingTrip && <div className="trip-modal-backdrop" role="presentation">
+        <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-issue-title">
+          <div className="trip-modal-header">
+            <div><span className="eyebrow">PENERBITAN DOKUMEN</span><h2 id="trip-issue-title">Terbitkan SP dan SPPD</h2><p>{issuingTrip.maksud_perjalanan} · {issuingTrip.tempat_tujuan}</p></div>
+            <button className="trip-close" onClick={() => setIssuingTrip(null)} aria-label="Tutup"><X size={18}/></button>
+          </div>
+          <form onSubmit={publishTrip}>
+            <div className="trip-result-body">
+              <div className="trip-form-grid">
+                <label className="trip-field">Nomor Surat Perintah (SP)
+                  <input required value={issueForm.nomor_sp} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sp: event.target.value }))} placeholder="Masukkan nomor SP" />
+                </label>
+                <label className="trip-field">Nomor SPPD
+                  <input required value={issueForm.nomor_sppd} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sppd: event.target.value }))} placeholder="Masukkan nomor SPPD" />
+                </label>
+                <label className="trip-field trip-field-wide">Tanggal terbit
+                  <input required type="date" value={issueForm.tanggal_terbit} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_terbit: event.target.value }))} />
+                </label>
+                <label className="trip-field trip-field-wide">Penandatangan Surat Perintah (SP)
+                  <select required value={issueForm.penandatangan_sp_id} onChange={(event) => setIssueForm((current) => ({ ...current, penandatangan_sp_id: event.target.value }))}>
+                    <option value="">Pilih penandatangan SP</option>
+                    {signers.map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
+                  </select>
+                </label>
+              </div>
+              <div className="trip-validation-banner valid" style={{ marginTop: 16 }}>
+                <CheckCircle2 size={19}/>
+                <div><b>Penandatangan SPPD ditetapkan otomatis oleh sistem</b><span>{activities.find((row) => row.id === issuingTrip.kegiatan_id)?.nama_bagian ?? "Bagian kegiatan"} · KPA: {kpas.find((row) => row.bagian_id === activities.find((activity) => activity.id === issuingTrip.kegiatan_id)?.bagian_id)?.nama ?? "Belum dikonfigurasi"}</span></div>
+              </div>
+              <p className="trip-field-note">Sistem memvalidasi draf dan ketersediaan anggaran sebelum menerbitkan. Penerbitan akan mengikat komitmen anggaran; setelah diterbitkan, draf tidak dapat diubah seperti sebelumnya.</p>
+              {issueError && <div className="trip-form-error"><AlertCircle size={16}/>{issueError}</div>}
+            </div>
+            <div className="trip-modal-footer"><span><Wallet size={14}/> Komitmen anggaran dibuat saat penerbitan berhasil.</span><div>
+              <button type="button" className="secondary-btn" onClick={() => setIssuingTrip(null)} disabled={issueBusy}>Batal</button>
+              <button type="submit" className="primary-btn" disabled={issueBusy}>{issueBusy ? "Memproses..." : <><FileText size={16}/> Terbitkan</>}</button>
             </div></div>
           </form>
         </section>
