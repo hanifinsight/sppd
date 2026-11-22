@@ -1,0 +1,396 @@
+"use client";
+
+import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  AlertCircle, Check, CheckCircle2, ClipboardCheck, Clock3, Eye, FileText,
+  MapPin, Plus, Search, Users, Wallet, X, Edit3, UserRound, Trash2, Plane
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+export type ActivityOption = { id: string; bagian_id: string; kode: string; nama: string; tahun: number; nama_bagian: string };
+export type BudgetOption = { id: string; kegiatan_id: string; pagu_awal: number; pagu_tersedia: number; komitmen_aktif: number; kode_rekening: string; nama_rekening: string };
+export type EmployeeOption = { id: string; bagian_id: string; nama: string; nip: string; status_kepegawaian: string; pangkat_golongan: string; jabatan: string };
+export type SignerOption = { id: string; pegawai_id: string; nama: string; jabatan: string; bagian_id: string | null };
+export type KpaOption = { id: string; bagian_id: string | null; nama: string };
+export type CompanionRecord = { nama: string; tanggal_lahir: string; keterangan: string };
+export type TripRecord = {
+  id: string; kegiatan_id: string; anggaran_id: string; jenis_perjalanan: string;
+  nomor_undangan: string; tanggal_undangan: string; tanggal_acara_mulai: string;
+  tanggal_acara_selesai: string; lokasi_acara: string; maksud_perjalanan: string;
+  tempat_berangkat: string; tempat_tujuan: string; provinsi_tujuan: string;
+  tanggal_berangkat: string; tanggal_kembali: string; alat_angkut: string;
+  status: string; penandatangan_sp_id: string; kpa_sppd_id: string; created_at: string;
+  nama_kegiatan: string; kode_kegiatan: string; nama_bagian: string;
+  nama_peserta: string[]; peserta_ids: string[]; pengikut: CompanionRecord[];
+  bbm: number; tol: number;
+};
+type TripForm = {
+  kegiatan_id: string; anggaran_id: string; jenis_perjalanan: "luar_kota" | "dalam_kota";
+  nomor_undangan: string; tanggal_undangan: string; tanggal_acara_mulai: string;
+  tanggal_acara_selesai: string; lokasi_acara: string; maksud_perjalanan: string;
+  tempat_berangkat: string; tempat_tujuan: string; provinsi_tujuan: string;
+  tanggal_berangkat: string; tanggal_kembali: string; alat_angkut: string;
+  penandatangan_sp_id: string; peserta_ids: string[]; pengikut: CompanionRecord[];
+  bbm: string; tol: string;
+};
+type ValidationResult = { valid: boolean; errors: string[]; warnings: string[]; jumlah_peserta?: number; jumlah_hari?: number };
+type PreviewResult = {
+  validasi?: ValidationResult;
+  biaya?: {
+    peserta: { nama: string; kelompok_pegawai: string; tarif_harian: number; jumlah_hari: number; total_uang_harian: number }[];
+    rincian_biaya_lain: { jenis: string; nominal: number; keterangan?: string }[];
+    total_uh: number; total_bbm: number; total_tol: number; total_biaya: number; jumlah_hari: number;
+  } | null;
+  catatan?: string;
+};
+
+const money = (value: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value || 0));
+const dateLabel = (value: string) => value ? new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value + "T00:00:00")) : "—";
+const digits = (value: string) => value.replace(/[^0-9]/g, "");
+const emptyForm = (province: string, activityId = ""): TripForm => ({
+  kegiatan_id: activityId, anggaran_id: "", jenis_perjalanan: "luar_kota",
+  nomor_undangan: "", tanggal_undangan: "", tanggal_acara_mulai: "",
+  tanggal_acara_selesai: "", lokasi_acara: "", maksud_perjalanan: "",
+  tempat_berangkat: "", tempat_tujuan: "", provinsi_tujuan: province,
+  tanggal_berangkat: "", tanggal_kembali: "", alat_angkut: "",
+  penandatangan_sp_id: "", peserta_ids: [], pengikut: [], bbm: "0", tol: "0"
+});
+
+export default function PerjalananClient({
+  role, initialTrips, activities, budgets, employees, signers, kpas, provinces, pageError, startNew = false
+}: {
+  role: "admin" | "operator"; initialTrips: TripRecord[]; activities: ActivityOption[];
+  budgets: BudgetOption[]; employees: EmployeeOption[]; signers: SignerOption[];
+  kpas: KpaOption[]; provinces: string[]; pageError: string; startNew?: boolean;
+}) {
+  const router = useRouter();
+  const [trips] = useState(initialTrips);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showForm, setShowForm] = useState(startNew);
+  const [editingTrip, setEditingTrip] = useState<TripRecord | null>(null);
+  const [form, setForm] = useState<TripForm>(() => emptyForm(provinces.includes("Jawa Tengah") ? "Jawa Tengah" : provinces[0] ?? "", activities[0]?.id ?? ""));
+  const [formError, setFormError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState("");
+  const [resultTrip, setResultTrip] = useState<TripRecord | null>(null);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+
+  const activeDrafts = trips.filter((trip) => trip.status === "draft").length;
+  const publishedTrips = trips.filter((trip) => trip.status === "published").length;
+  const cancelledTrips = trips.filter((trip) => trip.status === "cancelled").length;
+  const filteredTrips = useMemo(() => trips.filter((trip) => {
+    const text = [trip.maksud_perjalanan, trip.tempat_tujuan, trip.nama_kegiatan, trip.kode_kegiatan, trip.nama_bagian, trip.nama_peserta.join(" ")].join(" ").toLowerCase();
+    return text.includes(search.toLowerCase()) && (statusFilter === "all" || trip.status === statusFilter);
+  }), [trips, search, statusFilter]);
+
+  const selectedActivity = activities.find((row) => row.id === form.kegiatan_id);
+  const activityBudgets = budgets.filter((row) => row.kegiatan_id === form.kegiatan_id);
+  const selectedBudget = activityBudgets.find((row) => row.id === form.anggaran_id) ?? activityBudgets[0];
+  const selectedKpa = selectedActivity ? kpas.find((row) => row.bagian_id === selectedActivity.bagian_id) : undefined;
+  const eligibleEmployees = employees.filter((row) => selectedActivity && row.bagian_id === selectedActivity.bagian_id &&
+    (row.nama + " " + row.nip + " " + row.jabatan).toLowerCase().includes(participantSearch.toLowerCase()));
+  const activeSigners = selectedActivity ? signers.filter((row) => row.bagian_id === selectedActivity.bagian_id || role === "admin") : signers;
+
+  function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+  function openNew() {
+    setEditingTrip(null);
+    const nextForm = emptyForm(provinces.includes("Jawa Tengah") ? "Jawa Tengah" : provinces[0] ?? "", activities[0]?.id ?? "");
+    const firstBudget = budgets.find((row) => row.kegiatan_id === activities[0]?.id);
+    nextForm.anggaran_id = firstBudget?.id ?? "";
+    setForm(nextForm);
+    setFormError("");
+    setParticipantSearch("");
+    setShowForm(true);
+  }
+  function openEdit(trip: TripRecord) {
+    setEditingTrip(trip);
+    setForm({
+      kegiatan_id: trip.kegiatan_id, anggaran_id: trip.anggaran_id,
+      jenis_perjalanan: trip.jenis_perjalanan === "dalam_kota" ? "dalam_kota" : "luar_kota",
+      nomor_undangan: trip.nomor_undangan, tanggal_undangan: trip.tanggal_undangan,
+      tanggal_acara_mulai: trip.tanggal_acara_mulai, tanggal_acara_selesai: trip.tanggal_acara_selesai,
+      lokasi_acara: trip.lokasi_acara, maksud_perjalanan: trip.maksud_perjalanan,
+      tempat_berangkat: trip.tempat_berangkat, tempat_tujuan: trip.tempat_tujuan,
+      provinsi_tujuan: trip.provinsi_tujuan, tanggal_berangkat: trip.tanggal_berangkat,
+      tanggal_kembali: trip.tanggal_kembali, alat_angkut: trip.alat_angkut,
+      penandatangan_sp_id: trip.penandatangan_sp_id, peserta_ids: trip.peserta_ids,
+      pengikut: trip.pengikut, bbm: String(trip.bbm), tol: String(trip.tol)
+    });
+    setFormError("");
+    setParticipantSearch("");
+    setShowForm(true);
+  }
+  function handleActivityChange(activityId: string) {
+    const budget = budgets.find((row) => row.kegiatan_id === activityId);
+    setForm((current) => ({ ...current, kegiatan_id: activityId, anggaran_id: budget?.id ?? "", penandatangan_sp_id: "" }));
+  }
+  function toggleParticipant(id: string) {
+    setForm((current) => ({ ...current, peserta_ids: current.peserta_ids.includes(id)
+      ? current.peserta_ids.filter((value) => value !== id) : [...current.peserta_ids, id] }));
+  }
+  function addCompanion() {
+    setForm((current) => ({ ...current, pengikut: [...current.pengikut, { nama: "", tanggal_lahir: "", keterangan: "" }] }));
+  }
+  function updateCompanion(index: number, key: keyof CompanionRecord, value: string) {
+    setForm((current) => ({ ...current, pengikut: current.pengikut.map((row, i) => i === index ? { ...row, [key]: value } : row) }));
+  }
+  function removeCompanion(index: number) {
+    setForm((current) => ({ ...current, pengikut: current.pengikut.filter((_, i) => i !== index) }));
+  }
+
+  async function saveDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError("");
+    if (!selectedActivity) return setFormError("Pilih subkegiatan terlebih dahulu.");
+    if (!selectedBudget) return setFormError("Subkegiatan ini belum memiliki alokasi anggaran aktif.");
+    if (!selectedKpa) return setFormError("Pengaturan pejabat untuk kegiatan ini belum lengkap. Hubungi Admin Global.");
+    if (!form.penandatangan_sp_id) return setFormError("Pilih penandatangan Surat Perintah (SP).");
+    if (form.peserta_ids.length === 0) return setFormError("Pilih minimal satu pegawai sebagai peserta perjalanan.");
+    if (!form.tanggal_berangkat || !form.tanggal_kembali || !form.tanggal_acara_mulai || !form.tanggal_acara_selesai) return setFormError("Lengkapi tanggal perjalanan dan tanggal acara.");
+    if (form.tanggal_kembali < form.tanggal_berangkat) return setFormError("Tanggal kembali tidak boleh sebelum tanggal berangkat.");
+    if (form.tanggal_acara_selesai < form.tanggal_acara_mulai) return setFormError("Tanggal acara selesai tidak boleh sebelum tanggal mulai.");
+    if (!form.maksud_perjalanan.trim() || !form.lokasi_acara.trim() || !form.tempat_berangkat.trim() || !form.tempat_tujuan.trim() || !form.provinsi_tujuan) {
+      return setFormError("Lengkapi maksud perjalanan, lokasi acara, asal, tujuan, dan provinsi tujuan.");
+    }
+    if (form.peserta_ids.some((id) => !employees.some((person) => person.id === id && person.bagian_id === selectedActivity.bagian_id))) {
+      return setFormError("Pastikan seluruh peserta merupakan pegawai aktif pada Bagian subkegiatan yang dipilih.");
+    }
+    const signer = signers.find((row) => row.id === form.penandatangan_sp_id);
+    if (!signer) return setFormError("Penandatangan SP tidak tersedia atau sudah tidak aktif. Periksa pengaturan pejabat.");
+
+    const payload = {
+      perjalanan: {
+        kegiatan_id: selectedActivity.id, anggaran_id: selectedBudget.id,
+        jenis_perjalanan: form.jenis_perjalanan, nomor_undangan: form.nomor_undangan.trim(),
+        tanggal_undangan: form.tanggal_undangan, tanggal_acara_mulai: form.tanggal_acara_mulai,
+        tanggal_acara_selesai: form.tanggal_acara_selesai, lokasi_acara: form.lokasi_acara.trim(),
+        maksud_perjalanan: form.maksud_perjalanan.trim(), tempat_berangkat: form.tempat_berangkat.trim(),
+        tempat_tujuan: form.tempat_tujuan.trim(), provinsi_tujuan: form.provinsi_tujuan,
+        tanggal_berangkat: form.tanggal_berangkat, tanggal_kembali: form.tanggal_kembali,
+        alat_angkut: form.alat_angkut.trim()
+      },
+      peserta: form.peserta_ids.map((pegawai_id) => ({ pegawai_id })),
+      pengikut: form.pengikut.filter((row) => row.nama.trim()).map((row) => ({
+        nama: row.nama.trim(), tanggal_lahir: row.tanggal_lahir, keterangan: row.keterangan.trim()
+      })),
+      biaya: { bbm: Number(form.bbm || 0), tol: Number(form.tol || 0) }
+    };
+
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("sppd_simpan_draft", { p_payload: payload, p_perjalanan_id: editingTrip?.id ?? null });
+      if (error) throw new Error(error.message);
+      const tripId = String(data);
+      const { error: signerError } = await supabase.from("perjalanan_dinas").update({
+        penandatangan_sp_id: signer.id,
+        penandatangan_sp_nama_snapshot: signer.nama,
+        penandatangan_sp_jabatan_snapshot: signer.jabatan,
+        kpa_sppd_id: selectedKpa.id
+      }).eq("id", tripId);
+      setShowForm(false);
+      setEditingTrip(null);
+      setNotice(signerError
+        ? "Draf tersimpan, tetapi data penandatangan belum tertaut. Buka kembali draf dan periksa izin akses."
+        : (editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat."));
+      router.refresh();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Draf perjalanan gagal disimpan.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function validateTrip(trip: TripRecord) {
+    setActionBusy(trip.id); setValidation(null); setPreview(null); setResultTrip(trip);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("sppd_validasi_draft", { p_perjalanan_id: trip.id });
+      if (error) throw new Error(error.message);
+      setValidation(data as ValidationResult);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Validasi tidak berhasil dijalankan.");
+      setResultTrip(null);
+    } finally { setActionBusy(null); }
+  }
+
+  async function previewCosts(trip: TripRecord) {
+    setActionBusy(trip.id); setValidation(null); setPreview(null); setResultTrip(trip);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("sppd_pratinjau_biaya", { p_perjalanan_id: trip.id });
+      if (error) throw new Error(error.message);
+      const result = data as PreviewResult;
+      setPreview(result);
+      setValidation(result.validasi ?? null);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Pratinjau biaya tidak berhasil dijalankan.");
+      setResultTrip(null);
+    } finally { setActionBusy(null); }
+  }
+
+  const statusName = (status: string) => status === "draft" ? "Draf" : status === "published" ? "Diterbitkan" : status === "cancelled" ? "Dibatalkan" : status;
+  const statusClass = (status: string) => status === "published" ? "done" : status === "cancelled" ? "muted" : "pending";
+
+  return (
+    <div className="trip-page">
+      <div className="trip-heading">
+        <div><div className="eyebrow">ADMINISTRASI PERJALANAN DINAS</div><h1>Perjalanan Dinas</h1><p>Kelola pengajuan, peserta, dan perhitungan biaya perjalanan dinas.</p></div>
+        <button className="primary-btn" onClick={openNew} disabled={activities.length === 0}><Plus size={17}/> Buat perjalanan</button>
+      </div>
+      {notice && <div className="trip-notice"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={() => setNotice("")} aria-label="Tutup"><X size={15}/></button></div>}
+      {pageError && <div className="master-feedback error">{pageError}</div>}
+      <div className="trip-stats">
+        <article><span>Total perjalanan</span><strong>{trips.length}</strong><small>Dalam lingkup akses akun</small></article>
+        <article><span>Draf</span><strong>{activeDrafts}</strong><small>Menunggu pemeriksaan</small></article>
+        <article><span>Diterbitkan</span><strong>{publishedTrips}</strong><small>SP/SPPD diterbitkan</small></article>
+        <article><span>Dibatalkan</span><strong>{cancelledTrips}</strong><small>Riwayat pembatalan</small></article>
+      </div>
+      <section className="trip-list-card">
+        <div className="trip-list-toolbar">
+          <div><h2>Daftar pengajuan</h2><p>Gunakan pencarian untuk menemukan perjalanan berdasarkan maksud, tujuan, atau subkegiatan.</p></div>
+          <div className="trip-tools">
+            <div className="trip-search"><Search size={16}/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari perjalanan..." /></div>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter status">
+              <option value="all">Semua status</option><option value="draft">Draf</option><option value="published">Diterbitkan</option><option value="cancelled">Dibatalkan</option>
+            </select>
+          </div>
+        </div>
+        <div className="trip-table-wrap">
+          <table className="trip-table"><thead><tr><th>PERJALANAN</th><th>KEGIATAN</th><th>TUJUAN</th><th>WAKTU</th><th>PESERTA</th><th>STATUS</th><th>AKSI</th></tr></thead>
+            <tbody>{filteredTrips.length ? filteredTrips.map((trip) => (
+              <tr key={trip.id}>
+                <td><b>{trip.maksud_perjalanan}</b><small>{trip.jenis_perjalanan === "luar_kota" ? "Luar kota" : "Dalam kota"} · {trip.nama_bagian}</small></td>
+                <td><b>{trip.kode_kegiatan || "Subkegiatan"}</b><small>{trip.nama_kegiatan}</small></td>
+                <td><span className="trip-destination"><MapPin size={13}/>{trip.tempat_tujuan}</span><small>{trip.provinsi_tujuan}</small></td>
+                <td>{dateLabel(trip.tanggal_berangkat)}<small>s.d. {dateLabel(trip.tanggal_kembali)}</small></td>
+                <td><span className="trip-participant-count"><Users size={14}/>{trip.peserta_ids.length} orang</span><small>{trip.peserta_ids.length > 4 ? "Daftar pada lampiran" : trip.nama_peserta.slice(0,2).join(", ") || "Belum dipilih"}</small></td>
+                <td><span className={"trip-status " + statusClass(trip.status)}><i/>{statusName(trip.status)}</span></td>
+                <td><div className="trip-row-actions">
+                  {trip.status === "draft" && <button onClick={() => openEdit(trip)} title="Ubah draf"><Edit3 size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
+                </div></td>
+              </tr>
+            )) : <tr><td colSpan={7} className="trip-empty"><Plane size={24}/><b>Belum ada perjalanan yang cocok</b><span>Buat pengajuan baru atau ubah kata kunci pencarian.</span></td></tr>}</tbody>
+          </table>
+        </div>
+        <div className="trip-list-footer">Menampilkan <b>{filteredTrips.length}</b> dari <b>{trips.length}</b> perjalanan</div>
+      </section>
+
+      {showForm && <div className="trip-modal-backdrop" role="presentation">
+        <section className="trip-modal" role="dialog" aria-modal="true" aria-labelledby="trip-form-title">
+          <div className="trip-modal-header"><div><span className="eyebrow">FORMULIR PENGAJUAN</span><h2 id="trip-form-title">{editingTrip ? "Ubah draf perjalanan" : "Buat perjalanan dinas"}</h2><p>Lengkapi rincian perjalanan sebelum draf disimpan.</p></div>
+            <button className="trip-close" onClick={() => setShowForm(false)} aria-label="Tutup"><X size={18}/></button>
+          </div>
+          <form onSubmit={saveDraft}>
+            <div className="trip-form-body">
+              <section className="trip-form-section">
+                <div className="trip-section-title"><span>01</span><div><h3>Informasi kegiatan</h3><p>Pilih subkegiatan dan sumber anggaran yang sesuai.</p></div></div>
+                <div className="trip-form-grid">
+                  <label className="trip-field trip-field-wide">Subkegiatan
+                    <select required value={form.kegiatan_id} onChange={(event) => handleActivityChange(event.target.value)}>
+                      <option value="">Pilih subkegiatan</option>{activities.map((item) => <option value={item.id} key={item.id}>{item.kode ? item.kode + " — " : ""}{item.nama} · {item.nama_bagian} · {item.tahun}</option>)}
+                    </select>
+                  </label>
+                  <label className="trip-field trip-field-wide">Rekening / alokasi anggaran
+                    <select required value={selectedBudget?.id ?? ""} onChange={(event) => updateForm("anggaran_id", event.target.value)}>
+                      <option value="">Pilih alokasi anggaran</option>{activityBudgets.map((budget) => <option value={budget.id} key={budget.id}>{budget.kode_rekening} — {budget.nama_rekening}</option>)}
+                    </select>
+                    {selectedBudget && <small className="trip-field-note">Pagu tersedia: <b>{money(selectedBudget.pagu_tersedia)}</b> · Komitmen: {money(selectedBudget.komitmen_aktif)}</small>}
+                    {!activityBudgets.length && form.kegiatan_id && <small className="trip-field-error">Belum ada alokasi anggaran aktif untuk subkegiatan ini.</small>}
+                  </label>
+                  <label className="trip-field">Jenis perjalanan<select value={form.jenis_perjalanan} onChange={(event) => updateForm("jenis_perjalanan", event.target.value as TripForm["jenis_perjalanan"])}><option value="luar_kota">Perjalanan dinas luar kota</option><option value="dalam_kota">Perjalanan dinas dalam kota</option></select></label>
+                  <label className="trip-field">Alat angkut<input value={form.alat_angkut} onChange={(event) => updateForm("alat_angkut", event.target.value)} placeholder="Contoh: Kendaraan dinas" /></label>
+                  <label className="trip-field">Nomor undangan (opsional)<input value={form.nomor_undangan} onChange={(event) => updateForm("nomor_undangan", event.target.value)} placeholder="Nomor surat undangan" /></label>
+                  <label className="trip-field">Tanggal undangan (opsional)<input type="date" value={form.tanggal_undangan} onChange={(event) => updateForm("tanggal_undangan", event.target.value)} /></label>
+                </div>
+              </section>
+              <section className="trip-form-section">
+                <div className="trip-section-title"><span>02</span><div><h3>Waktu dan tujuan</h3><p>Masukkan tanggal perjalanan serta lokasi kegiatan.</p></div></div>
+                <div className="trip-form-grid">
+                  <label className="trip-field">Tanggal berangkat<input required type="date" value={form.tanggal_berangkat} onChange={(event) => updateForm("tanggal_berangkat", event.target.value)} /></label>
+                  <label className="trip-field">Tanggal kembali<input required type="date" min={form.tanggal_berangkat || undefined} value={form.tanggal_kembali} onChange={(event) => updateForm("tanggal_kembali", event.target.value)} /></label>
+                  <label className="trip-field">Tanggal acara mulai<input required type="date" value={form.tanggal_acara_mulai} onChange={(event) => updateForm("tanggal_acara_mulai", event.target.value)} /></label>
+                  <label className="trip-field">Tanggal acara selesai<input required type="date" min={form.tanggal_acara_mulai || undefined} value={form.tanggal_acara_selesai} onChange={(event) => updateForm("tanggal_acara_selesai", event.target.value)} /></label>
+                  <label className="trip-field">Tempat berangkat<input required value={form.tempat_berangkat} onChange={(event) => updateForm("tempat_berangkat", event.target.value)} placeholder="Contoh: Kajen" /></label>
+                  <label className="trip-field">Tempat tujuan<input required value={form.tempat_tujuan} onChange={(event) => updateForm("tempat_tujuan", event.target.value)} placeholder="Kota / kabupaten tujuan" /></label>
+                  <label className="trip-field">Provinsi tujuan<select required value={form.provinsi_tujuan} onChange={(event) => updateForm("provinsi_tujuan", event.target.value)}><option value="">Pilih provinsi</option>{provinces.map((province) => <option key={province} value={province}>{province}</option>)}</select></label>
+                  <label className="trip-field">Lokasi acara<input required value={form.lokasi_acara} onChange={(event) => updateForm("lokasi_acara", event.target.value)} placeholder="Nama gedung / alamat lokasi acara" /></label>
+                  <label className="trip-field trip-field-wide">Maksud perjalanan<textarea required rows={3} value={form.maksud_perjalanan} onChange={(event) => updateForm("maksud_perjalanan", event.target.value)} placeholder="Uraikan maksud dan tujuan perjalanan dinas..." /></label>
+                </div>
+              </section>
+              <section className="trip-form-section">
+                <div className="trip-section-title"><span>03</span><div><h3>Peserta perjalanan</h3><p>Pilih pegawai aktif dari Bagian yang memiliki subkegiatan.</p></div></div>
+                <div className="trip-participant-head"><div className="trip-search"><Search size={15}/><input value={participantSearch} onChange={(event) => setParticipantSearch(event.target.value)} placeholder="Cari nama atau NIP..." /></div><span>{form.peserta_ids.length} peserta dipilih</span></div>
+                <div className="trip-employee-list">
+                  {eligibleEmployees.length ? eligibleEmployees.map((person) => <label className={"trip-employee-option " + (form.peserta_ids.includes(person.id) ? "selected" : "")} key={person.id}>
+                    <input type="checkbox" checked={form.peserta_ids.includes(person.id)} onChange={() => toggleParticipant(person.id)} /><span className="trip-check"><Check size={13}/></span>
+                    <span className="trip-employee-avatar"><UserRound size={16}/></span><span className="trip-employee-info"><b>{person.nama}</b><small>{person.nip || "NIP belum tersedia"} · {person.pangkat_golongan || person.status_kepegawaian}</small></span>
+                  </label>) : <div className="trip-no-employee">Tidak ada pegawai aktif yang sesuai dengan Bagian subkegiatan.</div>}
+                </div>
+                {form.peserta_ids.length > 4 && <div className="trip-attachment-hint"><FileText size={16}/><span>Lebih dari 4 peserta. Daftar nama pegawai akan ditempatkan pada lampiran dokumen.</span></div>}
+                <label className="trip-field trip-signer-field">Penandatangan Surat Perintah (SP)
+                  <select required value={form.penandatangan_sp_id} onChange={(event) => updateForm("penandatangan_sp_id", event.target.value)}>
+                    <option value="">Pilih pejabat penandatangan SP</option>{activeSigners.map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
+                  </select>
+                  <small className="trip-field-note">Penandatangan SP dipilih secara manual dari daftar pejabat yang telah diatur.</small>
+                </label>
+              </section>
+              <section className="trip-form-section">
+                <div className="trip-section-title"><span>04</span><div><h3>Pengikut dan biaya lainnya</h3><p>Pengikut bersifat opsional. BBM dan tol diinput manual untuk rombongan.</p></div></div>
+                <div className="trip-companion-list">{form.pengikut.map((person, index) => <div className="trip-companion-row" key={index}>
+                  <label className="trip-field">Nama pengikut<input value={person.nama} onChange={(event) => updateCompanion(index, "nama", event.target.value)} placeholder="Nama lengkap" /></label>
+                  <label className="trip-field">Tanggal lahir<input type="date" value={person.tanggal_lahir} onChange={(event) => updateCompanion(index, "tanggal_lahir", event.target.value)} /></label>
+                  <label className="trip-field">Keterangan<input value={person.keterangan} onChange={(event) => updateCompanion(index, "keterangan", event.target.value)} placeholder="Hubungan / keterangan" /></label>
+                  <button type="button" className="trip-icon-danger" onClick={() => removeCompanion(index)} aria-label="Hapus pengikut"><Trash2 size={16}/></button>
+                </div>)}</div>
+                <button type="button" className="trip-add-link" onClick={addCompanion}><Plus size={15}/> Tambah pengikut</button>
+                <div className="trip-form-grid trip-cost-grid">
+                  <label className="trip-field">Biaya BBM (Rp)<input inputMode="numeric" value={form.bbm} onChange={(event) => updateForm("bbm", digits(event.target.value))} placeholder="0" /></label>
+                  <label className="trip-field">Biaya tol (Rp)<input inputMode="numeric" value={form.tol} onChange={(event) => updateForm("tol", digits(event.target.value))} placeholder="0" /></label>
+                </div>
+              </section>
+            </div>
+            {formError && <div className="trip-form-error"><AlertCircle size={16}/>{formError}</div>}
+            <div className="trip-modal-footer"><span><Clock3 size={14}/> Disimpan sebagai draf, belum diterbitkan.</span><div>
+              <button type="button" className="secondary-btn" onClick={() => setShowForm(false)} disabled={busy}>Tutup</button>
+              <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan draf</>}</button>
+            </div></div>
+          </form>
+        </section>
+      </div>}
+
+      {resultTrip && <div className="trip-modal-backdrop" role="presentation">
+        <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-result-title">
+          <div className="trip-modal-header"><div><span className="eyebrow">PEMERIKSAAN PENGAJUAN</span><h2 id="trip-result-title">{preview ? "Pratinjau biaya perjalanan" : "Hasil validasi draf"}</h2><p>{resultTrip.maksud_perjalanan} · {resultTrip.tempat_tujuan}</p></div>
+            <button className="trip-close" onClick={() => { setResultTrip(null); setValidation(null); setPreview(null); }} aria-label="Tutup"><X size={18}/></button>
+          </div>
+          <div className="trip-result-body">
+            {validation && <div className={"trip-validation-banner " + (validation.valid ? "valid" : "invalid")}>
+              {validation.valid ? <CheckCircle2 size={19}/> : <AlertCircle size={19}/>}
+              <div><b>{validation.valid ? "Draf lolos validasi awal" : "Draf belum siap diterbitkan"}</b><span>{validation.valid ? (validation.jumlah_peserta ?? resultTrip.peserta_ids.length) + " peserta · " + (validation.jumlah_hari ?? "—") + " hari perjalanan" : "Periksa hal-hal yang perlu dilengkapi di bawah ini."}</span></div>
+            </div>}
+            {validation?.errors?.length ? <div className="trip-check-list"><h3>Perlu diperbaiki</h3>{validation.errors.map((item, index) => <div key={index}><AlertCircle size={15}/>{item}</div>)}</div> : null}
+            {validation?.warnings?.length ? <div className="trip-check-list warning"><h3>Catatan pemeriksaan</h3>{validation.warnings.map((item, index) => <div key={index}><AlertCircle size={15}/>{item}</div>)}</div> : null}
+            {preview?.biaya && <>
+              <div className="trip-cost-summary"><span>Total perkiraan biaya</span><strong>{money(preview.biaya.total_biaya)}</strong><small>{preview.biaya.jumlah_hari} hari perjalanan · belum menjadi komitmen anggaran</small></div>
+              <div className="trip-cost-lines"><div><span>Uang Harian</span><b>{money(preview.biaya.total_uh)}</b></div><div><span>BBM</span><b>{money(preview.biaya.total_bbm)}</b></div><div><span>Tol</span><b>{money(preview.biaya.total_tol)}</b></div></div>
+              <h3 className="trip-result-subtitle">Rincian Uang Harian peserta</h3>
+              <div className="trip-preview-table"><table><thead><tr><th>Nama peserta</th><th>Kelompok</th><th>Tarif / hari</th><th>Jumlah</th></tr></thead><tbody>{preview.biaya.peserta.map((item, index) => <tr key={index}><td>{item.nama}</td><td>{item.kelompok_pegawai}</td><td>{money(item.tarif_harian)}</td><td>{money(item.total_uang_harian)}</td></tr>)}</tbody></table></div>
+              {preview.catatan && <p className="trip-field-note">{preview.catatan}</p>}
+            </>}
+          </div>
+          <div className="trip-modal-footer"><span><Wallet size={14}/> Perhitungan mengikuti tarif UH aktif pada database.</span><div><button className="secondary-btn" onClick={() => { setResultTrip(null); setValidation(null); setPreview(null); }}>Tutup</button></div></div>
+        </section>
+      </div>}
+    </div>
+  );
+}
