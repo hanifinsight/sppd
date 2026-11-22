@@ -2,7 +2,12 @@
   "name": "sppd-frontend",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "lint": "eslint ." },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",
@@ -18,6 +23,7 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.5.0",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "@tailwindcss/postcss": "^4.0.0"
   }
 }
