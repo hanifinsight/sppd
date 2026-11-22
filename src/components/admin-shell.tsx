@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   ArrowUpRight, Building2, ChevronDown, ClipboardList, LayoutDashboard,
-  Settings2, Users, Wallet, ChartNoAxesCombined, FileText, Plane, Menu, X
+  Settings2, Users, Wallet, ChartNoAxesCombined, FileText, Plane, Menu, X, LogOut
 } from "lucide-react";
 
 type Props = {
