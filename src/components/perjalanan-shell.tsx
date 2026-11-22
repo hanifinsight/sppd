@@ -8,7 +8,7 @@ import {
 type Props = {
   username: string;
   role: "admin" | "operator";
-  active?: "perjalanan";
+  active?: "perjalanan" | "dokumen";
   children: ReactNode;
 };
 
@@ -30,7 +30,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
           <p>MENU UTAMA</p>
           <Link className="nav-item" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></Link>
           <Link className={"nav-item " + (active === "perjalanan" ? "active" : "")} href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></Link>
-          <Link className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
+          <Link className={"nav-item " + (active === "dokumen" ? "active" : "")} href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
         </div>
         {isAdmin && <div className="nav-group">
           <p>ADMINISTRASI</p>
@@ -56,7 +56,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
       </aside>
       <section className="main-area">
         <header className="topbar">
-          <div className="breadcrumb">Workspace <span>/</span> <b>Perjalanan Dinas</b></div>
+          <div className="breadcrumb">Workspace <span>/</span> <b>{active === "dokumen" ? "Dokumen SP & SPPD" : "Perjalanan Dinas"}</b></div>
           <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Operator Kegiatan"}</span><div className="top-avatar">{isAdmin ? "AG" : "OP"}</div></div>
         </header>
         <div className="content master-content">{children}</div>
