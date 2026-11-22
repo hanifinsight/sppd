@@ -52,16 +52,15 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const participantIds=rawPeople.map(p=>v(p.id));
  const [rateRes,accountRes]=await Promise.all([
   participantIds.length?db.from("perjalanan_biaya_peserta").select("perjalanan_peserta_id,jumlah_hari,tarif_snapshot,total_uang_harian").in("perjalanan_peserta_id",participantIds):Promise.resolve({data:[]}),
-  bRes.data?.rekening_id?db.from("rekening_belanja").select("codigo:codigo,kode_rekening,nama_rekening").eq("id",bRes.data.rekening_id).maybeSingle():Promise.resolve({data:null})
+  bRes.data?.rekening_id?db.from("rekening_belanja").select("kode_rekening,nama_rekening").eq("id",bRes.data.rekening_id).maybeSingle():Promise.resolve({data:null})
  ]);
  const rateMap=new Map(((rateRes.data??[]) as R[]).map(r=>[r.perjalanan_peserta_id,r]));
  const duration=days(v(trip.tanggal_berangkat),v(trip.tanggal_kembali));
  const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(p.jabatan_snapshot),days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
  const activity=aRes.data as R|null;
  const sectionId=v(activity?.bagian_id);
- const [sectionRes,officialsRes]=await Promise.all([
+ const [sectionRes]=await Promise.all([
   sectionId?db.from("bagian").select("nama_bagian").eq("id",sectionId).maybeSingle():Promise.resolve({data:null}),
-  Promise.resolve(null)
  ]);
  const managers=(mRes.data??[]) as R[];
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
