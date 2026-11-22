@@ -717,3 +717,15 @@
 @media(prefers-reduced-motion:reduce){
   .app-shell.master-app-shell .sidebar{transition:none}
 }
+
+
+/* Explicit sign-out action in the account area */
+.user-mini form{margin-left:auto;flex-shrink:0}
+.user-mini .logout-button{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:32px;padding:7px 10px;border:1px solid #f0dfdd;border-radius:7px;
+ background:#fffafa;color:#a6534d;font:700 10px Arial,Helvetica,sans-serif;
+ white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.user-mini .logout-button:hover{background:#fff0ee;border-color:#e7c7c3}
+.user-mini .logout-button:focus-visible{outline:3px solid rgba(166,83,77,.18);outline-offset:2px}
