@@ -384,3 +384,57 @@
 @media(max-width:900px){.master-content{padding:26px 22px}.master-page-head h1{font-size:23px}}
 @media(max-width:760px){.master-app-shell .sidebar{display:none}.master-content{padding:22px 14px}.master-page-head{align-items:flex-start;flex-direction:column}.master-page-head .master-primary-btn{width:100%}.master-stats-row{grid-template-columns:1fr 1fr}.master-toolbar{align-items:stretch;flex-direction:column}.master-toolbar-actions{width:100%}.master-search{max-width:none;width:100%}.master-filter{flex:1;min-width:0}.master-table-foot{align-items:flex-start;flex-direction:column}.master-form-grid{grid-template-columns:1fr}.master-field.full{grid-column:auto}.master-admin-pill{font-size:9px}.master-app-shell .topbar{padding:0 14px}}
 @media(max-width:380px){.master-stats-row{grid-template-columns:1fr}.master-form{padding:16px}}
+
+
+/* Officials and document signatories */
+.official-tabs{display:flex;align-items:center;gap:5px;border-bottom:1px solid #e5ece9;margin:0 0 18px}
+.official-tabs button{display:inline-flex;align-items:center;gap:8px;padding:12px 15px;border:0;border-bottom:2px solid transparent;background:transparent;color:#87969b;font-size:11px;font-weight:700;cursor:pointer}
+.official-tabs button:hover{color:#247e65}
+.official-tabs button.active{color:#147d65;border-bottom-color:#147d65}
+.official-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:20px}
+.official-section-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:24px 0 14px}
+.official-section-intro h2{font-size:15px;margin:0 0 5px;color:#29444d;letter-spacing:-.25px}
+.official-section-intro p{font-size:10px;color:#94a1a6;margin:0;line-height:1.6}
+.official-hint{display:inline-flex;align-items:center;gap:6px;color:#52866f;background:#edf7f0;padding:7px 10px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap}
+.official-role{display:inline-flex;align-items:center;border-radius:6px;padding:6px 8px;background:#edf4f5;color:#52737a;font-size:9px;font-weight:700}
+.official-role.role-kpa{background:#edf4fb;color:#527ba4}
+.official-role.role-pptk{background:#f2effa;color:#7e6ba9}
+.official-role.role-pa{background:#eaf6ef;color:#44896c}
+.official-role.role-bendahara-pengeluaran,.official-role.role-bendahara-pengeluaran-pembantu{background:#fbf3e7;color:#a77b3d}
+.official-scope{max-width:310px;white-space:normal;line-height:1.6}
+.official-info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.official-info-card{display:flex;align-items:flex-start;gap:11px;padding:15px;background:#fff;border:1px solid #e8edf0;border-radius:10px}
+.official-info-card>span{width:31px;height:31px;border-radius:9px;background:#edf6f0;color:#3c8a6d;display:grid;place-items:center;flex-shrink:0}
+.official-info-card b{font-size:10px;color:#435b63}
+.official-info-card p{font-size:9px;line-height:1.65;color:#91a0a5;margin:6px 0 0}
+.signer-list{display:grid;gap:10px}
+.signer-card{display:flex;align-items:center;gap:13px;padding:16px 18px;border:1px solid #e8edf0;background:#fff;border-radius:10px}
+.signer-avatar{width:40px;height:40px;display:grid;place-items:center;flex-shrink:0;border-radius:12px;background:#e8f3ed;color:#278363;font-size:15px;font-weight:800}
+.signer-main{flex:1;min-width:0}
+.signer-name-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.signer-name-row>b{font-size:11px;color:#36515a}
+.signer-main>small{display:block;color:#94a2a8;font-size:9px;margin-top:5px}
+.signer-main>p{font-size:10px;line-height:1.6;color:#6e8188;margin:8px 0 0}
+.sppd-kpa-note{display:flex;align-items:flex-start;gap:13px;margin-top:18px;padding:18px;border:1px solid #dfece4;border-radius:10px;background:#f6faf7}
+.sppd-kpa-icon{width:35px;height:35px;border-radius:10px;background:#e3f2e9;color:#2f8766;display:grid;place-items:center;flex-shrink:0}
+.sppd-kpa-note>div:nth-child(2){flex:1;min-width:0}
+.sppd-kpa-note b{font-size:11px;color:#3a5b4d}
+.sppd-kpa-note p{font-size:10px;line-height:1.7;color:#83988c;margin:6px 0 12px}
+.sppd-kpa-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sppd-kpa-list>div{background:#fff;border:1px solid #e7efea;border-radius:7px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
+.sppd-kpa-list span{font-size:9px;color:#8d9d95}
+.sppd-kpa-list strong{font-size:10px;color:#4d6c5c}
+.official-signer-caption{display:flex;align-items:center;gap:8px;color:#96a4a6;font-size:9px;margin-top:14px}
+.official-signer-caption svg{color:#68a184;flex-shrink:0}
+.official-modal{width:min(100%,620px)}
+.official-activity-picker{border:1px solid #e3eaea;border-radius:8px;padding:10px;background:#fbfcfc}
+.official-activity-picker .master-search{max-width:none;width:100%;height:34px}
+.official-activity-list{max-height:220px;overflow:auto;margin-top:8px}
+.official-activity-option{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;border-top:1px solid #edf1f1;cursor:pointer}
+.official-activity-option input{accent-color:#147d65;margin:2px 0 0}
+.official-activity-option span{min-width:0}
+.official-activity-option b{display:block;font-size:10px;color:#4a626b;line-height:1.5}
+.official-activity-option small{display:block;font-size:9px;color:#9aa7aa;margin-top:4px;line-height:1.5}
+@media(max-width:1000px){.official-info-grid{grid-template-columns:1fr}.official-scope{max-width:230px}}
+@media(max-width:760px){.official-overview{grid-template-columns:1fr 1fr}.official-overview .master-stat:last-child{grid-column:1/-1}.official-section-intro{align-items:flex-start;flex-direction:column}.official-table{min-width:950px}.signer-card{align-items:flex-start;flex-wrap:wrap}.signer-card .master-row-actions{margin-left:53px}.sppd-kpa-note{padding:14px}.sppd-kpa-list{grid-template-columns:1fr}.official-tabs{overflow-x:auto}.official-tabs button{white-space:nowrap}.official-info-grid{grid-template-columns:1fr}}
+@media(max-width:420px){.official-overview{grid-template-columns:1fr}.official-overview .master-stat:last-child{grid-column:auto}}
