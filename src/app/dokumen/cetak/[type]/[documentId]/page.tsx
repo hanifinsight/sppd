@@ -112,7 +112,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <tr><td>10.</td><td>Keterangan Lain-Lain</td><td>{v(trip.nomor_undangan)?"Undangan: "+v(trip.nomor_undangan):"—"}</td></tr>
     </tbody></table>
     <div className={styles.spdSign}><div><Line label="Dikeluarkan di">Kajen</Line><Line label="Tanggal">{date(issued)}</Line></div><b>Pejabat Pembuat Komitmen</b><div className={styles.signGap}/><b className={styles.underlined}>{kpa.name}</b><div>{kpa.nip?"NIP. "+kpa.nip:""}</div></div>
-   </section>
+   </section>}
    {(type==="sppd"||type==="penerimaan")&&<section className={styles.paper}><Header/><h1 className={styles.receiptTitle}>{isCity?"PENERIMAAN PERJALANAN DINAS DALAM KOTA":"PENERIMAAN PERJALANAN DINAS BIASA"}</h1><div className={styles.receiptSub}><b>KE {v(trip.tempat_tujuan).toLocaleUpperCase("id-ID")}</b><b>TANGGAL {range(v(trip.tanggal_berangkat),v(trip.tanggal_kembali)).toLocaleUpperCase("id-ID")}</b></div>
     <table className={styles.receipt}><thead><tr><th>No</th><th>Nama</th><th>Gol</th><th>Jml Hari</th><th>Nominal</th><th>Penerimaan</th><th>Tanda Tangan</th></tr></thead><tbody>
      {people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td className={styles.nameCell}>{p.name}<small>NIP. {p.nip||"—"}</small></td><td>{p.rank.match(/\(([^)]+)\)/)?.[1]||p.rank||"—"}</td><td>{p.days}</td><td>{p.rate?"Rp "+rupiah(p.rate):"—"}</td><td>{p.amount?"Rp "+rupiah(p.amount):"—"}</td><td>{i+1}</td></tr>)}
