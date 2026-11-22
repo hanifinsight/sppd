@@ -729,3 +729,17 @@
 }
 .user-mini .logout-button:hover{background:#fff0ee;border-color:#e7c7c3}
 .user-mini .logout-button:focus-visible{outline:3px solid rgba(166,83,77,.18);outline-offset:2px}
+
+
+/* Dashboard sign-out: always available on narrow screens */
+.dashboard-mobile-logout{display:none}
+.dashboard-mobile-logout button{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:34px;padding:8px 10px;border:1px solid #f0dfdd;border-radius:7px;
+ background:#fffafa;color:#a6534d;font:700 10px Arial,Helvetica,sans-serif;
+ white-space:nowrap;cursor:pointer
+}
+.dashboard-mobile-logout button:hover{background:#fff0ee;border-color:#e7c7c3}
+@media(max-width:760px){
+ .dashboard-mobile-logout{display:flex;align-items:center}
+}
