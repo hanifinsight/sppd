@@ -12,7 +12,7 @@ import {
 type Props = {
   username: string;
   role: "admin" | "operator";
-  active?: "perjalanan" | "dokumen";
+  active?: "dashboard" | "perjalanan" | "dokumen";
   children: ReactNode;
 };
 
@@ -56,7 +56,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
         </div>
         <div className="nav-group">
           <p>MENU UTAMA</p>
-          <Link className="nav-item" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></Link>
+          <Link className={"nav-item " + (active === "dashboard" ? "active" : "")} href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></Link>
           <Link className={"nav-item " + (active === "perjalanan" ? "active" : "")} href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></Link>
           <Link className={"nav-item " + (active === "dokumen" ? "active" : "")} href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
         </div>
@@ -95,7 +95,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             <span>Menu</span>
           </button>
-          <div className="breadcrumb">Workspace <span>/</span> <b>{active === "dokumen" ? "Dokumen SP & SPPD" : "Perjalanan Dinas"}</b></div>
+          <div className="breadcrumb">Workspace <span>/</span> <b>{active === "dashboard" ? "Ringkasan" : active === "dokumen" ? "Dokumen SP & SPPD" : "Perjalanan Dinas"}</b></div>
           <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Operator Kegiatan"}</span><div className="top-avatar">{isAdmin ? "AG" : "OP"}</div></div>
         </header>
         <div className="content master-content">{children}</div>
