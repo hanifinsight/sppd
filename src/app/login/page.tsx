@@ -51,6 +51,7 @@ export default function LoginPage() {
         access_token:data.access_token,refresh_token:data.refresh_token
       });
       if(sessionError) throw sessionError;
+      if(!sessionData.user) throw new Error("Sesi login tidak berhasil dibuat. Silakan coba kembali.");
       const {data:profile,error:profileError}=await supabase.from("user_akun")
         .select("id,username,role,aktif,must_change_password,pegawai_id")
         .eq("id",sessionData.user.id).maybeSingle();
