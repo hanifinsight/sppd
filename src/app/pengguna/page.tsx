@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminShell from "@/components/admin-shell";
 import PenggunaClient, {
-  type AccountRecord, type EmployeeOption, type ActivityOption, type SectionOption
+  type AccountRecord, type EmployeeOption, type ActivityOption
 } from "./pengguna-client";
 
 export const dynamic = "force-dynamic";
@@ -98,7 +98,6 @@ export default async function PenggunaPage() {
       initialAccounts={accountRecords}
       employees={employeeOptions}
       activities={activityOptions}
-      sections={sections}
     />
   </AdminShell>;
 }
