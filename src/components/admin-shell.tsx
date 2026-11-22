@@ -7,7 +7,7 @@ import {
 
 type Props = {
   username: string;
-  active: "bagian" | "pegawai";
+  active: "bagian" | "pegawai" | "pengelola";
   children: ReactNode;
 };
 
@@ -32,7 +32,7 @@ export default function AdminShell({ username, active, children }: Props) {
         </div>
         <div className="nav-group">
           <p>DATA DAN ADMINISTRASI</p>
-          <Link className="nav-item" href="/pengaturan"><Settings2 size={18}/><span>Pejabat & Pengelola</span></Link>
+          <Link className={"nav-item " + (active === "pengelola" ? "active" : "")} href="/pengaturan"><Settings2 size={18}/><span>Pejabat & Pengelola</span></Link>
           <Link className="nav-item" href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></Link>
           <Link className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></Link>
           <Link className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
