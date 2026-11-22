@@ -1,52 +1,171 @@
-import { ArrowUpRight, CalendarDays, ClipboardList, FileText, Wallet, Users, MapPin, Plus, Search, Bell, ChevronDown, Plane, Building2, LayoutDashboard, Settings2, ChartNoAxesCombined, Clock3 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import {
+  Activity, ArrowRight, ArrowUpRight, BadgeCheck, Building2, CalendarClock,
+  CheckCircle2, ClipboardCheck, FileCheck2, LockKeyhole, MapPinned, Plane,
+  ShieldCheck, Sparkles, Users, Wallet
+} from "lucide-react";
 
-type Trip = { id:string; maksud_perjalanan:string; tempat_tujuan:string; tanggal_berangkat:string; tanggal_kembali:string; status:string; jenis_perjalanan:string };
-const money=(n:number)=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
-const date=(s:string)=>new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(s+"T00:00:00"));
+const features = [
+  {
+    icon: Plane,
+    number: "01",
+    title: "Perjalanan dinas terkelola",
+    description: "Satukan proses perjalanan dinas dalam kota maupun luar kota dalam alur kerja yang lebih jelas dan tertata."
+  },
+  {
+    icon: FileCheck2,
+    number: "02",
+    title: "Administrasi dokumen",
+    description: "Bantu penyiapan Surat Tugas dan SPPD agar informasi perjalanan tersusun rapi dan mudah ditelusuri."
+  },
+  {
+    icon: Users,
+    number: "03",
+    title: "Data pegawai terpusat",
+    description: "Gunakan data pegawai sebagai dasar pengisian peserta perjalanan, tanpa perlu mengetik ulang informasi yang sama."
+  },
+  {
+    icon: Wallet,
+    number: "04",
+    title: "Kegiatan dan anggaran",
+    description: "Hubungkan pengajuan perjalanan dengan kegiatan serta pagu anggaran yang menjadi acuan pelaksanaannya."
+  }
+];
 
-export default async function Home() {
-  const supabase=await createClient();
-  const [{count:tripCount},{count:employeeCount},{data:budgets},{data:trips},{data:userData}] = await Promise.all([
-    supabase.from("perjalanan_dinas").select("id",{count:"exact",head:true}),
-    supabase.from("pegawai").select("id",{count:"exact",head:true}).eq("aktif",true),
-    supabase.from("anggaran").select("pagu_awal").eq("aktif",true),
-    supabase.from("perjalanan_dinas").select("id,maksud_perjalanan,tempat_tujuan,tanggal_berangkat,tanggal_kembali,status,jenis_perjalanan").order("created_at",{ascending:false}).limit(5),
-    supabase.auth.getUser()
-  ]);
-  const budgetTotal=(budgets??[]).reduce((sum,row)=>sum+Number(row.pagu_awal??0),0);
-  const recent=(trips??[]) as Trip[];
-  const {data:profile}=userData.user ? await supabase.from("user_akun").select("username,role").eq("id",userData.user.id).maybeSingle() : {data:null};
-  const stats=[
-    {label:"Total perjalanan",value:String(tripCount??0),hint:"Seluruh pengajuan",icon:Plane,tone:"blue"},
-    {label:"Pegawai aktif",value:String(employeeCount??0),hint:"Terdaftar dalam sistem",icon:Users,tone:"violet"},
-    {label:"Pagu anggaran",value:money(budgetTotal),hint:"Total pagu aktif",icon:Wallet,tone:"green"},
-    {label:"Dalam proses",value:String(recent.filter(t=>t.status==="draft").length),hint:"Dari 5 data terbaru",icon:Clock3,tone:"amber"}
-  ];
-  const statusLabel=(s:string)=>s==="draft"?"Draf":s==="published"?"Diterbitkan":s==="cancelled"?"Dibatalkan":s;
-  const statusTone=(s:string)=>s==="published"?"done":s==="cancelled"?"progress":"pending";
-  return <main className="app-shell">
-    <aside className="sidebar">
-      <div className="brand"><div className="brand-mark">S</div><div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div></div>
-      <div className="workspace"><div className="workspace-icon"><Building2 size={17}/></div><div><b>Sekretariat Daerah</b><small>Kabupaten Pekalongan</small></div><ChevronDown size={15}/></div>
-      <div className="nav-group"><p>MENU UTAMA</p><a className="nav-item active" href="/"><LayoutDashboard size={18}/><span>Ringkasan</span></a><a className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></a><a className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></a><a className="nav-item" href="/pegawai"><Users size={18}/><span>Pegawai</span></a></div>
-      <div className="nav-group"><p>MANAJEMEN</p><a className="nav-item" href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></a><a className="nav-item" href="/laporan"><ChartNoAxesCombined size={18}/><span>Laporan</span></a></div>
-      <div className="sidebar-bottom"><a className="nav-item" href="/pengaturan"><Settings2 size={18}/>Pengaturan</a><div className="help-card"><div className="help-icon">?</div><b>Butuh bantuan?</b><p>Pusat bantuan penggunaan aplikasi SPPD.</p><a href="mailto:administrator@setda.pekalongankab.go.id">Hubungi administrator <ArrowUpRight size={13}/></a></div><div className="user-mini"><div className="avatar">AD</div><div><b>{profile?.username??"Pengguna"}</b><small>{profile?.role==="admin"?"Administrator":"Operator"}</small></div><form action="/auth/signout" method="post"><button aria-label="Keluar" title="Keluar">↗</button></form></div></div>
-    </aside>
-    <section className="main-area">
-      <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <b>Ringkasan</b></div><div className="top-actions"><div className="period"><CalendarDays size={15}/> Data terkini <ChevronDown size={14}/></div><button className="icon-btn" aria-label="Notifikasi"><Bell size={18}/></button><div className="top-avatar">SP</div></div></header>
-      <div className="content">
-        <div className="welcome-row"><div><div className="eyebrow">SISTEM PERJALANAN DINAS</div><h1>Selamat datang, {profile?.username??"Pengguna"} <span>✦</span></h1><p>Pantau dan kelola aktivitas perjalanan dinas dalam satu tempat.</p></div><a className="primary-btn" href="/perjalanan/baru"><Plus size={17}/> Buat perjalanan dinas</a></div>
-        <div className="stats-grid">{stats.map(s=><article className="stat-card" key={s.label}><div className="stat-top"><span>{s.label}</span><div className={"stat-icon "+s.tone}><s.icon size={18}/></div></div><strong>{s.value}</strong><small>{s.hint}</small></article>)}</div>
-        <div className="section-heading"><div><h2>Aktivitas perjalanan</h2><p>Data pengajuan terbaru dari database SPPD.</p></div><a href="/perjalanan">Lihat semua <ArrowUpRight size={15}/></a></div>
-        <div className="table-card"><div className="table-toolbar"><div className="tabs"><button className="selected">Terbaru <span>{recent.length}</span></button></div><div className="table-tools"><span className="search-btn"><Search size={16}/> Data aktual Supabase</span></div></div>
-          <div className="table-wrap"><table><thead><tr><th>JENIS</th><th>KEGIATAN / MAKSUD</th><th>TUJUAN</th><th>TANGGAL BERANGKAT</th><th>STATUS</th></tr></thead><tbody>{recent.length?recent.map(t=><tr key={t.id}><td><b className="code">{t.jenis_perjalanan==="luar_kota"?"Luar kota":"Dalam kota"}</b><small className="place"><MapPin size={12}/>{t.tempat_tujuan}</small></td><td><b>{t.maksud_perjalanan}</b><small>Perjalanan dinas</small></td><td>{t.tempat_tujuan}</td><td>{date(t.tanggal_berangkat)} – {date(t.tanggal_kembali)}</td><td><span className={"status "+statusTone(t.status)}><i/>{statusLabel(t.status)}</span></td></tr>):<tr><td colSpan={5} className="empty-state">Belum ada data perjalanan dinas yang dapat ditampilkan.</td></tr>}</tbody></table></div>
-          <div className="table-footer"><span>Menampilkan <b>{recent.length}</b> data terbaru · total <b>{tripCount??0}</b> perjalanan</span><a href="/perjalanan">Buka daftar perjalanan →</a></div>
+const steps = [
+  { icon: ClipboardCheck, title: "Siapkan pengajuan", text: "Pilih kegiatan, lengkapi maksud perjalanan, tujuan, jadwal, dan peserta." },
+  { icon: FileCheck2, title: "Periksa administrasi", text: "Tinjau informasi perjalanan dan kelengkapan dokumen sebelum diterbitkan." },
+  { icon: Activity, title: "Pantau proses", text: "Lihat status pengajuan dan informasi perjalanan melalui satu ruang kerja." }
+];
+
+export default function LandingPage() {
+  return (
+    <main className="landing-page">
+      <header className="lp-header">
+        <div className="lp-nav lp-container">
+          <Link href="/" className="lp-brand" aria-label="SPPD beranda">
+            <span className="lp-brand-mark">S</span>
+            <span className="lp-brand-copy"><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></span>
+          </Link>
+          <nav className="lp-links" aria-label="Navigasi utama">
+            <a href="#fitur">Fitur</a>
+            <a href="#alur">Alur kerja</a>
+            <a href="#keamanan">Keamanan</a>
+          </nav>
+          <Link className="lp-login-link" href="/login">Masuk aplikasi <ArrowUpRight size={16}/></Link>
         </div>
-        <div className="bottom-grid"><article className="insight-card"><div className="insight-head"><div><span className="eyebrow">RINGKASAN ANGGARAN</span><h3>Total pagu anggaran aktif</h3></div><Wallet size={18}/></div><div className="amount-row"><strong>{money(budgetTotal)}</strong></div><p className="budget-note">Nilai pagu diambil langsung dari tabel anggaran. Realisasi dan sisa anggaran akan ditampilkan setelah perhitungan komitmen diintegrasikan.</p></article>
-        <article className="quick-card"><span className="eyebrow">AKSES CEPAT</span><h3>Mulai pekerjaan</h3><div className="quick-links"><a href="/perjalanan/baru"><div className="quick-icon blue"><Plus size={17}/></div><span><b>Buat perjalanan baru</b><small>Ajukan perjalanan dinas</small></span><ArrowUpRight size={15}/></a><a href="/pegawai"><div className="quick-icon green"><ClipboardList size={17}/></div><span><b>Kelola data pegawai</b><small>Periksa data pegawai</small></span><ArrowUpRight size={15}/></a></div></article></div>
-        <footer>© 2026 Sekretariat Daerah Kabupaten Pekalongan <span>SPPD · Sistem Perjalanan Dinas</span></footer>
-      </div>
-    </section>
-  </main>;
+      </header>
+
+      <section className="lp-hero">
+        <div className="lp-container lp-hero-grid">
+          <div className="lp-hero-copy">
+            <div className="lp-eyebrow"><span className="lp-eyebrow-dot"/> SISTEM PERJALANAN DINAS TERINTEGRASI</div>
+            <h1>Urus perjalanan dinas jadi <em>lebih tertata.</em></h1>
+            <p className="lp-lead">Satu ruang kerja untuk membantu pengelolaan perjalanan dinas, administrasi dokumen, data pegawai, dan anggaran di lingkungan Sekretariat Daerah Kabupaten Pekalongan.</p>
+            <div className="lp-hero-actions">
+              <Link href="/login" className="lp-primary">Masuk ke aplikasi <ArrowRight size={17}/></Link>
+              <a href="#fitur" className="lp-secondary">Jelajahi fitur <ArrowUpRight size={16}/></a>
+            </div>
+            <div className="lp-trust-line"><ShieldCheck size={16}/> Akses khusus pengguna yang telah terdaftar</div>
+          </div>
+
+          <div className="lp-visual-wrap" aria-label="Ilustrasi tampilan ruang kerja SPPD">
+            <div className="lp-orbit lp-orbit-one"/>
+            <div className="lp-orbit lp-orbit-two"/>
+            <div className="lp-glow"/>
+            <div className="lp-dashboard-card">
+              <div className="lp-preview-top">
+                <div className="lp-preview-brand"><span>S</span><b>Ruang kerja SPPD</b></div>
+                <div className="lp-preview-dots"><i/><i/><i/></div>
+              </div>
+              <div className="lp-preview-heading">
+                <div><small>RINGKASAN PENGELOLAAN</small><h3>Perjalanan dinas</h3></div>
+                <div className="lp-preview-icon"><Plane size={18}/></div>
+              </div>
+              <div className="lp-preview-kpis">
+                <div><span>Administrasi</span><b>Terstruktur</b><small><CheckCircle2 size={12}/> Alur lebih jelas</small></div>
+                <div><span>Pengelolaan</span><b>Terpusat</b><small><CheckCircle2 size={12}/> Data terkoneksi</small></div>
+              </div>
+              <div className="lp-preview-section">
+                <div className="lp-preview-section-head"><b>Alur perjalanan</b><span>Gambaran proses</span></div>
+                <div className="lp-preview-step is-complete"><span className="lp-step-icon"><ClipboardCheck size={14}/></span><div><b>Pengajuan perjalanan</b><small>Data dan peserta dilengkapi</small></div><CheckCircle2 size={15}/></div>
+                <div className="lp-preview-step is-active"><span className="lp-step-icon"><FileCheck2 size={14}/></span><div><b>Administrasi dokumen</b><small>Persiapan dan pemeriksaan</small></div><span className="lp-step-tag">PROSES</span></div>
+                <div className="lp-preview-step"><span className="lp-step-icon"><Activity size={14}/></span><div><b>Pemantauan</b><small>Status perjalanan dinas</small></div><span className="lp-step-muted">BERIKUTNYA</span></div>
+              </div>
+              <div className="lp-preview-foot"><span><LockKeyhole size={12}/> Ruang kerja terlindungi</span><span>SPPD <b>·</b> SETDA</span></div>
+            </div>
+            <div className="lp-float-card lp-float-top"><span className="lp-float-icon"><CalendarClock size={17}/></span><span><b>Jadwal tercatat</b><small>Informasi perjalanan rapi</small></span></div>
+            <div className="lp-float-card lp-float-bottom"><span className="lp-float-icon gold"><BadgeCheck size={17}/></span><span><b>Administrasi terarah</b><small>Data dalam satu alur</small></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-strip">
+        <div className="lp-container lp-strip-inner">
+          <div><span className="lp-strip-mark"><Building2 size={18}/></span><span><b>SEKRETARIAT DAERAH</b><small>KABUPATEN PEKALONGAN</small></span></div>
+          <p>Lebih tertib dalam proses. Lebih mudah dalam pemantauan.</p>
+          <span className="lp-strip-tag"><Sparkles size={14}/> Satu sistem, satu alur kerja</span>
+        </div>
+      </section>
+
+      <section className="lp-section lp-features" id="fitur">
+        <div className="lp-container">
+          <div className="lp-section-heading">
+            <div className="lp-eyebrow">DIBUAT UNTUK KEBUTUHAN KERJA</div>
+            <h2>Semua kebutuhan perjalanan dinas,<br/><em>dalam satu tempat.</em></h2>
+            <p>Susun informasi dengan lebih konsisten dan bantu tim bekerja dengan alur administrasi yang mudah dipahami.</p>
+          </div>
+          <div className="lp-feature-grid">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return <article className="lp-feature-card" key={feature.number}>
+                <div className="lp-feature-card-top"><span className="lp-feature-icon"><Icon size={20}/></span><span>{feature.number}</span></div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+                <div className="lp-feature-line"/>
+              </article>;
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-process" id="alur">
+        <div className="lp-container lp-process-grid">
+          <div className="lp-process-copy">
+            <div className="lp-eyebrow">ALUR KERJA YANG LEBIH JELAS</div>
+            <h2>Dari pengajuan<br/>hingga pemantauan.</h2>
+            <p>Informasi perjalanan dinas disusun secara bertahap agar setiap proses lebih mudah diperiksa dan ditindaklanjuti.</p>
+            <Link href="/login" className="lp-text-link">Mulai gunakan aplikasi <ArrowUpRight size={16}/></Link>
+          </div>
+          <div className="lp-process-list">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return <article className="lp-process-item" key={step.title}>
+                <div className="lp-process-num">{String(index + 1).padStart(2, "0")}</div>
+                <div className="lp-process-icon"><Icon size={19}/></div>
+                <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                {index < steps.length - 1 && <span className="lp-process-connector"/>}
+              </article>;
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-security" id="keamanan">
+        <div className="lp-container lp-security-inner">
+          <div className="lp-security-icon"><ShieldCheck size={25}/></div>
+          <div><div className="lp-eyebrow">AKSES DAN KEAMANAN</div><h2>Ruang kerja untuk pengguna berwenang.</h2><p>Pengguna masuk menggunakan akun terdaftar. Hak akses membedakan fungsi administrator dan operator sesuai kewenangannya.</p></div>
+          <Link href="/login" className="lp-security-button">Masuk dengan akun <ArrowRight size={16}/></Link>
+        </div>
+      </section>
+
+      <footer className="lp-footer">
+        <div className="lp-container lp-footer-inner">
+          <Link href="/" className="lp-brand"><span className="lp-brand-mark">S</span><span className="lp-brand-copy"><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></span></Link>
+          <p>© 2026 Sekretariat Daerah Kabupaten Pekalongan</p>
+          <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }}>Kembali ke atas ↑</a>
+        </div>
+      </footer>
+    </main>
+  );
 }
