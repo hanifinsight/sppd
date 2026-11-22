@@ -7,6 +7,11 @@ export async function middleware(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return response;
 
+  const pathname = request.nextUrl.pathname;
+  const isLogin = pathname.startsWith("/login");
+  const isLanding = pathname === "/";
+  const isAuthRoute = pathname.startsWith("/auth/");
+
   const supabase = createServerClient(url, key, {
     cookies: {
       getAll: () => request.cookies.getAll(),
@@ -20,9 +25,9 @@ export async function middleware(request: NextRequest) {
 
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
-  const isLogin = request.nextUrl.pathname.startsWith("/login");
+
   if (!userId) {
-    if (isLogin || request.nextUrl.pathname.startsWith("/auth/")) return response;
+    if (isLanding || isLogin || isAuthRoute) return response;
     const redirect = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
     return redirect;
@@ -37,12 +42,14 @@ export async function middleware(request: NextRequest) {
     response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
     return redirect;
   }
-  if (profile.must_change_password && !isLogin && !request.nextUrl.pathname.startsWith("/auth/")) {
+
+  if (profile.must_change_password && !isLogin && !isAuthRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
-  if (userId && isLogin && !profile.must_change_password) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (isLogin && !profile.must_change_password) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
+
   return response;
 }
 
