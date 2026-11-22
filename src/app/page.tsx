@@ -1,41 +1,50 @@
-import { ArrowUpRight, CalendarDays, ClipboardList, FileText, Wallet, Users, MapPin, Plus, Search, Bell, ChevronDown, TrendingUp, Clock3, CheckCircle2, CircleDashed, Plane, Building2, LayoutDashboard, Settings2, ChartNoAxesCombined } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ClipboardList, FileText, Wallet, Users, MapPin, Plus, Search, Bell, ChevronDown, Plane, Building2, LayoutDashboard, Settings2, ChartNoAxesCombined, Clock3 } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-const stats = [
-  { label: "Perjalanan bulan ini", value: "24", delta: "+12% dari bulan lalu", icon: Plane, tone: "blue" },
-  { label: "Menunggu persetujuan", value: "06", delta: "Perlu ditindaklanjuti", icon: Clock3, tone: "amber" },
-  { label: "Total realisasi", value: "Rp 48,6 jt", delta: "Bulan berjalan", icon: Wallet, tone: "green" },
-  { label: "Pegawai bertugas", value: "38", delta: "Pada periode ini", icon: Users, tone: "violet" }
-];
-const activities = [
-  { code: "SP-014/XI/2026", title: "Koordinasi pengendalian inflasi daerah", person: "Ahmad Fauzi, S.STP.", date: "24 Nov 2026", place: "Semarang", status: "Menunggu persetujuan", tone: "pending" },
-  { code: "SP-013/XI/2026", title: "Rapat evaluasi kinerja perangkat daerah", person: "Dewi Anggraini, S.E.", date: "23 Nov 2026", place: "Kajen", status: "Disetujui", tone: "done" },
-  { code: "SP-012/XI/2026", title: "Konsultasi penyusunan dokumen perencanaan", person: "Rizky Pratama, S.IP.", date: "21 Nov 2026", place: "Jakarta", status: "Dalam proses", tone: "progress" },
-  { code: "SP-011/XI/2026", title: "Monitoring kegiatan ketahanan pangan", person: "Siti Rahmawati, S.P.", date: "20 Nov 2026", place: "Pekalongan", status: "Selesai", tone: "done" }
-];
-const nav = [
-  { section: "MENU UTAMA", items: [{ label: "Ringkasan", icon: LayoutDashboard, active: true }, { label: "Perjalanan Dinas", icon: Plane }, { label: "Dokumen SP & SPPD", icon: FileText }, { label: "Pegawai", icon: Users }] },
-  { section: "MANAJEMEN", items: [{ label: "Kegiatan & Anggaran", icon: Wallet }, { label: "Laporan", icon: ChartNoAxesCombined }] }
-];
-export default function Home() {
+type Trip = { id:string; maksud_perjalanan:string; tempat_tujuan:string; tanggal_berangkat:string; tanggal_kembali:string; status:string; jenis_perjalanan:string };
+const money=(n:number)=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+const date=(s:string)=>new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric"}).format(new Date(s+"T00:00:00"));
+
+export default async function Home() {
+  const supabase=await createClient();
+  const [{count:tripCount},{count:employeeCount},{data:budgets},{data:trips},{data:userData}] = await Promise.all([
+    supabase.from("perjalanan_dinas").select("id",{count:"exact",head:true}),
+    supabase.from("pegawai").select("id",{count:"exact",head:true}).eq("aktif",true),
+    supabase.from("anggaran").select("pagu_awal").eq("aktif",true),
+    supabase.from("perjalanan_dinas").select("id,maksud_perjalanan,tempat_tujuan,tanggal_berangkat,tanggal_kembali,status,jenis_perjalanan").order("created_at",{ascending:false}).limit(5),
+    supabase.auth.getUser()
+  ]);
+  const budgetTotal=(budgets??[]).reduce((sum,row)=>sum+Number(row.pagu_awal??0),0);
+  const recent=(trips??[]) as Trip[];
+  const {data:profile}=userData.user ? await supabase.from("user_akun").select("username,role").eq("id",userData.user.id).maybeSingle() : {data:null};
+  const stats=[
+    {label:"Total perjalanan",value:String(tripCount??0),hint:"Seluruh pengajuan",icon:Plane,tone:"blue"},
+    {label:"Pegawai aktif",value:String(employeeCount??0),hint:"Terdaftar dalam sistem",icon:Users,tone:"violet"},
+    {label:"Pagu anggaran",value:money(budgetTotal),hint:"Total pagu aktif",icon:Wallet,tone:"green"},
+    {label:"Dalam proses",value:String(recent.filter(t=>t.status==="draft").length),hint:"Dari 5 data terbaru",icon:Clock3,tone:"amber"}
+  ];
+  const statusLabel=(s:string)=>s==="draft"?"Draf":s==="published"?"Diterbitkan":s==="cancelled"?"Dibatalkan":s;
+  const statusTone=(s:string)=>s==="published"?"done":s==="cancelled"?"progress":"pending";
   return <main className="app-shell">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">S</div><div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div></div>
       <div className="workspace"><div className="workspace-icon"><Building2 size={17}/></div><div><b>Sekretariat Daerah</b><small>Kabupaten Pekalongan</small></div><ChevronDown size={15}/></div>
-      {nav.map(group => <div className="nav-group" key={group.section}><p>{group.section}</p>{group.items.map(item => <a key={item.label} className={item.active ? "nav-item active" : "nav-item"} href="#"><item.icon size={18}/><span>{item.label}</span>{item.label === "Perjalanan Dinas" && <i>24</i>}</a>)}</div>)}
-      <div className="sidebar-bottom"><a className="nav-item" href="#"><Settings2 size={18}/>Pengaturan</a><div className="help-card"><div className="help-icon">?</div><b>Butuh bantuan?</b><p>Pusat bantuan penggunaan aplikasi SPPD.</p><a href="#">Hubungi administrator <ArrowUpRight size={13}/></a></div><div className="user-mini"><div className="avatar">AD</div><div><b>Administrator</b><small>Admin Sistem</small></div><button aria-label="Menu akun"><ChevronDown size={16}/></button></div></div>
+      <div className="nav-group"><p>MENU UTAMA</p><a className="nav-item active" href="/"><LayoutDashboard size={18}/><span>Ringkasan</span></a><a className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></a><a className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></a><a className="nav-item" href="/pegawai"><Users size={18}/><span>Pegawai</span></a></div>
+      <div className="nav-group"><p>MANAJEMEN</p><a className="nav-item" href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></a><a className="nav-item" href="/laporan"><ChartNoAxesCombined size={18}/><span>Laporan</span></a></div>
+      <div className="sidebar-bottom"><a className="nav-item" href="/pengaturan"><Settings2 size={18}/>Pengaturan</a><div className="help-card"><div className="help-icon">?</div><b>Butuh bantuan?</b><p>Pusat bantuan penggunaan aplikasi SPPD.</p><a href="mailto:administrator@setda.pekalongankab.go.id">Hubungi administrator <ArrowUpRight size={13}/></a></div><div className="user-mini"><div className="avatar">AD</div><div><b>{profile?.username??"Pengguna"}</b><small>{profile?.role==="admin"?"Administrator":"Operator"}</small></div><form action="/auth/signout" method="post"><button aria-label="Keluar" title="Keluar">↗</button></form></div></div>
     </aside>
     <section className="main-area">
-      <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <b>Ringkasan</b></div><div className="top-actions"><div className="period"><CalendarDays size={15}/> 22 November 2026 <ChevronDown size={14}/></div><button className="icon-btn" aria-label="Notifikasi"><Bell size={18}/><i/></button><div className="top-avatar">AD</div></div></header>
+      <header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <b>Ringkasan</b></div><div className="top-actions"><div className="period"><CalendarDays size={15}/> Data terkini <ChevronDown size={14}/></div><button className="icon-btn" aria-label="Notifikasi"><Bell size={18}/></button><div className="top-avatar">SP</div></div></header>
       <div className="content">
-        <div className="welcome-row"><div><div className="eyebrow">MINGGU, 22 NOVEMBER 2026</div><h1>Selamat datang, Administrator <span>✦</span></h1><p>Pantau dan kelola seluruh aktivitas perjalanan dinas dalam satu tempat.</p></div><button className="primary-btn"><Plus size={17}/> Buat perjalanan dinas</button></div>
-        <div className="stats-grid">{stats.map(s => <article className="stat-card" key={s.label}><div className="stat-top"><span>{s.label}</span><div className={"stat-icon "+s.tone}><s.icon size={18}/></div></div><strong>{s.value}</strong><small>{s.delta}</small></article>)}</div>
-        <div className="section-heading"><div><h2>Aktivitas perjalanan</h2><p>Ringkasan pengajuan dan perjalanan dinas terbaru.</p></div><a href="#">Lihat semua <ArrowUpRight size={15}/></a></div>
-        <div className="table-card"><div className="table-toolbar"><div className="tabs"><button className="selected">Semua <span>24</span></button><button>Menunggu <span>06</span></button><button>Disetujui</button><button>Selesai</button></div><div className="table-tools"><button className="search-btn"><Search size={16}/> Cari perjalanan</button><button className="filter-btn">Filter <ChevronDown size={14}/></button></div></div>
-          <div className="table-wrap"><table><thead><tr><th>NOMOR SURAT</th><th>KEGIATAN</th><th>PELAKSANA</th><th>TANGGAL</th><th>STATUS</th><th></th></tr></thead><tbody>{activities.map(a=><tr key={a.code}><td><b className="code">{a.code}</b><small className="place"><MapPin size={12}/>{a.place}</small></td><td><b>{a.title}</b><small>Perjalanan dinas</small></td><td>{a.person}</td><td>{a.date}</td><td><span className={"status "+a.tone}><i/>{a.status}</span></td><td><button className="more">···</button></td></tr>)}</tbody></table></div>
-          <div className="table-footer"><span>Menampilkan <b>1–4</b> dari <b>24</b> perjalanan</span><div><button disabled>←</button><button className="page-current">1</button><button>2</button><button>3</button><button>→</button></div></div>
+        <div className="welcome-row"><div><div className="eyebrow">SISTEM PERJALANAN DINAS</div><h1>Selamat datang, {profile?.username??"Pengguna"} <span>✦</span></h1><p>Pantau dan kelola aktivitas perjalanan dinas dalam satu tempat.</p></div><a className="primary-btn" href="/perjalanan/baru"><Plus size={17}/> Buat perjalanan dinas</a></div>
+        <div className="stats-grid">{stats.map(s=><article className="stat-card" key={s.label}><div className="stat-top"><span>{s.label}</span><div className={"stat-icon "+s.tone}><s.icon size={18}/></div></div><strong>{s.value}</strong><small>{s.hint}</small></article>)}</div>
+        <div className="section-heading"><div><h2>Aktivitas perjalanan</h2><p>Data pengajuan terbaru dari database SPPD.</p></div><a href="/perjalanan">Lihat semua <ArrowUpRight size={15}/></a></div>
+        <div className="table-card"><div className="table-toolbar"><div className="tabs"><button className="selected">Terbaru <span>{recent.length}</span></button></div><div className="table-tools"><span className="search-btn"><Search size={16}/> Data aktual Supabase</span></div></div>
+          <div className="table-wrap"><table><thead><tr><th>JENIS</th><th>KEGIATAN / MAKSUD</th><th>TUJUAN</th><th>TANGGAL BERANGKAT</th><th>STATUS</th></tr></thead><tbody>{recent.length?recent.map(t=><tr key={t.id}><td><b className="code">{t.jenis_perjalanan==="luar_kota"?"Luar kota":"Dalam kota"}</b><small className="place"><MapPin size={12}/>{t.tempat_tujuan}</small></td><td><b>{t.maksud_perjalanan}</b><small>Perjalanan dinas</small></td><td>{t.tempat_tujuan}</td><td>{date(t.tanggal_berangkat)} – {date(t.tanggal_kembali)}</td><td><span className={"status "+statusTone(t.status)}><i/>{statusLabel(t.status)}</span></td></tr>):<tr><td colSpan={5} className="empty-state">Belum ada data perjalanan dinas yang dapat ditampilkan.</td></tr>}</tbody></table></div>
+          <div className="table-footer"><span>Menampilkan <b>{recent.length}</b> data terbaru · total <b>{tripCount??0}</b> perjalanan</span><a href="/perjalanan">Buka daftar perjalanan →</a></div>
         </div>
-        <div className="bottom-grid"><article className="insight-card"><div className="insight-head"><div><span className="eyebrow">RINGKASAN ANGGARAN</span><h3>Realisasi perjalanan dinas</h3></div><button>November <ChevronDown size={13}/></button></div><div className="amount-row"><strong>Rp 48.600.000</strong><span><TrendingUp size={14}/> 8,4%</span></div><div className="progress-track"><div/></div><div className="progress-label"><span>Realisasi anggaran</span><b>64,8%</b></div><div className="budget-foot"><span>Terpakai <b>Rp 48,6 jt</b></span><span>Sisa <b>Rp 26,4 jt</b></span></div></article>
-        <article className="quick-card"><span className="eyebrow">AKSES CEPAT</span><h3>Mulai pekerjaan</h3><div className="quick-links"><a href="#"><div className="quick-icon blue"><Plus size={17}/></div><span><b>Buat perjalanan baru</b><small>Ajukan perjalanan dinas</small></span><ArrowUpRight size={15}/></a><a href="#"><div className="quick-icon green"><ClipboardList size={17}/></div><span><b>Kelola data pegawai</b><small>Perbarui data pegawai</small></span><ArrowUpRight size={15}/></a></div></article></div>
+        <div className="bottom-grid"><article className="insight-card"><div className="insight-head"><div><span className="eyebrow">RINGKASAN ANGGARAN</span><h3>Total pagu anggaran aktif</h3></div><Wallet size={18}/></div><div className="amount-row"><strong>{money(budgetTotal)}</strong></div><p className="budget-note">Nilai pagu diambil langsung dari tabel anggaran. Realisasi dan sisa anggaran akan ditampilkan setelah perhitungan komitmen diintegrasikan.</p></article>
+        <article className="quick-card"><span className="eyebrow">AKSES CEPAT</span><h3>Mulai pekerjaan</h3><div className="quick-links"><a href="/perjalanan/baru"><div className="quick-icon blue"><Plus size={17}/></div><span><b>Buat perjalanan baru</b><small>Ajukan perjalanan dinas</small></span><ArrowUpRight size={15}/></a><a href="/pegawai"><div className="quick-icon green"><ClipboardList size={17}/></div><span><b>Kelola data pegawai</b><small>Periksa data pegawai</small></span><ArrowUpRight size={15}/></a></div></article></div>
         <footer>© 2026 Sekretariat Daerah Kabupaten Pekalongan <span>SPPD · Sistem Perjalanan Dinas</span></footer>
       </div>
     </section>
