@@ -40,7 +40,7 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <main className="landing-page">
+    <main id="top" className="landing-page">
       <header className="lp-header">
         <div className="lp-nav lp-container">
           <Link href="/" className="lp-brand" aria-label="SPPD beranda">
@@ -163,7 +163,7 @@ export default function LandingPage() {
         <div className="lp-container lp-footer-inner">
           <Link href="/" className="lp-brand"><span className="lp-brand-mark">S</span><span className="lp-brand-copy"><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></span></Link>
           <p>© 2026 Sekretariat Daerah Kabupaten Pekalongan</p>
-          <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({top:0,behavior:"smooth"}); }}>Kembali ke atas ↑</a>
+          <a href="#top">Kembali ke atas ↑</a>
         </div>
       </footer>
     </main>
