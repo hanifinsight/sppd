@@ -29,7 +29,7 @@ export default function LoginPage() {
       if(!active) return;
       if(!profile || !profile.aktif) { await supabase.auth.signOut(); return; }
       if(profile.must_change_password) setMustChange(true);
-      else window.location.replace("/");
+      else window.location.replace("/dashboard");
     }
     restore().catch(()=>{});
     return ()=>{active=false};
@@ -59,7 +59,7 @@ export default function LoginPage() {
       if(!profile) throw new Error("Profil akun tidak ditemukan. Hubungi administrator.");
       if(!profile.aktif) throw new Error("Akun tidak aktif. Hubungi administrator.");
       if(profile.must_change_password) { setMustChange(true); setNotice("Untuk keamanan, buat password baru sebelum melanjutkan."); return; }
-      window.location.replace("/");
+      window.location.replace("/dashboard");
     } catch(err) {
       setError(err instanceof Error?err.message:"Login gagal. Silakan coba kembali.");
       await supabase.auth.signOut();
@@ -81,7 +81,7 @@ export default function LoginPage() {
       if(profileError) throw profileError;
       if(profile.must_change_password) throw new Error("Password berhasil diperbarui, tetapi status perubahan awal belum diperbarui oleh sistem. Hubungi administrator agar akun dapat diaktifkan.");
       setNotice("Password berhasil diperbarui. Mengalihkan ke dashboard...");
-      window.location.replace("/");
+      window.location.replace("/dashboard");
     } catch(err) {
       setError(err instanceof Error?err.message:"Gagal memperbarui password.");
     } finally { setBusy(false); }
