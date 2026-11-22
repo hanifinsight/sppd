@@ -16,7 +16,7 @@ export default async function Home() {
   ]);
   const budgetTotal=(budgets??[]).reduce((sum,row)=>sum+Number(row.pagu_awal??0),0);
   const recent=(trips??[]) as Trip[];
-  const {data:profile}=userData.user ? await supabase.from("user_akun").select("username,role").eq("id",userData.user.id).maybeSingle() : {data:null};
+  const {data:profile}=userData.user ? await supabase.from("user_akun").select("username,role,pegawai_id").eq("id",userData.user.id).maybeSingle() : {data:null};
   const stats=[
     {label:"Total perjalanan",value:String(tripCount??0),hint:"Seluruh pengajuan",icon:Plane,tone:"blue"},
     {label:"Pegawai aktif",value:String(employeeCount??0),hint:"Terdaftar dalam sistem",icon:Users,tone:"violet"},
@@ -29,7 +29,7 @@ export default async function Home() {
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">S</div><div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div></div>
       <div className="workspace"><div className="workspace-icon"><Building2 size={17}/></div><div><b>Sekretariat Daerah</b><small>Kabupaten Pekalongan</small></div><ChevronDown size={15}/></div>
-      <div className="nav-group"><p>MENU UTAMA</p><a className="nav-item active" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></a><a className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></a><a className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></a><a className="nav-item" href="/pegawai"><Users size={18}/><span>Pegawai</span></a></div>
+      <div className="nav-group"><p>MENU UTAMA</p><a className="nav-item active" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></a><a className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></a><a className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></a><a className="nav-item" href="/pegawai"><Users size={18}/><span>Data Pegawai</span></a>{profile?.role==="admin" && !profile?.pegawai_id && <a className="nav-item" href="/master/bagian"><Building2 size={18}/><span>Master Bagian</span></a>}</div>
       <div className="nav-group"><p>MANAJEMEN</p><a className="nav-item" href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></a><a className="nav-item" href="/laporan"><ChartNoAxesCombined size={18}/><span>Laporan</span></a></div>
       <div className="sidebar-bottom"><a className="nav-item" href="/pengaturan"><Settings2 size={18}/>Pengaturan</a><div className="help-card"><div className="help-icon">?</div><b>Butuh bantuan?</b><p>Pusat bantuan penggunaan aplikasi SPPD.</p><a href="mailto:administrator@setda.pekalongankab.go.id">Hubungi administrator <ArrowUpRight size={13}/></a></div><div className="user-mini"><div className="avatar">AD</div><div><b>{profile?.username??"Pengguna"}</b><small>{profile?.role==="admin"?"Administrator":"Operator"}</small></div><form action="/auth/signout" method="post"><button aria-label="Keluar" title="Keluar">↗</button></form></div></div>
     </aside>
