@@ -795,3 +795,19 @@
   .trip-table tbody{padding:7px;gap:8px}
   .trip-table tbody tr{padding:6px 8px}
 }
+
+
+/* Dashboard activity table becomes readable cards on phones */
+@media(max-width:640px){
+  .dashboard-table-wrap{overflow:visible}
+  .dashboard-table{display:block;min-width:0;width:100%}
+  .dashboard-table thead{display:none}
+  .dashboard-table tbody{display:grid;grid-template-columns:1fr;gap:9px;padding:10px}
+  .dashboard-table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;border:1px solid #e8edf2;border-radius:9px;background:#fff;padding:7px 9px;min-width:0}
+  .dashboard-table tbody td{display:block;min-width:0;padding:8px 3px;border:0;white-space:normal;overflow-wrap:anywhere;line-height:1.45;font-size:10px}
+  .dashboard-table tbody td::before{content:attr(data-label);display:block;margin-bottom:5px;color:#96a2ad;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .dashboard-table tbody td[data-label="Kegiatan / Maksud"]{grid-column:1/-1}
+  .dashboard-table tbody td.empty-state{grid-column:1/-1;text-align:center;padding:20px 8px}
+  .dashboard-table tbody td.empty-state::before{content:none}
+  .dashboard-table tbody td small{white-space:normal;overflow-wrap:anywhere}
+}
