@@ -126,7 +126,7 @@ export default function PenggunaClient({
 
     setBusy(true);
     try {
-      await invokeAdmin({
+      const result = await invokeAdmin({
         action: "create_operator",
         username: createForm.username.trim().toLowerCase(),
         password: createForm.password,
@@ -135,7 +135,7 @@ export default function PenggunaClient({
       });
       const activity = activities.find((row) => row.id === createForm.kegiatan_id);
       setAccounts((current) => [...current, {
-        id: "new-" + chosen.id,
+        id: String(result?.user?.id ?? "new-" + chosen.id),
         username: createForm.username.trim().toLowerCase(),
         role: "operator",
         pegawai_id: chosen.id,
@@ -270,7 +270,7 @@ export default function PenggunaClient({
           <td><div className="master-row-actions user-actions">
             <button className="master-icon-btn" title="Ubah kegiatan" aria-label="Ubah kegiatan" onClick={() => openAssignment(row)}><Edit3 size={14}/></button>
             <button className="master-icon-btn" title="Reset password" aria-label="Reset password" onClick={() => openPassword(row)}><KeyRound size={14}/></button>
-            <button className="master-secondary-btn" disabled={pendingId === row.id || row.id.startsWith("new-")} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>
+            <button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>
           </div></td>
         </tr>) : <tr><td colSpan={6} className="master-empty">Belum ada akun operator yang sesuai filter.</td></tr>}</tbody>
       </table></div>
