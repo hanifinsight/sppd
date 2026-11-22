@@ -472,3 +472,41 @@
 @media(max-width:1100px){.budget-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.budget-summary-card strong{font-size:14px}}
 @media(max-width:760px){.budget-summary-grid{grid-template-columns:1fr 1fr;gap:8px}.budget-summary-card{padding:12px 10px;gap:8px}.budget-summary-icon{width:31px;height:31px}.budget-summary-card strong{font-size:12px}.budget-commitment-line{align-items:flex-start;flex-direction:column;gap:5px;padding-bottom:13px}.budget-tabs{overflow-x:auto}.budget-tabs button{white-space:nowrap}.budget-activity-table,.budget-table{min-width:1000px}.budget-policy-note{align-items:flex-start}.mutation-current-box{grid-template-columns:1fr}.mutation-current-box>div{display:flex;justify-content:space-between;gap:8px}.mutation-current-box small{margin:0}.budget-actions{align-items:flex-start;flex-direction:column}}
 @media(max-width:390px){.budget-summary-grid{grid-template-columns:1fr}.budget-summary-card strong{font-size:14px}}
+
+
+/* Global admin user management */
+.user-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:17px}
+.user-summary-card{display:flex;align-items:center;gap:11px;padding:14px 15px;background:#fff;border:1px solid #e8edf0;border-radius:10px;min-width:0}
+.user-summary-icon{width:36px;height:36px;display:grid;place-items:center;flex-shrink:0;border-radius:10px;background:#eaf4ee;color:#278467}
+.user-summary-card small{display:block;font-size:9px;color:#94a3a8;margin-bottom:5px}
+.user-summary-card strong{display:block;font-size:19px;line-height:1.1;color:#304a53}
+.user-admin-card{display:flex;align-items:flex-start;gap:13px;padding:16px 18px;margin-bottom:22px;background:#f5faf7;border:1px solid #deece3;border-radius:10px}
+.user-admin-icon{width:37px;height:37px;display:grid;place-items:center;flex-shrink:0;border-radius:10px;background:#e2f1e8;color:#39886a}
+.user-admin-content{flex:1;min-width:0}
+.user-admin-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.user-admin-title>b{font-size:11px;color:#3d5b4d}
+.user-admin-content>p{font-size:10px;color:#81978a;line-height:1.65;margin:6px 0 10px}
+.user-admin-tags{display:flex;flex-wrap:wrap;gap:7px}
+.user-admin-tags>span{padding:6px 9px;border-radius:6px;background:#fff;border:1px solid #e6eee8;color:#72897c;font-size:9px}
+.user-admin-tags b{color:#416b56}
+.user-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:10px 0 13px}
+.user-section-head h2{margin:0 0 5px;font-size:15px;color:#29444d}
+.user-section-head p{margin:0;color:#94a1a6;font-size:10px;line-height:1.6}
+.user-count-pill{padding:6px 10px;border-radius:20px;background:#f1f6f3;color:#5b8870;font-size:9px;font-weight:700;white-space:nowrap}
+.user-table{min-width:1130px}
+.user-table td:first-child{min-width:185px}
+.user-table td:nth-child(3){max-width:270px;white-space:normal;line-height:1.55}
+.user-username{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:5px;background:#f2f6f4;color:#628273;font-size:9px;font-weight:700}
+.user-activity-name{white-space:normal;line-height:1.5}
+.user-alert-text{display:block;color:#b17c43!important;margin-top:5px}
+.user-actions{gap:5px}
+.user-access-note{display:flex;align-items:flex-start;gap:11px;margin-top:16px;padding:13px 15px;border:1px solid #e7ebed;border-radius:9px;background:#fbfcfc}
+.user-access-note>div{width:29px;height:29px;display:grid;place-items:center;flex-shrink:0;border-radius:8px;background:#eef3f3;color:#6a8587}
+.user-access-note p{margin:0;color:#85969a;font-size:10px;line-height:1.7}
+.user-access-note b{color:#536e72;font-size:10px}
+.user-modal{width:min(100%,620px)}
+.user-modal-hint{display:flex;align-items:flex-start;gap:8px;margin-top:13px;padding:10px 12px;border-radius:7px;background:#f3f8f5;border:1px solid #e2eee6;color:#718b7d;font-size:9px;line-height:1.65}
+.user-modal-hint svg{flex-shrink:0;color:#548a70;margin-top:1px}
+@media(max-width:1080px){.user-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.user-summary-grid{grid-template-columns:1fr 1fr;gap:8px}.user-summary-card{padding:11px 10px;gap:8px}.user-summary-icon{width:31px;height:31px}.user-summary-card strong{font-size:16px}.user-admin-card{padding:13px}.user-section-head{align-items:flex-start;flex-direction:column}.user-table{min-width:1080px}.user-actions{flex-wrap:wrap}.user-access-note{padding:11px}.user-modal .master-form-grid{grid-template-columns:1fr}.user-modal .master-field.full{grid-column:auto}}
+@media(max-width:390px){.user-summary-grid{grid-template-columns:1fr}.user-summary-card strong{font-size:17px}}
