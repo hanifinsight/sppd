@@ -5,7 +5,7 @@
 .paper{position:relative;width:210mm;min-height:297mm;margin:0 auto 16px;padding:12mm 15mm 13mm;background:#fff;box-shadow:0 3px 18px #132d3818;box-sizing:border-box;page-break-after:always;break-after:page;color:#111;font:10pt Arial,Helvetica,sans-serif}
 .paper:last-child{page-break-after:auto;break-after:auto}
 .header{display:grid;grid-template-columns:22mm 1fr;gap:3mm;align-items:center;border-bottom:3px double #111;padding:0 0 3mm;margin-bottom:5mm;min-height:24mm}
-.crest{width:20mm;height:24mm;border:1px solid #243a3a;border-radius:5mm;display:flex;align-items:center;justify-content:center;text-align:center;font-size:6pt;font-weight:700;line-height:1.1;padding:2mm}
+.header img{object-fit:contain;width:20mm;height:24mm}
 .header>div{text-align:center;display:flex;flex-direction:column;align-items:center;gap:1mm}
 .header>div>div{font-weight:700;font-size:11pt}.header strong{font-size:17pt;line-height:1.1}
 .header small{font-size:7.2pt;line-height:1.25}
