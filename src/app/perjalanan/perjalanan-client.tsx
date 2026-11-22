@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle, Check, CheckCircle2, ClipboardCheck, Clock3, Eye, FileText,
@@ -65,7 +65,8 @@ export default function PerjalananClient({
   kpas: KpaOption[]; provinces: string[]; pageError: string; startNew?: boolean;
 }) {
   const router = useRouter();
-  const [trips] = useState(initialTrips);
+  const [trips, setTrips] = useState(initialTrips);
+  useEffect(() => { setTrips(initialTrips); }, [initialTrips]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(startNew);
@@ -94,7 +95,7 @@ export default function PerjalananClient({
   const selectedKpa = selectedActivity ? kpas.find((row) => row.bagian_id === selectedActivity.bagian_id) : undefined;
   const eligibleEmployees = employees.filter((row) => selectedActivity && row.bagian_id === selectedActivity.bagian_id &&
     (row.nama + " " + row.nip + " " + row.jabatan).toLowerCase().includes(participantSearch.toLowerCase()));
-  const activeSigners = selectedActivity ? signers.filter((row) => row.bagian_id === selectedActivity.bagian_id || role === "admin") : signers;
+  const activeSigners = signers;
 
   function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -242,7 +243,7 @@ export default function PerjalananClient({
   return (
     <div className="trip-page">
       <div className="trip-heading">
-        <div><div className="eyebrow">ADMINISTRASI PERJALANAN DINAS</div><h1>Perjalanan Dinas</h1><p>Kelola pengajuan, peserta, dan perhitungan biaya perjalanan dinas.</p></div>
+        <div><div className="eyebrow">ADMINISTRASI PERJALANAN DINAS</div><h1>Perjalanan Dinas</h1><p>{role === "admin" ? "Kelola seluruh pengajuan perjalanan dinas, peserta, dan perhitungan biaya." : "Kelola perjalanan dinas pada subkegiatan yang ditugaskan kepada akun Anda."}</p></div>
         <button className="primary-btn" onClick={openNew} disabled={activities.length === 0}><Plus size={17}/> Buat perjalanan</button>
       </div>
       {notice && <div className="trip-notice"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={() => setNotice("")} aria-label="Tutup"><X size={15}/></button></div>}
