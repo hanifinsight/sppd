@@ -666,3 +666,9 @@
  .trip-form-error{margin:0 17px 12px}
  .trip-cost-lines{grid-template-columns:1fr}
 }
+
+
+/* SP/SPPD issuance form */
+.trip-result-modal form{display:flex;flex-direction:column;flex:1;min-height:0}
+.trip-result-modal form .trip-result-body{flex:1}
+.trip-result-modal form .trip-form-error{margin:12px 0 0}
