@@ -332,13 +332,13 @@ export default function PerjalananClient({
           <table className="trip-table"><thead><tr><th>PERJALANAN</th><th>KEGIATAN</th><th>TUJUAN</th><th>WAKTU</th><th>PESERTA</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>{filteredTrips.length ? filteredTrips.map((trip) => (
               <tr key={trip.id}>
-                <td><b>{trip.maksud_perjalanan}</b><small>{trip.jenis_perjalanan === "luar_kota" ? "Luar kota" : "Dalam kota"} · {trip.nama_bagian}</small></td>
-                <td><b>{trip.kode_kegiatan || "Subkegiatan"}</b><small>{trip.nama_kegiatan}</small></td>
-                <td><span className="trip-destination"><MapPin size={13}/>{trip.tempat_tujuan}</span><small>{trip.provinsi_tujuan}</small></td>
-                <td>{dateLabel(trip.tanggal_berangkat)}<small>s.d. {dateLabel(trip.tanggal_kembali)}</small></td>
-                <td><span className="trip-participant-count"><Users size={14}/>{trip.peserta_ids.length} orang</span><small>{trip.peserta_ids.length > 4 ? "Daftar pada lampiran" : trip.nama_peserta.slice(0,2).join(", ") || "Belum dipilih"}</small></td>
-                <td><span className={"trip-status " + statusClass(trip.status)}><i/>{statusName(trip.status)}</span></td>
-                <td><div className="trip-row-actions">
+                <td data-label="Perjalanan"><b>{trip.maksud_perjalanan}</b><small>{trip.jenis_perjalanan === "luar_kota" ? "Luar kota" : "Dalam kota"} · {trip.nama_bagian}</small></td>
+                <td data-label="Kegiatan"><b>{trip.kode_kegiatan || "Subkegiatan"}</b><small>{trip.nama_kegiatan}</small></td>
+                <td data-label="Tujuan"><span className="trip-destination"><MapPin size={13}/>{trip.tempat_tujuan}</span><small>{trip.provinsi_tujuan}</small></td>
+                <td data-label="Waktu">{dateLabel(trip.tanggal_berangkat)}<small>s.d. {dateLabel(trip.tanggal_kembali)}</small></td>
+                <td data-label="Peserta"><span className="trip-participant-count"><Users size={14}/>{trip.peserta_ids.length} orang</span><small>{trip.peserta_ids.length > 4 ? "Daftar pada lampiran" : trip.nama_peserta.slice(0,2).join(", ") || "Belum dipilih"}</small></td>
+                <td data-label="Status"><span className={"trip-status " + statusClass(trip.status)}><i/>{statusName(trip.status)}</span></td>
+                <td data-label="Aksi"><div className="trip-row-actions">
                   {trip.status === "draft" && <button onClick={() => openEdit(trip)} title="Ubah draf"><Edit3 size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
