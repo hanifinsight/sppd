@@ -64,10 +64,6 @@ export default async function PenggunaPage() {
     nama: row.nama_subkegiatan.trim(), tahun: row.tahun_anggaran, aktif: row.aktif,
     nama_bagian: sectionMap.get(row.bagian_id) ?? "Bagian tidak ditemukan"
   }));
-  const sections: SectionOption[] = (sectionRows ?? []).map((row) => ({
-    id: row.id, nama: row.nama_bagian, aktif: row.aktif
-  }));
-
   const accountRecords: AccountRecord[] = (accounts ?? []).map((row) => {
     const employee = row.pegawai_id ? employeeMap.get(row.pegawai_id) : null;
     const activityId = assignmentMap.get(row.id) ?? null;
