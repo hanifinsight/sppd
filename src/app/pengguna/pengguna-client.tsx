@@ -2,8 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import {
-  KeyRound, Search, UserPlus, Users, UserRound, ShieldCheck,
-  RefreshCw, Edit3, Power, X, Building2, ClipboardList, LockKeyhole
+  KeyRound, Search, UserPlus, Users, UserRound, ShieldCheck, Edit3, X, LockKeyhole
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -22,7 +21,6 @@ export type ActivityOption = {
   id: string; bagian_id: string; kode: string; nama: string;
   tahun: number; aktif: boolean; nama_bagian: string;
 };
-export type SectionOption = { id: string; nama: string; aktif: boolean };
 
 type ModalState =
   | { type: "create" }
@@ -53,12 +51,11 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat("id-ID", {
 }).format(new Date(value));
 
 export default function PenggunaClient({
-  initialAccounts, employees, activities, sections
+  initialAccounts, employees, activities
 }: {
   initialAccounts: AccountRecord[];
   employees: EmployeeOption[];
   activities: ActivityOption[];
-  sections: SectionOption[];
 }) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [search, setSearch] = useState("");
