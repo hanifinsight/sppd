@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   ArrowUpRight, Building2, ChevronDown, LayoutDashboard, Plane,
-  Users, Wallet, Settings2, FileText, ChartNoAxesCombined, Menu, X
+  Users, Wallet, Settings2, FileText, ChartNoAxesCombined, Menu, X, LogOut
 } from "lucide-react";
 
 type Props = {
@@ -78,7 +78,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
           <div className="user-mini">
             <div className="avatar">{isAdmin ? "AG" : "OP"}</div>
             <div><b>{username}</b><small>{isAdmin ? "Admin Global" : "Operator"}</small></div>
-            <form action="/auth/signout" method="post"><button aria-label="Keluar" title="Keluar">↗</button></form>
+            <form action="/auth/signout" method="post"><button type="submit" className="logout-button" aria-label="Keluar dari aplikasi" title="Keluar"><LogOut size={15}/><span>Keluar</span></button></form>
           </div>
         </div>
       </aside>
