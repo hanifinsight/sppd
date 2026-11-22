@@ -20,7 +20,7 @@ function Annex({people,number,issued,title}:{people:Person[];number:string;issue
 
 export default async function PrintPage({params}:{params:Promise<{type:string;documentId:string}>}){
  const {type,documentId}=await params;
- if(type!=="sp"&&type!=="sppd")notFound();
+ if(type!=="sp"&&type!=="sppd"&&type!=="penerimaan"&&type!=="lampiran")notFound();
  const db=await createClient();
  const {data:{user}}=await db.auth.getUser();
  if(!user)redirect("/login");
@@ -67,10 +67,10 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
  const employeeMap=new Map(((employeeRows??[]) as R[]).map(r=>[r.id,r]));
  const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
- const kpaRow=managers.find(r=>r.id===(type==="sppd"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
+ const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
- const kpa=official(kpaRow,type==="sppd"?v(doc.nama_ppk_snapshot):"",type==="sppd"?v(doc.jabatan_ppk_snapshot):"");
+ const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
  const pptk=official(pptkRow),bpp=official(bppRow);
  const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
  const number=v(type==="sp"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
@@ -93,8 +93,8 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
    <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div className={styles.signGap}/><b className={styles.underlined}>{spSigner.name}</b><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></div>
   </section>}
-  {type==="sppd"&&<>
-   <section className={styles.paper}>
+  {type!=="sp"&&<>
+   {type==="sppd"&&<section className={styles.paper}>
     <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b> 1</div><div><span>Kode Nomor</span><b>:</b> 000.1.2.3</div><div><span>Nomor</span><b>:</b> {number||"—"}</div></div>
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
@@ -113,8 +113,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     </tbody></table>
     <div className={styles.spdSign}><div><Line label="Dikeluarkan di">Kajen</Line><Line label="Tanggal">{date(issued)}</Line></div><b>Pejabat Pembuat Komitmen</b><div className={styles.signGap}/><b className={styles.underlined}>{kpa.name}</b><div>{kpa.nip?"NIP. "+kpa.nip:""}</div></div>
    </section>
-   {people.length>4&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN SURAT PERJALANAN DINAS"/>}
-   <section className={styles.paper}><Header/><h1 className={styles.receiptTitle}>{isCity?"PENERIMAAN PERJALANAN DINAS DALAM KOTA":"PENERIMAAN PERJALANAN DINAS BIASA"}</h1><div className={styles.receiptSub}><b>KE {v(trip.tempat_tujuan).toLocaleUpperCase("id-ID")}</b><b>TANGGAL {range(v(trip.tanggal_berangkat),v(trip.tanggal_kembali)).toLocaleUpperCase("id-ID")}</b></div>
+   {(type==="sppd"||type==="penerimaan")&&<section className={styles.paper}><Header/><h1 className={styles.receiptTitle}>{isCity?"PENERIMAAN PERJALANAN DINAS DALAM KOTA":"PENERIMAAN PERJALANAN DINAS BIASA"}</h1><div className={styles.receiptSub}><b>KE {v(trip.tempat_tujuan).toLocaleUpperCase("id-ID")}</b><b>TANGGAL {range(v(trip.tanggal_berangkat),v(trip.tanggal_kembali)).toLocaleUpperCase("id-ID")}</b></div>
     <table className={styles.receipt}><thead><tr><th>No</th><th>Nama</th><th>Gol</th><th>Jml Hari</th><th>Nominal</th><th>Penerimaan</th><th>Tanda Tangan</th></tr></thead><tbody>
      {people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td className={styles.nameCell}>{p.name}<small>NIP. {p.nip||"—"}</small></td><td>{p.rank.match(/\(([^)]+)\)/)?.[1]||p.rank||"—"}</td><td>{p.days}</td><td>{p.rate?"Rp "+rupiah(p.rate):"—"}</td><td>{p.amount?"Rp "+rupiah(p.amount):"—"}</td><td>{i+1}</td></tr>)}
      {[["BBM/Tiket",bbm],["TOL",tol],["Penginapan/Hotel",hotel],...otherRows.map(r=>[v(r.jenis_biaya),Number(r.nominal||0)])].map((r,i)=><tr key={i}><td></td><td colSpan={4} className={styles.costLabel}>{r[0]}</td><td>{Number(r[1])?"Rp "+rupiah(Number(r[1])):"—"}</td><td></td></tr>)}
@@ -126,8 +125,8 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <div><b>&nbsp;</b><b>PPTK</b><span>&nbsp;</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{pptk.name}</b><span>NIP. {pptk.nip||"—"}</span></div>
      <div><b>&nbsp;</b><b>Bendahara Pengeluaran Pembantu</b><span>{sectionName}</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{bpp.name}</b><span>NIP. {bpp.nip||"—"}</span></div>
     </div>
-   </section>
+   </section>}
   </>}
-  {type==="sp"&&people.length>4&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN SURAT TUGAS"/>}
+  {type==="lampiran"&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN DAFTAR PESERTA PERJALANAN DINAS"/>}
  </main>;
 }
