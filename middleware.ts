@@ -20,17 +20,29 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: claimsData } = await supabase.auth.getClaims();
-  const authenticated = Boolean(claimsData?.claims?.sub);
+  const userId = claimsData?.claims?.sub;
   const isLogin = request.nextUrl.pathname.startsWith("/login");
-
-  if (!authenticated && !isLogin) {
+  if (!userId) {
+    if (isLogin || request.nextUrl.pathname.startsWith("/auth/")) return response;
     const redirect = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
     return redirect;
   }
-  if (authenticated && isLogin) {
-    // Login page tetap dapat dibuka untuk menyelesaikan perubahan password awal.
-    return response;
+
+  const { data: profile } = await supabase.from("user_akun")
+    .select("aktif,must_change_password").eq("id", userId).maybeSingle();
+
+  if (!profile?.aktif) {
+    await supabase.auth.signOut();
+    const redirect = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
+    return redirect;
+  }
+  if (profile.must_change_password && !isLogin && !request.nextUrl.pathname.startsWith("/auth/")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  if (userId && isLogin && !profile.must_change_password) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
   return response;
 }
