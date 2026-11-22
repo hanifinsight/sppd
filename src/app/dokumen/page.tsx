@@ -50,7 +50,7 @@ export default async function DokumenPage() {
       .in("perjalanan_id", tripIds),
     supabase.from("perjalanan_biaya_peserta")
       .select("perjalanan_peserta_id,jumlah_hari,tarif_snapshot,total_uang_harian")
-  ]) : [{ data: [] }, { data: [] }, { data: [] }];
+  ]) : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
 
   const activityMap = new Map(((activityResult.data ?? []) as DbRow[]).map((row) => [row.id, row]));
   const spMap = new Map(((spResult.data ?? []) as DbRow[]).map((row) => [row.perjalanan_id, row]));
