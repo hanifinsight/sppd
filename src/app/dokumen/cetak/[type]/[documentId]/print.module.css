@@ -34,6 +34,12 @@
 .spd tr:first-child td{padding-top:3mm;padding-bottom:3mm}
 .spd tr{break-inside:avoid;page-break-inside:avoid}
 .personRow{margin-bottom:1.5mm}
+.personIdentity,.numberedValue{display:grid;grid-template-columns:6mm minmax(0,1fr);column-gap:1mm;align-items:start;margin-bottom:1mm;white-space:normal;overflow-wrap:break-word}
+.personIdentity>span,.numberedValue>span{text-align:left;white-space:nowrap}
+.personIdentityDetails{min-width:0;display:flex;flex-direction:column;gap:.4mm}
+.personIdentityDetails>div{min-width:0;overflow-wrap:break-word}
+.numberedValue>div{min-width:0;overflow-wrap:break-word}
+
 .spd .companionTable{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.2pt;line-height:1.3;white-space:normal}
 .spd .companionTable th,.spd .companionTable td{border:1px solid #aaa;padding:1.3mm 1.5mm;vertical-align:top;text-align:left;overflow-wrap:anywhere}
 .spd .companionTable th{background:#f3f4f4;text-align:center;font-weight:700}
