@@ -77,9 +77,9 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
  const pptk=official(pptkRow),bpp=official(bppRow);
  const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
- const spSignerIsEselonII=/^II(?:\\.|$)/i.test(spSigner.eselon.trim());
+ const spSignerIsEselonII=/^II(?:\.|$)/i.test(spSigner.eselon.trim());
  const spSignerDisplayName=spSignerIsEselonII
-  ?spSigner.name.split(",")[0].replace(/^(?:Drs?\\.?|Dra\\.?|Ir\\.?)\\s+/i,"").trim()
+  ?spSigner.name.split(",")[0].replace(/^(?:Drs?\.?|Dra\.?|Ir\.?)\s+/i,"").trim()
   :spSigner.name;
  const number=v(type==="sp"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
  const costRows=(costRes.data??[]) as R[];
