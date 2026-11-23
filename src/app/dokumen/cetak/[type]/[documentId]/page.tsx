@@ -101,17 +101,17 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <tr><td>1.</td><td>Pejabat Pembuat Komitmen</td><td>{kpa.name}</td></tr>
      <tr><td>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personRow} key={p.id}>{i+1}) {p.name}<br/>NIP. {p.nip||"—"}</div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
      <tr><td rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.rank||"—"}</div>)}</td></tr>
-     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div>)}</td></tr>
-     <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{isCity?"Perjalanan Dinas Dalam Kota":"Perjalanan Dinas Luar Kota – "+v(trip.provinsi_tujuan)}</td></tr>
+     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.job||"—"}</div>)}</td></tr>
+     <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{isCity?"Dinas Dalam Kota":"Dinas Biasa"}</td></tr>
      <tr><td>4.</td><td>Maksud perjalanan dinas</td><td>{v(trip.maksud_perjalanan)||"—"}</td></tr>
      <tr><td>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
      <tr><td rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
      <tr><td rowSpan={3}>7.</td><td>a. Lamanya Perjalanan Dinas</td><td>{duration} hari</td></tr><tr><td>b. Tanggal berangkat</td><td>{date(v(trip.tanggal_berangkat))}</td></tr><tr><td>c. Tanggal harus kembali</td><td>{date(v(trip.tanggal_kembali))}</td></tr>
-     <tr><td>8.</td><td>Pengikut</td><td>{companions.length?companions.map((p,i)=><div className={styles.companion} key={i}><b>{i+1}) {v(p.nama)}</b><span>Tanggal lahir: {p.tanggal_lahir?date(v(p.tanggal_lahir)):"—"}</span><span>Keterangan: {v(p.keterangan)||"—"}</span></div>):"Tidak ada"}</td></tr>
+     <tr><td>8.</td><td>Pengikut : Nama</td><td><table className={styles.followers}><thead><tr><th>Nama</th><th>Tanggal Lahir</th><th>Keterangan</th></tr></thead><tbody>{companions.length?companions.map((p,i)=><tr key={i}><td>{i+1}) {v(p.nama)}</td><td>{p.tanggal_lahir?date(v(p.tanggal_lahir)):""}</td><td>{v(p.keterangan)}</td></tr>):[1,2].map(n=><tr key={n}><td>{n})</td><td>{n})</td><td></td></tr>)}</tbody></table></td></tr>
      <tr><td rowSpan={2}>9.</td><td>a. Instansi</td><td>Sekretariat Daerah Kabupaten Pekalongan</td></tr><tr><td>b. Akun</td><td>{[v(account?.kode_rekening),v(account?.nama_rekening)].filter(Boolean).join(" – ")||"APBD Kabupaten Pekalongan"} · APBD Kabupaten Pekalongan Tahun Anggaran {v(activity?.tahun_anggaran)||new Date(issued).getFullYear()}</td></tr>
      <tr><td>10.</td><td>Keterangan Lain-Lain</td><td>{v(trip.nomor_undangan)?"Undangan: "+v(trip.nomor_undangan):"—"}</td></tr>
     </tbody></table>
-    <div className={styles.spdSign}><div><Line label="Dikeluarkan di">Kajen</Line><Line label="Tanggal">{date(issued)}</Line></div><b>Pejabat Pembuat Komitmen</b><div className={styles.signGap}/><b className={styles.underlined}>{kpa.name}</b><div>{kpa.nip?"NIP. "+kpa.nip:""}</div></div>
+    <div className={styles.spdSign}><div><Line label="Dikeluarkan di">Kajen</Line><Line label="Tanggal">{date(issued)}</Line></div><b>Pejabat Pembuat Komitmen</b><b>{sectionName}</b><div className={styles.signGap}/><b className={styles.underlined}>{kpa.name}</b><div>{kpa.nip?"NIP. "+kpa.nip:""}</div></div>
    </section>}
    {(type==="sppd"||type==="penerimaan")&&<section className={styles.paper}><Header/><h1 className={styles.receiptTitle}>{isCity?"PENERIMAAN PERJALANAN DINAS DALAM KOTA":"PENERIMAAN PERJALANAN DINAS BIASA"}</h1><div className={styles.receiptSub}><b>KE {v(trip.tempat_tujuan).toLocaleUpperCase("id-ID")}</b><b>TANGGAL {range(v(trip.tanggal_berangkat),v(trip.tanggal_kembali)).toLocaleUpperCase("id-ID")}</b></div>
     <table className={styles.receipt}><thead><tr><th>No</th><th>Nama</th><th>Gol</th><th>Jml Hari</th><th>Nominal</th><th>Penerimaan</th><th>Tanda Tangan</th></tr></thead><tbody>
