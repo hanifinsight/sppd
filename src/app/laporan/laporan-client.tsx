@@ -47,7 +47,8 @@ const tripType = (value: string) => value === "dalam_kota" ? "Dalam kota" : "Lua
 const statusLabel = (value: string) => value === "published" ? "Diterbitkan" : value === "draft" ? "Draf" : value === "cancelled" ? "Dibatalkan" : value || "—";
 
 function csvCell(value: unknown) {
-  const text = String(value ?? "");
+  let text = String(value ?? "");
+  if (/^[=+@\\-\\t\\r]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
