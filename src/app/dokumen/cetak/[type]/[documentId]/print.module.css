@@ -574,3 +574,126 @@
   page-break-inside:avoid;
  }
 }
+
+
+/* Poin 3 SPD: pisahkan subbagian pangkat/jabatan dan tingkat biaya agar sejajar */
+.spdPoint3OuterCell{
+ padding:0!important;
+}
+.spdPoint3Inner{
+ width:100%;
+ border-collapse:collapse;
+ border-spacing:0;
+ table-layout:fixed;
+ font-size:inherit;
+ line-height:1.25;
+}
+.spdPoint3Inner td{
+ padding:1.3mm 1.5mm;
+ border:0!important;
+ vertical-align:top;
+}
+.spdPoint3Inner td:first-child{
+ width:41.4%;
+ border-right:1px solid #222!important;
+}
+.spdPoint3Inner td:last-child{
+ border:0!important;
+}
+.spdPoint3Inner tr+tr td{
+ padding-top:.5mm;
+}
+.spdPoint3Labels{
+ display:flex;
+ flex-direction:column;
+ gap:.6mm;
+}
+.spdPoint3People{
+ display:flex;
+ flex-direction:column;
+ gap:.8mm;
+}
+.spdPoint3Person{
+ display:grid;
+ grid-template-columns:6mm minmax(0,1fr);
+ column-gap:1.2mm;
+ align-items:start;
+ min-width:0;
+ line-height:1.25;
+}
+.spdPoint3Person>span{
+ text-align:right;
+ white-space:nowrap;
+}
+.spdPoint3Person>div{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.spdPoint3Job{
+ padding-left:0;
+}
+.spdPoint3Cost{
+ line-height:1.25;
+}
+
+/* Poin 8 SPD: tabel pengikut dengan lebar kolom dan tinggi baris yang konsisten */
+.followersOuterCell{
+ padding:0!important;
+}
+.spdFollowers{
+ width:100%;
+ border-collapse:collapse;
+ border-spacing:0;
+ table-layout:fixed;
+ font-size:8.9pt;
+ line-height:1.25;
+}
+.spdFollowers col:nth-child(1){width:45%}
+.spdFollowers col:nth-child(2){width:28%}
+.spdFollowers col:nth-child(3){width:27%}
+.spdFollowers th,
+.spdFollowers td{
+ padding:1mm 1.5mm;
+ border:0!important;
+ border-right:1px solid #222!important;
+ vertical-align:top;
+ overflow-wrap:anywhere;
+}
+.spdFollowers th:last-child,
+.spdFollowers td:last-child{
+ border-right:0!important;
+}
+.spdFollowers thead th{
+ height:6mm;
+ padding-top:1.1mm;
+ padding-bottom:1.1mm;
+ border-bottom:1px solid #222!important;
+ font-weight:400;
+ text-align:center;
+}
+.spdFollowers thead th:first-child{
+ text-align:left;
+}
+.spdFollowers tbody tr{
+ height:5.8mm;
+}
+.spdFollowers tbody td{
+ padding-top:1mm;
+ padding-bottom:1mm;
+}
+.spdFollowers tbody td:first-child{
+ text-align:left;
+}
+.spdFollowers tbody td:nth-child(2){
+ text-align:left;
+}
+.spdFollowers tbody td:nth-child(3){
+ text-align:left;
+}
+@media print{
+ .spdPoint3Inner,
+ .spdFollowers{
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+}
