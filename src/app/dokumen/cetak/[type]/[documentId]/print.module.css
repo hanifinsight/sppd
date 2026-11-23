@@ -125,3 +125,42 @@
   page-break-inside:avoid;
  }
 }
+
+
+/* Struktur kolom pengikut mengikuti formulir SPD resmi */
+.followers{
+ width:100%;
+ border-collapse:collapse;
+ table-layout:fixed;
+ font-size:8.5pt;
+ line-height:1.3;
+}
+.spd .followers th,
+.spd .followers td{
+ border:0;
+ border-right:1px solid #222;
+ padding:1.5mm 1.7mm;
+ text-align:left;
+ vertical-align:top;
+ overflow-wrap:anywhere;
+}
+.spd .followers th{
+ text-align:center;
+ font-weight:700;
+}
+.spd .followers th:last-child,
+.spd .followers td:last-child{
+ border-right:0;
+}
+.spd .followers tbody tr+tr td{
+ border-top:1px dotted #aaa;
+}
+.spdSign>b+b{
+ margin-top:1mm;
+}
+@media print{
+ .followers{
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+}
