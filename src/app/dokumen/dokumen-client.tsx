@@ -372,10 +372,10 @@ export default function DokumenClient({
                     <div className={styles.printSection}>
                       <div className={styles.sectionTitle}><Printer size={15} /><b>Cetak dokumen perjalanan</b></div>
                       <div className={styles.printActions}>
-                        {trip.sp && <a href={`/dokumen/cetak/sp/${trip.sp.id}`} target="_blank" rel="noreferrer"><Printer size={15} /> Cetak SP</a>}
-                        {trip.sppd && <a href={`/dokumen/cetak/sppd/${trip.sppd.id}`} target="_blank" rel="noreferrer"><Printer size={15} /> Cetak SPPD</a>}
-                        {trip.sppd && <a href={`/dokumen/cetak/penerimaan/${trip.sppd.id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Cetak Penerimaan</a>}
-                        {trip.participants.length > 4 && trip.sppd && <a className={styles.annexAction} href={`/dokumen/cetak/lampiran/${trip.sppd.id}`} target="_blank" rel="noreferrer"><Users size={15} /> Lampiran Peserta</a>}
+                        {trip.sp && <a href={`/dokumen/cetak/sp/${trip.sp.id}?print=1`} target="_blank" rel="noreferrer"><Printer size={15} /> Pratinjau PDF SP</a>}
+                        {trip.sppd && <a href={`/dokumen/cetak/sppd/${trip.sppd.id}?print=1`} target="_blank" rel="noreferrer"><Printer size={15} /> Pratinjau PDF SPPD</a>}
+                        {trip.sppd && <a href={`/dokumen/cetak/penerimaan/${trip.sppd.id}?print=1`} target="_blank" rel="noreferrer"><FileText size={15} /> Pratinjau PDF Penerimaan</a>}
+                        {trip.participants.length > 4 && trip.sppd && <a className={styles.annexAction} href={`/dokumen/cetak/lampiran/${trip.sppd.id}?print=1`} target="_blank" rel="noreferrer"><Users size={15} /> Pratinjau PDF Lampiran</a>}
                       </div>
                     </div>
 
