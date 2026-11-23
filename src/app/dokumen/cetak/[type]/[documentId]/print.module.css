@@ -57,3 +57,71 @@
 @page{size:A4 portrait;margin:0}
 @media print{.screen{padding:0;background:#fff;min-height:0}.toolbar{display:none!important}.paper{width:210mm;min-height:297mm;margin:0;box-shadow:none;padding:12mm 15mm 13mm;break-after:page;page-break-after:always}.paper:last-child{break-after:auto;page-break-after:auto}}
 @media screen and (max-width:760px){.screen{padding:10px 6px}.toolbar,.paper{width:100%}.paper{min-height:0;padding:22px 18px}.header{grid-template-columns:18mm 1fr}.header strong{font-size:13pt}.header small{font-size:6.5pt}.spd{font-size:7.8pt}.receipt{font-size:6.8pt}.receipt th:nth-child(n){width:auto}.receiptSigns{gap:2mm;font-size:6.8pt}.companion{grid-template-columns:1fr}}
+
+
+/* Penyesuaian tata letak Surat Tugas mengikuti contoh SP DL 010226.pdf */
+.signerIntro{
+ width:100%;
+ margin:0 0 6mm;
+}
+.signerIntro .line{
+ grid-template-columns:25mm 4mm minmax(0,1fr);
+ gap:1mm;
+}
+.title{
+ margin:4mm 0 1mm;
+}
+.docNumber{
+ margin:0 0 7mm;
+}
+.command{
+ margin:2mm 0 5mm;
+}
+.spGrid{
+ grid-template-columns:24mm minmax(0,1fr);
+ gap:2mm;
+ margin:0 0 2.5mm;
+ line-height:1.5;
+}
+.spGrid>div:first-child:after{
+ margin-right:1mm;
+}
+.peopleList{
+ padding-left:7mm;
+}
+.peopleList li{
+ padding:0 0 2.5mm 1mm;
+}
+.peopleList li>div{
+ grid-template-columns:20mm 4mm minmax(0,1fr);
+}
+.closing{
+ margin:7mm 0 0;
+ line-height:1.55;
+}
+.spSign{
+ width:76mm;
+ margin:8mm 7mm 0 auto;
+ line-height:1.45;
+}
+.spSign .signGap{
+ height:23mm;
+}
+@media print{
+ .paper{
+  padding:12mm 15mm 13mm;
+ }
+ .signerIntro{
+  width:100%;
+  margin:0 0 6mm;
+ }
+ .spGrid{
+  margin-bottom:2.5mm;
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+ .spSign{
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+}
