@@ -261,8 +261,8 @@ export default function PerjalananClient({
     event.preventDefault();
     if (!issuingTrip) return;
     setIssueError("");
-    if (!issueForm.nomor_sp.trim() || !issueForm.nomor_sppd.trim() || !issueForm.tanggal_terbit || !issueForm.penandatangan_sp_id) {
-      setIssueError("Lengkapi nomor SP, nomor SPPD, tanggal terbit, dan penandatangan SP.");
+    if (!issueForm.tanggal_terbit || !issueForm.penandatangan_sp_id) {
+      setIssueError("Lengkapi tanggal terbit dan penandatangan SP.");
       return;
     }
     const activity = activities.find((row) => row.id === issuingTrip.kegiatan_id);
@@ -284,8 +284,8 @@ export default function PerjalananClient({
       }
       const { data, error } = await supabase.rpc("sppd_terbitkan", {
         p_perjalanan_id: issuingTrip.id,
-        p_nomor_sp: issueForm.nomor_sp.trim(),
-        p_nomor_sppd: issueForm.nomor_sppd.trim(),
+        p_nomor_sp: issueForm.nomor_sp.trim() || null,
+        p_nomor_sppd: issueForm.nomor_sppd.trim() || null,
         p_tanggal_terbit: issueForm.tanggal_terbit,
         p_penandatangan_sp_id: issueForm.penandatangan_sp_id
       });
@@ -444,10 +444,12 @@ export default function PerjalananClient({
             <div className="trip-result-body">
               <div className="trip-form-grid">
                 <label className="trip-field">Nomor Surat Perintah (SP)
-                  <input required value={issueForm.nomor_sp} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sp: event.target.value }))} placeholder="Masukkan nomor SP" />
+                  <input value={issueForm.nomor_sp} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sp: event.target.value }))} placeholder="Kosongkan untuk diisi manual (ditulis tangan)" />
+                  <small className="trip-field-note">Opsional</small>
                 </label>
                 <label className="trip-field">Nomor SPPD
-                  <input required value={issueForm.nomor_sppd} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sppd: event.target.value }))} placeholder="Masukkan nomor SPPD" />
+                  <input value={issueForm.nomor_sppd} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sppd: event.target.value }))} placeholder="Kosongkan untuk diisi manual (ditulis tangan)" />
+                  <small className="trip-field-note">Opsional</small>
                 </label>
                 <label className="trip-field trip-field-wide">Tanggal terbit
                   <input required type="date" value={issueForm.tanggal_terbit} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_terbit: event.target.value }))} />
