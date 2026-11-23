@@ -64,7 +64,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const managers=(mRes.data??[]) as R[];
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),...rawPeople.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
  const [employeeResult,masterJobResult]=await Promise.all([
-  officialIds.length?db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):Promise.resolve({data:[]}),
+  officialIds.length?db.from("pegawai").select("id,nama,nip,pangkat_golongan,jabatan,nomenklatur_jabatan").in("id",officialIds):Promise.resolve({data:[]}),
   db.from("master_jabatan").select("nama,eselon")
  ]);
  const employeeMap=new Map(((employeeResult.data??[]) as R[]).map(r=>[r.id,r]));
