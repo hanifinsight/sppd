@@ -697,3 +697,66 @@
   page-break-inside:avoid;
  }
 }
+
+
+/* Koreksi akhir poin 8: garis pemisah kolom membentang utuh sampai dasar tabel */
+.spdFollowers{
+ width:100%;
+ border-collapse:collapse;
+ border-spacing:0;
+ table-layout:fixed;
+ border:0;
+}
+.spdFollowers col:nth-child(1){width:45%}
+.spdFollowers col:nth-child(2){width:28%}
+.spdFollowers col:nth-child(3){width:27%}
+.spdFollowers th,
+.spdFollowers td{
+ box-sizing:border-box;
+ border:0!important;
+ padding:1mm 1.5mm;
+ vertical-align:top;
+ text-align:left;
+ overflow-wrap:anywhere;
+}
+.spdFollowers thead th{
+ height:6mm;
+ padding-top:1.1mm;
+ padding-bottom:1.1mm;
+ border-bottom:1px solid #222!important;
+ font-weight:400;
+ text-align:center;
+}
+.spdFollowers thead th:first-child{
+ text-align:left;
+}
+.spdFollowers thead th:nth-child(1),
+.spdFollowers thead th:nth-child(2),
+.spdFollowers tbody td:nth-child(1),
+.spdFollowers tbody td:nth-child(2){
+ border-right:1px solid #222!important;
+}
+.spdFollowers tbody td{
+ padding-top:1mm;
+ padding-bottom:1mm;
+}
+.followerEntry{
+ display:block;
+ min-height:5.8mm;
+ line-height:1.3;
+ white-space:normal;
+}
+@media print{
+ .spdFollowers{
+  width:100%;
+  border-collapse:collapse;
+  border-spacing:0;
+ }
+ .spdFollowers thead th:nth-child(1),
+ .spdFollowers thead th:nth-child(2),
+ .spdFollowers tbody td:nth-child(1),
+ .spdFollowers tbody td:nth-child(2){
+  border-right:1px solid #222!important;
+ }
+ .followerEntry{min-height:5.8mm}
+}
