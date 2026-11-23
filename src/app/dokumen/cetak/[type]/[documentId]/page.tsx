@@ -99,11 +99,11 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
      <tr><td className={styles.numberCell}>1.</td><td>Pejabat Pembuat Komitmen</td><td>{kpa.name}</td></tr>
-     <tr><td className={styles.numberCell}>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personRow} key={p.id}>{i+1}) {p.name}<br/>NIP. {p.nip||"—"}</div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
-     <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.rank||"—"}</div>)}</td></tr>
-     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div>)}</td></tr>
+     <tr><td className={styles.numberCell}>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personIdentity} key={p.id}><span>{i+1})</span><div className={styles.personIdentityDetails}><div>{p.name}</div><div>NIP. {p.nip||"—"}</div></div></div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
+     <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.rank||"—"}</div></div>)}</td></tr>
+     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div></div>)}</td></tr>
      <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{isCity?"Perjalanan Dinas Dalam Kota":"Perjalanan Dinas Luar Kota – "+v(trip.provinsi_tujuan)}</td></tr>
-     <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td>{v(trip.maksud_perjalanan)||"—"}</td></tr>
+     <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td><div className={styles.numberedValue}><span>1)</span><div>{v(trip.maksud_perjalanan)||"—"}</div></div></td></tr>
      <tr><td className={styles.numberCell}>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={3}>7.</td><td>a. Lamanya Perjalanan Dinas</td><td>{duration} hari</td></tr><tr><td>b. Tanggal berangkat</td><td>{date(v(trip.tanggal_berangkat))}</td></tr><tr><td>c. Tanggal harus kembali</td><td>{date(v(trip.tanggal_kembali))}</td></tr>
