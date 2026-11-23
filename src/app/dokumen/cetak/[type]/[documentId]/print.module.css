@@ -62,7 +62,7 @@
 .receiptTitle{font-size:11.5pt;margin:4mm 0 2mm}
 .receiptSub{display:flex;flex-direction:column;text-align:center;font-size:9.3pt;line-height:1.5;margin-bottom:6mm}
 .receipt{font-size:8.4pt;table-layout:fixed}
-.receipt th:nth-child(1){width:8mm}.receipt th:nth-child(2){width:38mm}.receipt th:nth-child(3){width:13mm}.receipt th:nth-child(4){width:13mm}.receipt th:nth-child(5){width:18mm}.receipt th:nth-child(6){width:23mm}.receipt th:nth-child(7){width:10mm}.receipt th:nth-child(8){width:auto}
+.receipt col.receiptColNo{width:4%}.receipt col.receiptColName{width:20%}.receipt col.receiptColGol{width:7%}.receipt col.receiptColDays{width:7%}.receipt col.receiptColNominal{width:10%}.receipt col.receiptColAmount{width:12%}.receipt col.receiptColSignNo{width:6%}.receipt col.receiptColSign{width:34%}
 .receipt td{text-align:center;height:13mm}.receipt .nameCell{text-align:left}.receipt .costLabel{text-align:right}
 .receipt .signatureNumberHead{width:9mm;padding:1mm}
 .receipt .signatureAreaHead{width:auto}
