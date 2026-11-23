@@ -63,16 +63,24 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  ]);
  const managers=(mRes.data??[]) as R[];
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),...rawPeople.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
- const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
- const employeeMap=new Map(((employeeRows??[]) as R[]).map(r=>[r.id,r]));
+ const [employeeResult,masterJobResult]=await Promise.all([
+  officialIds.length?db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):Promise.resolve({data:[]}),
+  db.from("master_jabatan").select("nama,eselon")
+ ]);
+ const employeeMap=new Map(((employeeResult.data??[]) as R[]).map(r=>[r.id,r]));
+ const jobEselonMap=new Map(((masterJobResult.data??[]) as R[]).map(r=>[v(r.nama).trim().toLowerCase(),v(r.eselon)]));
  const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
- const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
+ const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan),eselon:jobEselonMap.get(v(e?.jabatan).trim().toLowerCase())||""};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
  const pptk=official(pptkRow),bpp=official(bppRow);
  const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
+ const spSignerIsEselonII=/^II(?:\\.|$)/i.test(spSigner.eselon.trim());
+ const spSignerDisplayName=spSignerIsEselonII
+  ?spSigner.name.split(",")[0].replace(/^(?:Drs?\\.?|Dra\\.?|Ir\\.?)\\s+/i,"").trim()
+  :spSigner.name;
  const number=v(type==="sp"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
  const costRows=(costRes.data??[]) as R[];
  const sum=(match:(kind:string)=>boolean)=>costRows.filter(c=>match(v(c.jenis_biaya).toLowerCase())).reduce((s,c)=>s+Number(c.nominal||0),0);
@@ -91,12 +99,12 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
   {type==="sp"&&<section className={styles.paper}>
    <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"—"}</p>
-   <div className={styles.signerIntro}><Line label="Nama">{spSigner.name}</Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
+   <div className={styles.signerIntro}><Line label="Nama">{spSignerIsEselonII?<b>{spSignerDisplayName}</b>:spSigner.name}</Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
    <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
    <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari / Tanggal</div><div>{range(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
    <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
-   <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div className={styles.signGap}/><b className={styles.underlined}>{spSigner.name}</b><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></div>
+   <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div className={styles.signGap}/><b className={styles.underlined}>{spSignerDisplayName}</b>{!spSignerIsEselonII&&<div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div>}</div>
   </section>}
   {type!=="sp"&&<>
    {type==="sppd"&&<section className={styles.paper}>
@@ -120,11 +128,12 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    </section>}
    {(type==="sppd"||type==="penerimaan")&&<section className={styles.paper}><Header/><h1 className={styles.receiptTitle}>{isCity?"PENERIMAAN PERJALANAN DINAS DALAM KOTA":"PENERIMAAN PERJALANAN DINAS BIASA"}</h1><div className={styles.receiptSub}><b>KE {v(trip.tempat_tujuan).toLocaleUpperCase("id-ID")}</b><b>TANGGAL {range(v(trip.tanggal_berangkat),v(trip.tanggal_kembali)).toLocaleUpperCase("id-ID")}</b></div>
     <table className={styles.receipt}><thead><tr><th>No</th><th>Nama</th><th>Gol</th><th>Jml Hari</th><th>Nominal</th><th>Penerimaan</th><th>Tanda Tangan</th></tr></thead><tbody>
-     {people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td className={styles.nameCell}>{p.name}<small>NIP. {p.nip||"—"}</small></td><td>{p.rank.match(/\(([^)]+)\)/)?.[1]||p.rank||"—"}</td><td>{p.days}</td><td>{p.rate?"Rp "+rupiah(p.rate):"—"}</td><td>{p.amount?"Rp "+rupiah(p.amount):"—"}</td><td>{i+1}</td></tr>)}
+     {people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td className={styles.nameCell}>{p.name}<small>NIP. {p.nip||"—"}</small></td><td>{p.rank.match(/\(([^)]+)\)/)?.[1]||p.rank||"—"}</td><td>{p.days}</td><td>{p.rate?"Rp "+rupiah(p.rate):"—"}</td><td>{p.amount?"Rp "+rupiah(p.amount):"—"}</td><td className={styles.receiptSignatureNumber}>{i+1}</td></tr>)}
      {[["BBM/Tiket",bbm],["TOL",tol],["Penginapan/Hotel",hotel],...otherRows.map(r=>[v(r.jenis_biaya),Number(r.nominal||0)])].map((r,i)=><tr key={i}><td></td><td colSpan={4} className={styles.costLabel}>{r[0]}</td><td>{Number(r[1])?"Rp "+rupiah(Number(r[1])):"—"}</td><td></td></tr>)}
      <tr className={styles.total}><td colSpan={5}>Jumlah</td><td>Rp {rupiah(total)}</td><td></td></tr>
+     <tr className={styles.wordsRow}><td colSpan={5}></td><td colSpan={2} className={styles.wordsCell}>Terbilang: {terbilang(total)}</td></tr>
     </tbody></table>
-    <p className={styles.words}>{terbilang(total)}</p><div className={styles.receiptDate}>Kajen, {date(issued)}</div>
+    <div className={styles.receiptDate}>Kajen, {date(issued)}</div>
     <div className={styles.receiptSigns}>
      <div><b>Mengetahui:</b><b>Kuasa Pengguna Anggaran</b><span>{sectionName}</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{kpa.name}</b><span>NIP. {kpa.nip||"—"}</span></div>
      <div><b>&nbsp;</b><b>PPTK</b><span>&nbsp;</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{pptk.name}</b><span>NIP. {pptk.nip||"—"}</span></div>
