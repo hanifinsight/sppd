@@ -70,7 +70,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const employeeMap=new Map(((employeeResult.data??[]) as R[]).map(r=>[r.id,r]));
  const jobEselonMap=new Map(((masterJobResult.data??[]) as R[]).map(r=>[v(r.nama).trim().toLowerCase(),v(r.eselon)]));
  const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
- const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),rank:v(e?.pangkat_golongan),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan),eselon:jobEselonMap.get(v(e?.jabatan).trim().toLowerCase())||""};};
+ const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;const resolvedJob=job||v(e?.nomenklatur_jabatan)||v(e?.jabatan);const eselon=jobEselonMap.get(resolvedJob.trim().toLowerCase())||jobEselonMap.get(v(e?.jabatan).trim().toLowerCase())||jobEselonMap.get(v(e?.nomenklatur_jabatan).trim().toLowerCase())||"";return{name:name||v(e?.nama)||"—",nip:v(e?.nip),rank:v(e?.pangkat_golongan),job:resolvedJob,eselon};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
@@ -80,7 +80,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const spSignerIsSekda=/sekretaris\s+daerah/i.test(spSigner.job);
  const spSignerIsEselonII=!spSignerIsSekda&&/^II(?:\.|$)/i.test(spSigner.eselon.trim());
  const spSignerIsEselonIII=/^III(?:\.|$)/i.test(spSigner.eselon.trim());
- const spSignerNeedsShortName=spSignerIsSekda||spSignerIsEselonII;
+ const spSignerNeedsShortName=spSignerIsEselonII;
  const spSignerDisplayName=spSignerNeedsShortName
   ?spSigner.name.split(",")[0].replace(/^(?:Dr\.?|Drs\.?|Dra\.?|Ir\.?|H\.?|Hj\.?)\s+/i,"").trim()
   :spSigner.name;
@@ -107,7 +107,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
    <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari / Tanggal</div><div>{range(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
    <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
-   <div className={styles.spSign}><div>Kajen, {date(issued)}</div>{!spSignerIsSekda&&<b>a.n. SEKRETARIS DAERAH</b>}<b>{spSignerIsSekda?"SEKRETARIS DAERAH":spSigner.job||"—"}</b><div className={styles.signGap}/><b className={styles.underlined}>{spSignerNeedsShortName?spSignerDisplayName:spSigner.name}</b>{spSignerIsEselonIII&&<><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></>}</div>
+   <div className={styles.spSign}><div>Kajen, {date(issued)}</div>{!spSignerIsSekda&&<b>a.n. SEKRETARIS DAERAH</b>}<b>{spSignerIsSekda?"SEKRETARIS DAERAH":spSigner.job||"—"}</b><div className={styles.signGap}/><b className={styles.underlined}>{spSignerNeedsShortName?spSignerDisplayName:spSigner.name}</b>{!spSignerIsEselonII&&<><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></>}</div>
   </section>}
   {type!=="sp"&&<>
    {type==="sppd"&&<section className={styles.paper}>
