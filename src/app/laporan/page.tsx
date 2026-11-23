@@ -131,7 +131,7 @@ export default async function LaporanPage({
 
   return (
     <PerjalananShell username={profile.username ?? "Pengguna"} role={profile.role} active="laporan">
-      <LaporanClient year={year} currentYear={currentYear} trips={trips} pageError={pageError} />
+      <LaporanClient key={year} year={year} currentYear={currentYear} trips={trips} pageError={pageError} />
     </PerjalananShell>
   );
 }
