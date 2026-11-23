@@ -785,3 +785,29 @@
   border-top:0!important;
  }
 }
+
+
+/* Samakan garis pemisah kolom pertama poin 8 dengan batas kolom poin 7.
+   Lebar label poin 7 = 72mm dari total area poin 8 (72mm + 100mm). */
+.spdFollowers col:nth-child(1){width:41.86%!important}
+.spdFollowers col:nth-child(2){width:31.40%!important}
+.spdFollowers col:nth-child(3){width:26.74%!important}
+.spdFollowers th:nth-child(1),
+.spdFollowers td:nth-child(1){
+ border-right:1px solid #222!important;
+}
+.spdFollowers th:nth-child(2),
+.spdFollowers td:nth-child(2){
+ border-right:1px solid #222!important;
+}
+.spdFollowers th,
+.spdFollowers td{
+ border-top:0!important;
+ border-bottom:0!important;
+}
+.spdFollowers thead th{
+ border-bottom:1px solid #222!important;
+}
+.spdFollowers tbody td{
+ border-bottom:0!important;
+}
