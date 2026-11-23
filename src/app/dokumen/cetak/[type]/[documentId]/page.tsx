@@ -7,8 +7,19 @@ export const dynamic = "force-dynamic";
 type R = Record<string, any>;
 type Person = { id:string; name:string; nip:string; rank:string; job:string; days:number; rate:number; amount:number };
 const v=(x:unknown)=>x==null?"":String(x);
-const date=(x:string)=>x?new Intl.DateTimeFormat("id-ID",{day:"numeric",month:"long",year:"numeric"}).format(new Date(x+"T00:00:00")):"—";
+const date=(x:string)=>x?new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(x+"T00:00:00")):"—";
 const range=(a:string,b:string)=>!a?"—":a===b?date(a):date(a)+" s.d. "+date(b);
+const weekdayRange=(a:string,b:string)=>{
+ if(!a)return "—";
+ const d=(x:string)=>new Date(x+"T00:00:00");
+ const wd=(x:string)=>new Intl.DateTimeFormat("en-US",{weekday:"long"}).format(d(x));
+ const day=(x:string)=>new Intl.DateTimeFormat("id-ID",{day:"2-digit"}).format(d(x));
+ const month=(x:string)=>new Intl.DateTimeFormat("id-ID",{month:"long"}).format(d(x));
+ const year=(x:string)=>new Intl.DateTimeFormat("id-ID",{year:"numeric"}).format(d(x));
+ if(!b||a===b)return wd(a)+", "+date(a);
+ if(month(a)===month(b)&&year(a)===year(b))return wd(a)+" - "+wd(b)+", "+day(a)+" - "+day(b)+" "+month(a)+" "+year(a);
+ return wd(a)+", "+date(a)+" - "+wd(b)+", "+date(b);
+};
 const days=(a:string,b:string)=>!a||!b?0:Math.max(1,Math.round((Date.parse(b+"T00:00:00Z")-Date.parse(a+"T00:00:00Z"))/86400000)+1);
 const rupiah=(n:number)=>new Intl.NumberFormat("id-ID",{maximumFractionDigits:0}).format(n||0);
 const words=(n:number):string=>{const x=Math.floor(Math.abs(n)),u=["","satu","dua","tiga","empat","lima","enam","tujuh","delapan","sembilan","sepuluh","sebelas"];if(x<12)return u[x];if(x<20)return words(x-10)+" belas";if(x<100)return words(Math.floor(x/10))+" puluh"+(x%10?" "+words(x%10):"");if(x<200)return "seratus"+(x%100?" "+words(x%100):"");if(x<1000)return words(Math.floor(x/100))+" ratus"+(x%100?" "+words(x%100):"");if(x<2000)return "seribu"+(x%1000?" "+words(x%1000):"");if(x<1000000)return words(Math.floor(x/1000))+" ribu"+(x%1000?" "+words(x%1000):"");if(x<1000000000)return words(Math.floor(x/1000000))+" juta"+(x%1000000?" "+words(x%1000000):"");return words(Math.floor(x/1000000000))+" miliar"+(x%1000000000?" "+words(x%1000000000):"");};
@@ -64,9 +75,9 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  ]);
  const managers=(mRes.data??[]) as R[];
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
- const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
+ const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,pangkat_golongan,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
  const employeeMap=new Map(((employeeRows??[]) as R[]).map(r=>[r.id,r]));
- const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
+ const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),rank:v(e?.pangkat_golongan),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
@@ -85,29 +96,34 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  return <main className={styles.screen}>
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
   {type==="sp"&&<section className={styles.paper}>
-   <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"—"}</p>
+   <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number}</p>
    <div className={styles.signerIntro}><Line label="Nama">{spSigner.name}</Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
    <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
-   <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari / Tanggal</div><div>{range(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
-   <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
-   <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div className={styles.signGap}/><b className={styles.underlined}>{spSigner.name}</b><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></div>
+   <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari/ Tanggal</div><div>{weekdayRange(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
+   <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik – baiknya dan penuh tanggungjawab.</p>
+   <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div>{spSigner.job||"—"}</div><div className={styles.signGap}/><b className={styles.underlined}>{spSigner.name}</b><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></div>
   </section>}
   {type!=="sp"&&<>
    {type==="sppd"&&<section className={styles.paper}>
-    <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b> 1</div><div><span>Kode Nomor</span><b>:</b> 000.1.2.3</div><div><span>Nomor</span><b>:</b> {number||"—"}</div></div>
+    <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b><em>1</em></div><div><span>Kode Nomor</span><b>:</b><em>000.1.2.3</em></div><div><span>Nomor</span><b>:</b><em>{number}</em></div></div>
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
      <tr><td>1.</td><td>Pejabat Pembuat Komitmen</td><td>{kpa.name}</td></tr>
-     <tr><td>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personRow} key={p.id}>{i+1}) {p.name}<br/>NIP. {p.nip||"—"}</div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
-     <tr><td rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.rank||"—"}</div>)}</td></tr>
-     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map(p=><div key={p.id}>{p.job||"—"}</div>)}</td></tr>
-     <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{isCity?"Dinas Dalam Kota":"Dinas Biasa"}</td></tr>
+     <tr><td>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personRow} key={p.id}>{i+1}) {p.name}<br/>{p.nip||"—"}</div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
+     <tr className={styles.spdGrouped}><td>3.</td><td><div>a. Pangkat dan Golongan</div><div>b. Jabatan/Instansi</div><div>c. Tingkat Biaya Perjalanan Dinas</div></td><td><div className={styles.spdThirdValues}>{people.slice(0,4).map((p,i)=><div className={styles.spdEmployeeBlock} key={p.id}><div>{i+1}) {p.rank||"—"}</div><div className={styles.spdEmployeeJob}>{p.job||"—"}</div></div>)}<div className={styles.spdExpenseLevel}>c. {isCity?"Dinas Dalam Kota":"Dinas Biasa"}</div></div></td></tr>
      <tr><td>4.</td><td>Maksud perjalanan dinas</td><td>{v(trip.maksud_perjalanan)||"—"}</td></tr>
      <tr><td>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
-     <tr><td rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
-     <tr><td rowSpan={3}>7.</td><td>a. Lamanya Perjalanan Dinas</td><td>{duration} hari</td></tr><tr><td>b. Tanggal berangkat</td><td>{date(v(trip.tanggal_berangkat))}</td></tr><tr><td>c. Tanggal harus kembali</td><td>{date(v(trip.tanggal_kembali))}</td></tr>
-     <tr><td>8.</td><td>Pengikut : Nama</td><td><table className={styles.followers}><thead><tr><th>Nama</th><th>Tanggal Lahir</th><th>Keterangan</th></tr></thead><tbody>{companions.length?companions.map((p,i)=><tr key={i}><td>{i+1}) {v(p.nama)}</td><td>{p.tanggal_lahir?date(v(p.tanggal_lahir)):""}</td><td>{v(p.keterangan)}</td></tr>):[1,2].map(n=><tr key={n}><td>{n})</td><td>{n})</td><td></td></tr>)}</tbody></table></td></tr>
+     <tr className={styles.spdGrouped}><td>6.</td><td><div>a. Tempat Berangkat</div><div>b. Tempat Tujuan</div></td><td><div>{v(trip.tempat_berangkat)||"—"}</div><div>{[v(trip.tempat_tujuan),v(trip.provinsi_tujuan)].filter(Boolean).join(", ")||"—"}</div></td></tr>
+     <tr className={styles.spdGrouped}><td>7.</td><td><div>a. Lamanya Perjalanan Dinas</div><div>b. Tanggal berangkat</div><div>c. Tanggal harus kembali</div></td><td><div>a. {duration} hari</div><div>b. {date(v(trip.tanggal_berangkat))}</div><div>c. {date(v(trip.tanggal_kembali))}</div></td></tr>
+     <tr className={styles.followersRow}><td>8.</td><td colSpan={2}><div className={styles.followersGrid}>
+       <div><b>Pengikut : Nama</b>{companions.length?companions.map((p,i)=><span key={i}>{i+1}) {v(p.nama)}</span>):<><span>1)</span><span>2)</span></>}</div>
+       <div><b>Tanggal Lahir</b>{companions.length?companions.map((p,i)=><span key={i}>{p.tanggal_lahir?date(v(p.tanggal_lahir)):""}</span>):<><span>1)</span><span>2)</span></>}</div>
+       <div><b>Keterangan</b>{companions.length?companions.map((p,i)=><span key={i}>{v(p.keterangan)}</span>):<><span>&nbsp;</span><span>&nbsp;</span></>}</div>
+     </div></td></tr>
+     <tr className={styles.spdGrouped}><td>9.</td><td><div>a. Instansi</div><div>b. Akun</div></td><td><div>a. Sekretariat Daerah Kabupaten Pekalongan</div><div>b. {[v(account?.kode_rekening),v(account?.nama_rekening)].filter(Boolean).join(" – ")||"APBD Kab. Pekalongan"} Tahun Anggaran {v(activity?.tahun_anggaran)||new Date(issued).getFullYear()}</div></td></tr>
+     <tr><td>10.</td><td>Keterangan Lain-Lain</td><td>{v(trip.nomor_undangan)?"Undangan: "+v(trip.nomor_undangan):"—"}</td></tr>
+    </tbody></table></td></tr>
      <tr><td rowSpan={2}>9.</td><td>a. Instansi</td><td>Sekretariat Daerah Kabupaten Pekalongan</td></tr><tr><td>b. Akun</td><td>{[v(account?.kode_rekening),v(account?.nama_rekening)].filter(Boolean).join(" – ")||"APBD Kabupaten Pekalongan"} · APBD Kabupaten Pekalongan Tahun Anggaran {v(activity?.tahun_anggaran)||new Date(issued).getFullYear()}</td></tr>
      <tr><td>10.</td><td>Keterangan Lain-Lain</td><td>{v(trip.nomor_undangan)?"Undangan: "+v(trip.nomor_undangan):"—"}</td></tr>
     </tbody></table>
