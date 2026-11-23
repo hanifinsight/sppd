@@ -39,7 +39,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  if(!trip||trip.status!=="published")notFound();
 
  const [pRes,cRes,costRes,aRes,bRes,mRes]=await Promise.all([
-  db.from("perjalanan_peserta").select("id,nama_snapshot,nip_snapshot,pangkat_snapshot,jabatan_snapshot").eq("perjalanan_id",trip.id).order("created_at"),
+  db.from("perjalanan_peserta").select("id,pegawai_id,nama_snapshot,nip_snapshot,pangkat_snapshot,jabatan_snapshot").eq("perjalanan_id",trip.id).order("created_at"),
   db.from("perjalanan_pengikut").select("nama,tanggal_lahir,keterangan").eq("perjalanan_id",trip.id).order("created_at"),
   db.from("perjalanan_biaya_lain").select("jenis_biaya,nominal,keterangan").eq("perjalanan_id",trip.id),
   db.from("kegiatan").select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran").eq("id",trip.kegiatan_id).maybeSingle(),
@@ -56,14 +56,14 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  ]);
  const rateMap=new Map(((rateRes.data??[]) as R[]).map(r=>[r.perjalanan_peserta_id,r]));
  const duration=days(v(trip.tanggal_berangkat),v(trip.tanggal_kembali));
- const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(p.jabatan_snapshot),days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
+ const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
  const activity=aRes.data as R|null;
  const sectionId=v(activity?.bagian_id);
  const [sectionRes]=await Promise.all([
   sectionId?db.from("bagian").select("nama_bagian").eq("id",sectionId).maybeSingle():Promise.resolve({data:null}),
  ]);
  const managers=(mRes.data??[]) as R[];
- const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
+ const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),...rawPeople.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
  const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
  const employeeMap=new Map(((employeeRows??[]) as R[]).map(r=>[r.id,r]));
  const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
@@ -108,7 +108,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.rank||"—"}</div></div>)}</td></tr>
      <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div></div>)}</td></tr>
      <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{travelCostType}</td></tr>
-     <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td><div className={styles.numberedValue}><span>1)</span><div>{v(trip.maksud_perjalanan)||"—"}</div></div></td></tr>
+     <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td>{v(trip.maksud_perjalanan)||"—"}</td></tr>
      <tr><td className={styles.numberCell}>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={3}>7.</td><td>a. Lamanya Perjalanan Dinas</td><td>{duration} hari</td></tr><tr><td>b. Tanggal berangkat</td><td>{date(v(trip.tanggal_berangkat))}</td></tr><tr><td>c. Tanggal harus kembali</td><td>{date(v(trip.tanggal_kembali))}</td></tr>
