@@ -28,7 +28,7 @@
 .spdMeta>div span{min-width:15mm}.spdMeta>div b{font-weight:400}
 .spd{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt;line-height:1.35;white-space:normal}
 .spd td{border:1px solid #222;padding:2mm 2.2mm;vertical-align:top;white-space:normal;overflow-wrap:break-word;word-break:normal;min-width:0}
-.spd td:first-child{text-align:center;width:8mm;vertical-align:middle}.spd col.no{width:8mm}.spd col.label{width:68mm}
+.spd .numberCell{text-align:center;vertical-align:middle;width:8mm;padding-left:1mm;padding-right:1mm}.spd col.no{width:8mm}.spd col.label{width:68mm}
 .spd tr:first-child td{padding-top:3mm;padding-bottom:3mm}
 .spd tr{break-inside:avoid;page-break-inside:avoid}
 .personRow{margin-bottom:1.5mm}
@@ -38,10 +38,11 @@
 .spd .companionTable td:first-child{width:auto;text-align:left;vertical-align:top}
 .spd .companionTable tr:last-child td{border-bottom:0}
 .spd .companionTable th:first-child{width:40%}.spd .companionTable th:nth-child(2){width:27%}.spd .companionTable th:nth-child(3){width:33%}
-.spdSign{width:75mm;margin:5mm 2mm 0 auto;text-align:center;font-size:9pt;line-height:1.4}
-.spdSign>div:first-child{text-align:left;margin-bottom:3mm}
+.spdSign{width:75mm;margin:3mm 2mm 0 auto;text-align:center;font-size:9pt;line-height:1.35;break-inside:avoid;page-break-inside:avoid}
+.spdSign>div:first-child{text-align:left;margin-bottom:2mm}
 .spdSign .line{grid-template-columns:27mm 4mm 1fr;margin:0}
 .spdSign>b{display:block}
+.spdSign .signGap{height:8mm}
 .annexTitle,.receiptTitle{text-align:center;font-size:12pt;font-weight:700;margin:9mm 0 2mm}
 .annexSub{text-align:center;font-size:10pt;margin:0 0 8mm}
 .annexMeta{line-height:1.7;margin-bottom:5mm}
