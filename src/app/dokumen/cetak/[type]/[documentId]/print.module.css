@@ -497,3 +497,80 @@
  .paper{padding:22px 18px}
  .peopleList{gap:2mm}
 }
+
+
+/* SPD: konsistensi garis tabel dan penomoran peserta dalam kolom tersendiri */
+.spd{
+ border-collapse:collapse;
+ border-spacing:0;
+ border:1px solid #222;
+}
+.spd td{
+ box-sizing:border-box;
+ border:1px solid #222;
+}
+.spd tr{
+ break-inside:avoid;
+ page-break-inside:avoid;
+}
+.spdPeople{
+ display:flex;
+ flex-direction:column;
+ gap:1.3mm;
+}
+.spdPerson{
+ display:grid;
+ grid-template-columns:6mm minmax(0,1fr);
+ column-gap:1.2mm;
+ align-items:start;
+ min-width:0;
+ line-height:1.28;
+}
+.spdPersonNumber,
+.spdEmployeeNumber{
+ display:block;
+ text-align:right;
+ white-space:nowrap;
+}
+.spdPersonText{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.spdPersonText>div{
+ margin:0;
+}
+.spdPersonText small{
+ display:block;
+ margin-top:.25mm;
+ font-size:8.5pt;
+ line-height:1.22;
+}
+.spdEmployeeBlock{
+ display:grid;
+ grid-template-columns:6mm minmax(0,1fr);
+ column-gap:1.2mm;
+ align-items:start;
+ margin:0 0 1.1mm;
+ line-height:1.25;
+}
+.spdEmployeeText{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.spdEmployeeJob{
+ padding-left:3mm;
+}
+@media print{
+ .spd{
+  border-collapse:collapse;
+  border-spacing:0;
+ }
+ .spd td{
+  border:1px solid #222;
+ }
+ .spdPerson,
+ .spdEmployeeBlock{
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+}
