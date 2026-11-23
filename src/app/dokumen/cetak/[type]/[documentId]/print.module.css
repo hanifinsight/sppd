@@ -760,3 +760,28 @@
  }
  .followerEntry{min-height:5.8mm}
 }
+
+
+/* Sambungan border tepat di bawah baris 7 (tanggal kembali) menuju poin 8 */
+.spd .spdPoint7Row>td{
+ border-bottom:1px solid #222!important;
+}
+.spd .spdPoint7Row>td:first-child,
+.spd .spdPoint7Row>td:nth-child(2),
+.spd .spdPoint7Row>td:nth-child(3){
+ vertical-align:top;
+}
+.spd .followersRow>td{
+ border-top:0!important;
+}
+.spd .followersRow>.followersOuterCell{
+ border-bottom:1px solid #222!important;
+}
+@media print{
+ .spd .spdPoint7Row>td{
+  border-bottom:1px solid #222!important;
+ }
+ .spd .followersRow>td{
+  border-top:0!important;
+ }
+}
