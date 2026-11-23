@@ -10,7 +10,7 @@
 .header>div>div{font-weight:700;font-size:11pt}.header strong{font-size:17pt;line-height:1.1}
 .header small{font-size:7.2pt;line-height:1.25}
 .title{text-align:center;font-weight:700;margin:5mm 0 1.5mm;font-size:13pt}
-.docNumber{text-align:center;margin:0 0 8mm;font-size:10pt}
+.docNumber{text-align:center;margin:0 0 8mm;font-size:10pt;min-height:6mm;line-height:6mm}
 .signerIntro{width:73%;margin:0 auto 6mm}
 .line{display:grid;grid-template-columns:31mm 5mm 1fr;align-items:start;gap:1mm;margin:1.5mm 0;line-height:1.45}
 .line>span{font-weight:400}.line>b{font-weight:400}
