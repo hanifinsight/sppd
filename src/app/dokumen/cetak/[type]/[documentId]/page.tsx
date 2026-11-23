@@ -38,13 +38,14 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const trip=tripData as R|null;
  if(!trip||trip.status!=="published")notFound();
 
- const [pRes,cRes,costRes,aRes,bRes,mRes]=await Promise.all([
-  db.from("perjalanan_peserta").select("id,pegawai_id,nama_snapshot,nip_snapshot,pangkat_snapshot,jabatan_snapshot").eq("perjalanan_id",trip.id).order("created_at"),
+ const [pRes,cRes,costRes,aRes,bRes,mRes,rankMasterRes]=await Promise.all([
+  db.from("perjalanan_peserta").select("id,pegawai_id,nama_snapshot,nip_snapshot,pangkat_snapshot,jabatan_snapshot").eq("perjalanan_id",trip.id),
   db.from("perjalanan_pengikut").select("nama,tanggal_lahir,keterangan").eq("perjalanan_id",trip.id).order("created_at"),
   db.from("perjalanan_biaya_lain").select("jenis_biaya,nominal,keterangan").eq("perjalanan_id",trip.id),
   db.from("kegiatan").select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran").eq("id",trip.kegiatan_id).maybeSingle(),
   db.from("anggaran").select("rekening_id").eq("id",trip.anggaran_id).maybeSingle(),
-  db.from("pejabat_pengelola").select("id,pegawai_id,jenis_peran,bagian_id,kegiatan_id").eq("aktif",true)
+  db.from("pejabat_pengelola").select("id,pegawai_id,jenis_peran,bagian_id,kegiatan_id").eq("aktif",true),
+  db.from("master_pangkat_golongan").select("nama,urutan").eq("aktif",true)
  ]);
  let spOfficialRow:R|null=null;
  if(type==="sp"){const {data}=await db.from("pejabat_dokumen").select("id,pegawai_id").eq("id",doc.penandatangan_id).maybeSingle();spOfficialRow=data as R|null;}
@@ -69,7 +70,10 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  ]);
  const employeeMap=new Map(((employeeResult.data??[]) as R[]).map(r=>[r.id,r]));
  const jobEselonMap=new Map(((masterJobResult.data??[]) as R[]).map(r=>[v(r.nama).trim().toLowerCase(),v(r.eselon)]));
- const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
+ const rankOrder=new Map(((rankMasterRes.data??[]) as R[]).map(r=>[v(r.nama).trim().toLowerCase(),Number(r.urutan)]));
+ const rankPosition=(rank:string)=>{const exact=rankOrder.get(rank.trim().toLowerCase());if(exact!==undefined)return exact;const match=rank.match(/\(([IVX]+)\s*\/\s*([a-e])\)/i);if(!match)return 0;const roman=match[1].toUpperCase();const level=roman==="IV"?4:roman==="III"?3:roman==="II"?2:roman==="I"?1:0;return level*10+"abcde".indexOf(match[2].toLowerCase());};
+ const nipParts=(nip:string)=>{const digits=nip.replace(/\D/g,"");return digits.length===18?{birth:digits.slice(0,8),tmt:digits.slice(8,14)}:{birth:"99999999",tmt:"999999"};};
+ const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};}).sort((a,b)=>{const rankDiff=rankPosition(b.rank)-rankPosition(a.rank);if(rankDiff)return rankDiff;const an=nipParts(a.nip),bn=nipParts(b.nip);if(an.tmt!==bn.tmt)return an.tmt.localeCompare(bn.tmt);if(an.birth!==bn.birth)return an.birth.localeCompare(bn.birth);return a.name.localeCompare(b.name,"id");});
  const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;const resolvedJob=job||v(e?.nomenklatur_jabatan)||v(e?.jabatan);const eselon=jobEselonMap.get(resolvedJob.trim().toLowerCase())||jobEselonMap.get(v(e?.jabatan).trim().toLowerCase())||jobEselonMap.get(v(e?.nomenklatur_jabatan).trim().toLowerCase())||"";return{name:name||v(e?.nama)||"—",nip:v(e?.nip),rank:v(e?.pangkat_golongan),job:resolvedJob,eselon};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
