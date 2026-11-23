@@ -81,6 +81,11 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const otherRows=costRows.filter(c=>!["bbm","tiket","tol","hotel","penginapan"].some(k=>v(c.jenis_biaya).toLowerCase().includes(k)));
  const companions=((cRes.data??[]) as R[]).filter(p=>[p.nama,p.tanggal_lahir,p.keterangan].some(value=>v(value).trim()!=="")),isCity=v(trip.jenis_perjalanan)==="dalam_kota",sectionName=v(sectionRes.data?.nama_bagian);
  const account=accountRes.data as R|null;
+ const travelCostType=v(account?.kode_rekening).trim()==="5.1.02.04.001.00001"
+  ?"Perjalanan Dinas Biasa"
+  :v(account?.kode_rekening).trim()==="5.1.02.04.001.00003"
+   ?"Perjalanan Dinas Dalam Kota"
+   :"—";
 
  return <main className={styles.screen}>
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
@@ -102,7 +107,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <tr><td className={styles.numberCell}>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personIdentity} key={p.id}><span>{i+1})</span><div className={styles.personIdentityDetails}><div>{p.name}</div><div>NIP. {p.nip||"—"}</div></div></div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.rank||"—"}</div></div>)}</td></tr>
      <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div></div>)}</td></tr>
-     <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{isCity?"Perjalanan Dinas Dalam Kota":"Perjalanan Dinas Luar Kota – "+v(trip.provinsi_tujuan)}</td></tr>
+     <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{travelCostType}</td></tr>
      <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td><div className={styles.numberedValue}><span>1)</span><div>{v(trip.maksud_perjalanan)||"—"}</div></div></td></tr>
      <tr><td className={styles.numberCell}>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
      <tr><td className={styles.numberCell} rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
