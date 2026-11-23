@@ -363,3 +363,137 @@
  .spd{font-size:7.8pt}
  .followersGrid{font-size:7.3pt}
 }
+
+
+/* SP: clean, compact layout based on the supplied SP 2026-1 reference */
+.paper{
+ padding:12mm 16.5mm 13mm;
+ font-size:11pt;
+ line-height:1.28;
+}
+.header{
+ margin-bottom:1.2mm;
+ padding-bottom:2mm;
+ min-height:23mm;
+}
+.title{
+ margin:.5mm 0 1mm;
+ font-size:12.5pt;
+ line-height:1.2;
+ text-decoration:underline;
+ text-underline-offset:1px;
+}
+.docNumber{
+ margin:0 0 5mm;
+ font-size:10.5pt;
+}
+.signerIntro{
+ width:100%;
+ margin:0 0 5mm;
+ padding-left:1.5mm;
+}
+.signerIntro .line,
+.spFields>.line,
+.paper>.line{
+ grid-template-columns:25mm 4mm minmax(0,1fr);
+ gap:1mm;
+ margin:.45mm 0;
+ line-height:1.3;
+}
+.command{
+ margin:4.5mm 0 5mm;
+ font-size:10.5pt;
+ letter-spacing:0;
+}
+.peopleList{
+ display:flex;
+ flex-direction:column;
+ gap:1.4mm;
+ margin:0;
+ padding:0;
+}
+.personItem{
+ display:grid;
+ grid-template-columns:6mm minmax(0,1fr);
+ gap:0;
+ align-items:start;
+ break-inside:avoid;
+ page-break-inside:avoid;
+}
+.personNumber{
+ display:block;
+ padding-top:.1mm;
+}
+.personDetails{
+ min-width:0;
+}
+.personDetails .line{
+ grid-template-columns:20mm 4mm minmax(0,1fr);
+ gap:1mm;
+ margin:0;
+ line-height:1.28;
+}
+.personDetails .line>span,
+.personDetails .line>b{
+ font-weight:400;
+}
+.italic{
+ font-size:9.5pt;
+ margin:1.5mm 0 0 6mm;
+}
+.spFields{
+ display:flex;
+ flex-direction:column;
+ gap:1.8mm;
+ margin-top:5mm;
+}
+.closing{
+ margin:6mm 0 0;
+ font-size:10.5pt;
+ line-height:1.4;
+ text-align:justify;
+}
+.spSign{
+ width:76mm;
+ margin:6mm 8mm 0 auto;
+ text-align:center;
+ font-size:10pt;
+ line-height:1.32;
+}
+.spSignDate{
+ margin:0 0 4mm;
+}
+.spSignA{
+ display:block;
+ margin:0 0 1mm;
+ font-weight:400;
+}
+.spSignRole{
+ min-height:4mm;
+}
+.spSign .signGap{
+ height:17mm;
+}
+.spSignName{
+ display:block;
+ margin:0;
+ font-weight:700;
+ text-decoration:none;
+}
+.spSignRank,
+.spSignNip{
+ margin-top:.5mm;
+}
+@media print{
+ .paper{
+  padding:12mm 16.5mm 13mm;
+ }
+ .spSign,.personItem,.spFields>.line{
+  break-inside:avoid;
+  page-break-inside:avoid;
+ }
+}
+@media screen and (max-width:760px){
+ .paper{padding:22px 18px}
+ .peopleList{gap:2mm}
+}
