@@ -164,3 +164,202 @@
   page-break-inside:avoid;
  }
 }
+
+
+/* Final A4 layout: align the two print documents with the supplied official samples */
+.paper{
+ width:210mm;
+ min-height:297mm;
+ padding:12mm 15mm 13mm;
+ font-family:Arial,Helvetica,sans-serif;
+ font-size:10.5pt;
+ line-height:1.32;
+}
+.header{
+ grid-template-columns:22mm minmax(0,1fr);
+ gap:3mm;
+ min-height:24mm;
+ padding-bottom:2.5mm;
+ margin-bottom:2.5mm;
+ border-bottom:3px double #111;
+}
+.header img{width:20mm;height:23mm}
+.header>div{gap:.8mm}
+.header>div>div{font-size:11pt}
+.header strong{font-size:17pt}
+.header small{font-size:7.2pt;line-height:1.2}
+.title{
+ margin:1.5mm 0 1mm;
+ font-size:12.5pt;
+ line-height:1.25;
+ text-decoration:underline;
+ text-underline-offset:1px;
+}
+.docNumber{
+ margin:0 0 6mm;
+ text-align:center;
+ font-size:10.5pt;
+}
+.signerIntro{
+ width:100%;
+ margin:0 0 5mm;
+}
+.signerIntro .line{
+ grid-template-columns:25mm 4mm minmax(0,1fr);
+ gap:1mm;
+ margin:.5mm 0;
+ line-height:1.35;
+}
+.command{
+ margin:2mm 0 4.5mm;
+ font-size:10.5pt;
+}
+.spGrid{
+ grid-template-columns:24mm minmax(0,1fr);
+ gap:2mm;
+ margin:0 0 2.3mm;
+ line-height:1.38;
+ break-inside:avoid;
+ page-break-inside:avoid;
+}
+.spGrid>div:first-child:after{margin-right:1mm}
+.peopleList{margin:0;padding-left:7mm}
+.peopleList li{padding:0 0 2mm 1mm}
+.peopleList li>div{grid-template-columns:20mm 4mm minmax(0,1fr)}
+.closing{
+ margin:6mm 0 0;
+ font-size:10.5pt;
+ line-height:1.45;
+ text-align:justify;
+}
+.spSign{
+ width:76mm;
+ margin:7mm 7mm 0 auto;
+ font-size:10pt;
+ line-height:1.35;
+ text-align:center;
+}
+.spSign>b{display:block;margin-top:1mm}
+.spSign .signGap{height:22mm}
+
+/* SPD header metadata is a vertical three-line block on the right */
+.spdMeta{
+ display:flex;
+ flex-direction:column;
+ align-items:stretch;
+ width:67mm;
+ margin:1mm 9mm 5mm auto;
+ gap:0;
+}
+.spdMeta>div{
+ display:grid;
+ grid-template-columns:29mm 4mm minmax(0,1fr);
+ gap:1mm;
+ font-size:9.5pt;
+ line-height:1.35;
+ white-space:nowrap;
+}
+.spdMeta>div span{min-width:0}
+.spdMeta>div em{font-style:normal}
+
+/* SPD table: ten numbered items with grouped sub-lines, not split sub-rows */
+.spd{
+ width:100%;
+ border-collapse:collapse;
+ table-layout:fixed;
+ font-size:9.1pt;
+ line-height:1.25;
+}
+.spd col.no{width:8mm}
+.spd col.label{width:72mm}
+.spd td{
+ border:1px solid #222;
+ padding:1.3mm 1.5mm;
+ vertical-align:top;
+ overflow-wrap:anywhere;
+}
+.spd td:first-child{
+ text-align:left;
+ padding-left:1.2mm;
+}
+.spd tr:first-child td{padding-top:1.6mm;padding-bottom:1.6mm}
+.spd .personRow{margin:0 0 1.1mm;line-height:1.25}
+.spd .personRow:last-child{margin-bottom:0}
+.spdGrouped>td:nth-child(2)>div,
+.spdGrouped>td:nth-child(3)>div{
+ min-height:4.2mm;
+}
+.spdGrouped>td:nth-child(2)>div+div,
+.spdGrouped>td:nth-child(3)>div+div{
+ margin-top:.4mm;
+}
+.spdThirdValues{line-height:1.22}
+.spdEmployeeBlock{margin:0 0 1mm}
+.spdEmployeeJob{padding-left:5mm}
+.spdExpenseLevel{margin-top:.8mm}
+.followersRow>td{padding:0!important}
+.followersGrid{
+ display:grid;
+ grid-template-columns:45% 28% 27%;
+ min-height:14mm;
+ font-size:8.9pt;
+ line-height:1.25;
+}
+.followersGrid>div{
+ display:flex;
+ flex-direction:column;
+ min-width:0;
+ border-right:1px solid #222;
+}
+.followersGrid>div:last-child{border-right:0}
+.followersGrid b{
+ display:block;
+ min-height:5mm;
+ padding:1mm 1.4mm;
+ border-bottom:1px solid #222;
+ font-weight:400;
+}
+.followersGrid span{
+ display:block;
+ min-height:4mm;
+ padding:.5mm 1.4mm;
+ overflow-wrap:anywhere;
+}
+.spdSign{
+ width:75mm;
+ margin:4mm 2mm 0 auto;
+ font-size:9pt;
+ line-height:1.35;
+}
+.spdSign>div:first-child{margin-bottom:2.5mm}
+.spdSign .line{
+ grid-template-columns:27mm 4mm minmax(0,1fr);
+ margin:0;
+}
+.spdSign>b{display:block}
+.spdSign .signGap{height:22mm}
+
+@page{size:A4 portrait;margin:0}
+@media print{
+ .screen{padding:0;background:#fff;min-height:0}
+ .toolbar{display:none!important}
+ .paper{
+  width:210mm;
+  min-height:297mm;
+  margin:0;
+  padding:12mm 15mm 13mm;
+  box-shadow:none;
+  break-after:page;
+  page-break-after:always;
+ }
+ .paper:last-child{break-after:auto;page-break-after:auto}
+ .spGrid,.spdGrouped,.followersRow,.spSign,.spdSign{break-inside:avoid;page-break-inside:avoid}
+}
+@media screen and (max-width:760px){
+ .screen{padding:10px 6px}
+ .toolbar,.paper{width:100%}
+ .paper{min-height:0;padding:22px 18px}
+ .spdMeta{width:67mm;max-width:100%;margin-right:0}
+ .spd{font-size:7.8pt}
+ .followersGrid{font-size:7.3pt}
+}
