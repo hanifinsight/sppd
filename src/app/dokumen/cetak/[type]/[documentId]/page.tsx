@@ -58,7 +58,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   db.from("pejabat_pengelola").select("id,pegawai_id,jenis_peran,bagian_id,kegiatan_id").eq("aktif",true)
  ]);
  let spOfficialRow:R|null=null;
- if(type==="sp"){const {data}=await db.from("pejabat_dokumen").select("id,pegawai_id").eq("id",doc.penandatangan_id).maybeSingle();spOfficialRow=data as R|null;}
+ if(type==="sp"){const {data}=await db.from("pejabat_dokumen").select("id,pegawai_id,jabatan_dokumen").eq("id",doc.penandatangan_id).maybeSingle();spOfficialRow=data as R|null;}
  const rawPeople=(pRes.data??[]) as R[];
  const participantIds=rawPeople.map(p=>v(p.id));
  const [rateRes,accountRes]=await Promise.all([
@@ -83,7 +83,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
  const pptk=official(pptkRow),bpp=official(bppRow);
- const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
+ const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?(v(spOfficialRow?.jabatan_dokumen)||v(doc.jabatan_snapshot)):"");
  const number=v(type==="sp"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
  const costRows=(costRes.data??[]) as R[];
  const sum=(match:(kind:string)=>boolean)=>costRows.filter(c=>match(v(c.jenis_biaya).toLowerCase())).reduce((s,c)=>s+Number(c.nominal||0),0);
@@ -99,10 +99,34 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number}</p>
    <div className={styles.signerIntro}><Line label="Nama">{spSigner.name}</Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
-   <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
-   <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari/ Tanggal</div><div>{weekdayRange(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
-   <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik – baiknya dan penuh tanggungjawab.</p>
-   <div className={styles.spSign}><div>Kajen, {date(issued)}</div><b>a.n. SEKRETARIS DAERAH</b><div>{spSigner.job||"—"}</div><div className={styles.signGap}/><b className={styles.underlined}>{spSigner.name}</b><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></div>
+   <Line label="Kepada">
+    <div className={styles.peopleList}>
+     {people.slice(0,4).map((p,i)=><div className={styles.personItem} key={p.id}>
+      <span className={styles.personNumber}>{i+1}.</span>
+      <div className={styles.personDetails}>
+       <Line label="Nama">{p.name}</Line>
+       <Line label="NIP">{p.nip||"—"}</Line>
+       <Line label="Jabatan">{p.job||"—"}</Line>
+      </div>
+     </div>)}
+     {people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}
+    </div>
+   </Line>
+   <div className={styles.spFields}>
+    <Line label="Untuk">{v(trip.maksud_perjalanan)||"—"}</Line>
+    <Line label="Hari / Tanggal">{weekdayRange(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</Line>
+    <Line label="Tempat">{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</Line>
+   </div>
+   <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
+   <div className={styles.spSign}>
+    <div className={styles.spSignDate}>Kajen, {date(issued)}</div>
+    <b className={styles.spSignA}>a.n. SEKRETARIS DAERAH</b>
+    <div className={styles.spSignRole}>{spSigner.job||"—"}</div>
+    <div className={styles.signGap}/>
+    <b className={styles.spSignName}>{spSigner.name}</b>
+    {spSigner.rank&&<div className={styles.spSignRank}>{spSigner.rank}</div>}
+    <div className={styles.spSignNip}>{spSigner.nip?"NIP. "+spSigner.nip:""}</div>
+   </div>
   </section>}
   {type!=="sp"&&<>
    {type==="sppd"&&<section className={styles.paper}>
