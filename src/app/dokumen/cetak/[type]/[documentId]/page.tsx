@@ -79,7 +79,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const bbm=sum(s=>s.includes("bbm")||s.includes("tiket")),tol=sum(s=>s.includes("tol")),hotel=sum(s=>s.includes("hotel")||s.includes("penginapan"));
  const uh=people.reduce((s,p)=>s+p.amount,0),total=uh+bbm+tol+hotel;
  const otherRows=costRows.filter(c=>!["bbm","tiket","tol","hotel","penginapan"].some(k=>v(c.jenis_biaya).toLowerCase().includes(k)));
- const companions=(cRes.data??[]) as R[],isCity=v(trip.jenis_perjalanan)==="dalam_kota",sectionName=v(sectionRes.data?.nama_bagian);
+ const companions=((cRes.data??[]) as R[]).filter(p=>[p.nama,p.tanggal_lahir,p.keterangan].some(value=>v(value).trim()!=="")),isCity=v(trip.jenis_perjalanan)==="dalam_kota",sectionName=v(sectionRes.data?.nama_bagian);
  const account=accountRes.data as R|null;
 
  return <main className={styles.screen}>
@@ -107,7 +107,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      <tr><td>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
      <tr><td rowSpan={2}>6.</td><td>a. Tempat Berangkat</td><td>{v(trip.tempat_berangkat)||"—"}</td></tr><tr><td>b. Tempat Tujuan</td><td>{v(trip.tempat_tujuan)}{trip.provinsi_tujuan?", "+v(trip.provinsi_tujuan):""}</td></tr>
      <tr><td rowSpan={3}>7.</td><td>a. Lamanya Perjalanan Dinas</td><td>{duration} hari</td></tr><tr><td>b. Tanggal berangkat</td><td>{date(v(trip.tanggal_berangkat))}</td></tr><tr><td>c. Tanggal harus kembali</td><td>{date(v(trip.tanggal_kembali))}</td></tr>
-     <tr><td>8.</td><td>Pengikut</td><td>{companions.length?companions.map((p,i)=><div className={styles.companion} key={i}><b>{i+1}) {v(p.nama)}</b><span>Tanggal lahir: {p.tanggal_lahir?date(v(p.tanggal_lahir)):"—"}</span><span>Keterangan: {v(p.keterangan)||"—"}</span></div>):"Tidak ada"}</td></tr>
+     <tr><td>8.</td><td>Pengikut</td><td>{companions.length?<table className={styles.companionTable}><colgroup><col/><col/><col/></colgroup><thead><tr><th>Nama</th><th>Tanggal Lahir</th><th>Keterangan</th></tr></thead><tbody>{companions.map((p,i)=><tr key={i}><td>{i+1}) {v(p.nama)||"—"}</td><td>{p.tanggal_lahir?date(v(p.tanggal_lahir)):"—"}</td><td>{v(p.keterangan)||"—"}</td></tr>)}</tbody></table>:"Tidak ada"}</td></tr>
      <tr><td rowSpan={2}>9.</td><td>a. Instansi</td><td>Sekretariat Daerah Kabupaten Pekalongan</td></tr><tr><td>b. Akun</td><td>{[v(account?.kode_rekening),v(account?.nama_rekening)].filter(Boolean).join(" – ")||"APBD Kabupaten Pekalongan"} · APBD Kabupaten Pekalongan Tahun Anggaran {v(activity?.tahun_anggaran)||new Date(issued).getFullYear()}</td></tr>
      <tr><td>10.</td><td>Keterangan Lain-Lain</td><td>{v(trip.nomor_undangan)?"Undangan: "+v(trip.nomor_undangan):"—"}</td></tr>
     </tbody></table>
