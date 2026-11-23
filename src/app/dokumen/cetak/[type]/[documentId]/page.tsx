@@ -105,7 +105,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  return <main className={styles.screen}>
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
   {type==="sp"&&<section className={styles.paper}>
-   <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"—"}</p>
+   <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"\u00A0"}</p>
    <div className={styles.signerIntro}><Line label="Nama"><b>{spSigner.name}</b></Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
    <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
@@ -115,7 +115,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   </section>}
   {type!=="sp"&&<>
    {type==="sppd"&&<section className={styles.paper}>
-    <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b> 1</div><div><span>Kode Nomor</span><b>:</b> 000.1.2.3</div><div><span>Nomor</span><b>:</b> {number||"—"}</div></div>
+    <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b> 1</div><div><span>Kode Nomor</span><b>:</b> 000.1.2.3</div><div><span>Nomor</span><b>:</b> {number||"\u00A0"}</div></div>
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
      <tr><td className={styles.numberCell}>1.</td><td>Pejabat Pembuat Komitmen</td><td>{kpa.name}</td></tr>
