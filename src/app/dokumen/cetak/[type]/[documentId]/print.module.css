@@ -69,7 +69,7 @@
 .receipt .receiptSignatureNumber{text-align:left;padding-left:2.5mm}
 .receipt .receiptSignatureCell{min-width:0}
 .receipt .total td{font-weight:700;height:12mm}
-.receipt .wordsCell{text-align:right;font-weight:400!important;font-style:normal;font-size:8.5pt;line-height:1.3;overflow-wrap:anywhere;padding-right:2mm}
+.receipt .wordsRow td{height:auto;vertical-align:top;padding:2mm}.receipt .wordsCell{text-align:right;font-weight:400!important;font-style:normal;font-size:8.5pt;line-height:1.3;white-space:normal;overflow-wrap:anywhere;word-break:normal;min-width:0;padding:2mm}
 .receiptDate{text-align:right;margin:8mm 8mm 5mm 0}
 .receiptSigns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;margin-top:1mm;text-align:center;font-size:8.2pt}
 .receiptSigns>div{display:flex;flex-direction:column;align-items:center;min-height:48mm}
