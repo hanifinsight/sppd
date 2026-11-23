@@ -130,7 +130,8 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     <table className={styles.receipt}><thead><tr><th rowSpan={2}>No</th><th rowSpan={2}>Nama</th><th rowSpan={2}>Gol</th><th rowSpan={2}>Jml Hari</th><th rowSpan={2}>Nominal</th><th rowSpan={2}>Penerimaan</th><th colSpan={2}>Tanda Tangan</th></tr><tr><th className={styles.signatureNumberHead}></th><th className={styles.signatureAreaHead}></th></tr></thead><tbody>
      {people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td className={styles.nameCell}>{p.name}<small>NIP. {p.nip||"—"}</small></td><td>{p.rank.match(/\(([^)]+)\)/)?.[1]||p.rank||"—"}</td><td>{p.days}</td><td>{p.rate?"Rp "+rupiah(p.rate):"—"}</td><td>{p.amount?"Rp "+rupiah(p.amount):"—"}</td><td className={styles.receiptSignatureNumber}>{i+1}</td><td className={styles.receiptSignatureCell}></td></tr>)}
      {[["BBM/Tiket",bbm],["TOL",tol],["Penginapan/Hotel",hotel],...otherRows.map(r=>[v(r.jenis_biaya),Number(r.nominal||0)])].map((r,i)=><tr key={i}><td></td><td colSpan={4} className={styles.costLabel}>{r[0]}</td><td>{Number(r[1])?"Rp "+rupiah(Number(r[1])):"—"}</td><td colSpan={2}></td></tr>)}
-     <tr className={styles.total}><td colSpan={5}>Jumlah</td><td>Rp {rupiah(total)}</td><td colSpan={2} className={styles.wordsCell}>{terbilang(total).replace(/^./,c=>c.toUpperCase()).replace(/rupiah$/,"Rupiah")}</td></tr>
+     <tr className={styles.total}><td colSpan={5}>Jumlah</td><td>Rp {rupiah(total)}</td><td colSpan={2}></td></tr>
+     <tr className={styles.wordsRow}><td colSpan={5}></td><td colSpan={3} className={styles.wordsCell}>Terbilang: {terbilang(total).replace(/^./,c=>c.toUpperCase()).replace(/rupiah$/,"Rupiah")}</td></tr>
     </tbody></table>
     <div className={styles.receiptDate}>Kajen, {date(issued)}</div>
     <div className={styles.receiptSigns}>
