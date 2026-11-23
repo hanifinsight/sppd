@@ -24,8 +24,10 @@
 .spSign{width:68mm;margin:9mm 6mm 0 auto;text-align:center;line-height:1.5}
 .spSign>b{display:block;margin-top:2mm}.signGap{height:23mm}.underlined{text-decoration:underline}
 .spdMeta{display:flex;flex-direction:column;align-items:flex-end;gap:1mm;margin:2mm 0 4mm}
-.spdMeta>div{display:grid;grid-template-columns:22mm 4mm 20mm;gap:1mm;width:48mm;font-size:8.5pt;white-space:nowrap;line-height:1.35}
-.spdMeta>div span{min-width:0}.spdMeta>div b{font-weight:400;text-align:center}
+.spdMeta>div{display:grid;grid-template-columns:25mm 4mm 1fr;gap:0;width:62mm;font-size:8.5pt;white-space:nowrap;line-height:1.4}
+.spdMeta>div span{min-width:0;text-align:left}
+.spdMeta>div b{font-weight:400;text-align:center}
+.spdMeta>div span:last-child{text-align:left}
 .spd{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.8pt;line-height:1.35;white-space:normal}
 .spd td{border:1px solid #222;padding:2mm 2.2mm;vertical-align:top;white-space:normal;overflow-wrap:break-word;word-break:normal;min-width:0}
 .spd .numberCell{text-align:center;vertical-align:middle;width:8mm;padding-left:1mm;padding-right:1mm}.spd col.no{width:8mm}.spd col.label{width:68mm}
