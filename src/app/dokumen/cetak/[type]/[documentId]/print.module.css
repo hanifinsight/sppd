@@ -64,8 +64,10 @@
 .receipt{font-size:8.4pt;table-layout:fixed}
 .receipt th:nth-child(1){width:8mm}.receipt th:nth-child(2){width:47mm}.receipt th:nth-child(3){width:16mm}.receipt th:nth-child(4){width:16mm}.receipt th:nth-child(5){width:24mm}.receipt th:nth-child(6){width:27mm}.receipt th:nth-child(7){width:auto}
 .receipt td{text-align:center;height:13mm}.receipt .nameCell{text-align:left}.receipt .costLabel{text-align:right}
+.receipt .receiptSignatureNumber{text-align:left;padding-left:3mm}
 .receipt .total td{font-weight:700;height:10mm}
-.words{margin:4mm 0 0;font-style:italic;font-size:9pt;text-transform:capitalize}
+.receipt .wordsRow td{border:0;padding:2mm 2mm 0;height:auto;vertical-align:top}
+.receipt .wordsCell{text-align:right;font-style:italic;font-size:8.5pt;line-height:1.35;text-transform:capitalize;overflow-wrap:anywhere}
 .receiptDate{text-align:right;margin:8mm 8mm 5mm 0}
 .receiptSigns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;margin-top:1mm;text-align:center;font-size:8.2pt}
 .receiptSigns>div{display:flex;flex-direction:column;align-items:center;min-height:48mm}
