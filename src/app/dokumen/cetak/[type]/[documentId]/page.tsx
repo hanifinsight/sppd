@@ -56,7 +56,6 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  ]);
  const rateMap=new Map(((rateRes.data??[]) as R[]).map(r=>[r.perjalanan_peserta_id,r]));
  const duration=days(v(trip.tanggal_berangkat),v(trip.tanggal_kembali));
- const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
  const activity=aRes.data as R|null;
  const sectionId=v(activity?.bagian_id);
  const [sectionRes]=await Promise.all([
@@ -66,6 +65,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),...rawPeople.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
  const {data:employeeRows}=officialIds.length?await db.from("pegawai").select("id,nama,nip,jabatan,nomenklatur_jabatan").in("id",officialIds):{data:[]};
  const employeeMap=new Map(((employeeRows??[]) as R[]).map(r=>[r.id,r]));
+ const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};});
  const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;return{name:name||v(e?.nama)||"—",nip:v(e?.nip),job:job||v(e?.nomenklatur_jabatan)||v(e?.jabatan)};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
