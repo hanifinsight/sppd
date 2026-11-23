@@ -106,7 +106,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
   {type==="sp"&&<section className={styles.paper}>
    <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"—"}</p>
-   <div className={styles.signerIntro}><Line label="Nama"><b>{spSignerNeedsShortName?spSignerDisplayName:spSigner.name}</b></Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
+   <div className={styles.signerIntro}><Line label="Nama"><b>{spSigner.name}</b></Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
    <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
    <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari / Tanggal</div><div>{range(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
