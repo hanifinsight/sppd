@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   // getClaims memverifikasi JWT tanpa request getUser tambahan ke Auth server.
   // Status akun dan hak akses diperiksa sekali lagi oleh masing-masing server page.
   const { data: { claims } } = await supabase.auth.getClaims();
-  if (!claims?.sub) {
+  if (!claimsData?.claims?.sub) {
     const redirect = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie));
     return redirect;
