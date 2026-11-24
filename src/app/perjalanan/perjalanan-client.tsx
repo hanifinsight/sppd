@@ -229,7 +229,6 @@ export default function PerjalananClient({
     if (!selectedActivity) return setFormError("Pilih subkegiatan terlebih dahulu.");
     if (!selectedBudget) return setFormError("Subkegiatan ini belum memiliki alokasi anggaran aktif.");
     if (!selectedKpa) return setFormError("Pengaturan pejabat untuk kegiatan ini belum lengkap. Hubungi Admin Global.");
-    if (!form.penandatangan_sp_id) return setFormError("Pilih penandatangan Surat Perintah (SP).");
     if (form.peserta_ids.length === 0) return setFormError("Pilih minimal satu pegawai sebagai peserta perjalanan.");
     if (!form.tanggal_berangkat || !form.tanggal_kembali || !form.tanggal_acara_mulai || !form.tanggal_acara_selesai) return setFormError("Lengkapi tanggal perjalanan dan tanggal acara.");
     if (form.tanggal_kembali < form.tanggal_berangkat) return setFormError("Tanggal kembali tidak boleh sebelum tanggal berangkat.");
@@ -248,9 +247,6 @@ export default function PerjalananClient({
       const conflict = conflictingParticipant.conflict;
       return setFormError(`${person?.nama ?? "Pegawai"} sudah memiliki perjalanan dinas lain pada ${dateLabel(conflict.tanggal_berangkat)} s.d. ${dateLabel(conflict.tanggal_kembali)}. Hapus pegawai tersebut atau ubah rentang tanggal perjalanan.`);
     }
-    const signer = signers.find((row) => row.id === form.penandatangan_sp_id);
-    if (!signer) return setFormError("Penandatangan SP tidak tersedia atau sudah tidak aktif. Periksa pengaturan pejabat.");
-
     const payload = {
       perjalanan: {
         kegiatan_id: selectedActivity.id, anggaran_id: selectedBudget.id,
@@ -275,17 +271,13 @@ export default function PerjalananClient({
       const { data, error } = await supabase.rpc("sppd_simpan_draft", { p_payload: payload, p_perjalanan_id: editingTrip?.id ?? null });
       if (error) throw new Error(error.message);
       const tripId = String(data);
-      const { error: signerError } = await supabase.from("perjalanan_dinas").update({
-        penandatangan_sp_id: signer.id,
-        penandatangan_sp_nama_snapshot: signer.nama,
-        penandatangan_sp_jabatan_snapshot: signer.jabatan,
+      const { error: managerError } = await supabase.from("perjalanan_dinas").update({
         kpa_sppd_id: selectedKpa.id
       }).eq("id", tripId);
+      if (managerError) throw new Error("Draf tersimpan, tetapi pengaturan KPA gagal ditautkan: " + managerError.message);
       setShowForm(false);
       setEditingTrip(null);
-      setNotice(signerError
-        ? "Draf tersimpan, tetapi data penandatangan belum tertaut. Buka kembali draf dan periksa izin akses."
-        : (editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat."));
+      setNotice(editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat.");
       router.refresh();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Draf perjalanan gagal disimpan.");
@@ -491,12 +483,6 @@ export default function PerjalananClient({
                   }) : <div className="trip-no-employee">Tidak ada pegawai aktif yang sesuai dengan Bagian subkegiatan.</div>}
                 </div>
                 {form.peserta_ids.length > 4 && <div className="trip-attachment-hint"><FileText size={16}/><span>Lebih dari 4 peserta. Daftar nama pegawai akan ditempatkan pada lampiran dokumen.</span></div>}
-                <label className="trip-field trip-signer-field">Penandatangan Surat Perintah (SP)
-                  <select required value={form.penandatangan_sp_id} onChange={(event) => updateForm("penandatangan_sp_id", event.target.value)}>
-                    <option value="">Pilih pejabat penandatangan SP</option>{activeSigners.map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
-                  </select>
-                  <small className="trip-field-note">Penandatangan SP dipilih secara manual dari daftar pejabat yang telah diatur.</small>
-                </label>
               </section>
               <section className="trip-form-section">
                 <div className="trip-section-title"><span>04</span><div><h3>Pengikut dan biaya lainnya</h3><p>Pengikut bersifat opsional. BBM dan tol diinput manual untuk rombongan.</p></div></div>
