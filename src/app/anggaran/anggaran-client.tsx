@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import {
   ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, Coins, Edit3,
-  FilePlus2, Plus, Search, Wallet, X, Users, AlertTriangle, ReceiptText
+  FilePlus2, Plus, Search, Wallet, X, Users, AlertTriangle, ReceiptText, Trash2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -243,6 +243,37 @@ export default function AnggaranClient({
     setPendingId(null);
   }
 
+  async function deleteActivity(row: ActivityRecord) {
+    if (!window.confirm("Hapus permanen subkegiatan \"" + row.nama_subkegiatan + "\"? Penghapusan hanya dapat dilakukan jika belum dipakai pada anggaran, perjalanan dinas, atau penugasan pengelola.")) return;
+    setPendingId(row.id);
+    clearFeedback();
+    const supabase = createClient();
+    try {
+      const checks = await Promise.all([
+        supabase.from("anggaran").select("id", { count: "exact", head: true }).eq("kegiatan_id", row.id),
+        supabase.from("perjalanan_dinas").select("id", { count: "exact", head: true }).eq("kegiatan_id", row.id),
+        supabase.from("operator_kegiatan").select("kegiatan_id", { count: "exact", head: true }).eq("kegiatan_id", row.id),
+        supabase.from("pejabat_pengelola").select("id", { count: "exact", head: true }).eq("kegiatan_id", row.id),
+        supabase.from("pejabat_pengelola_kegiatan").select("kegiatan_id", { count: "exact", head: true }).eq("kegiatan_id", row.id)
+      ]);
+      const failedCheck = checks.find((result) => result.error);
+      if (failedCheck?.error) throw new Error("Pemeriksaan relasi data gagal. Subkegiatan tidak dihapus demi keamanan: " + failedCheck.error.message);
+      const used = checks.reduce((sum, result) => sum + (result.count ?? 0), 0);
+      if (used > 0) {
+        setPageError("Subkegiatan tidak dapat dihapus karena sudah digunakan pada " + used + " data anggaran, perjalanan dinas, atau penugasan pengelola. Nonaktifkan subkegiatan jika tidak digunakan lagi.");
+        return;
+      }
+      const { error } = await supabase.from("kegiatan").delete().eq("id", row.id);
+      if (error) throw error;
+      setActivities((current) => current.filter((item) => item.id !== row.id));
+      setNotice("Subkegiatan berhasil dihapus.");
+    } catch (e) {
+      setPageError(e instanceof Error ? e.message : "Gagal menghapus subkegiatan.");
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   async function saveAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearFeedback();
@@ -430,7 +461,7 @@ export default function AnggaranClient({
             <td>{row.nama_bagian}</td><td>{row.tahun_anggaran}</td>
             <td>{row.pptk_names?.length ? row.pptk_names.join(", ") : <span className="muted">Belum ditetapkan</span>}</td>
             <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
-            <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah subkegiatan" aria-label="Ubah subkegiatan" onClick={() => openEditActivity(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActivity(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button></div></td>
+            <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah subkegiatan" aria-label="Ubah subkegiatan" onClick={() => openEditActivity(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActivity(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus subkegiatan" aria-label="Hapus subkegiatan" disabled={pendingId === row.id} onClick={() => deleteActivity(row)}><Trash2 size={14}/></button></div></td>
           </tr>) : <tr><td colSpan={7} className="master-empty">Tidak ada subkegiatan yang sesuai.</td></tr>}</tbody>
         </table></div>
         <div className="master-table-foot"><span>Menampilkan <b>{filteredActivities.length}</b> dari <b>{activities.length}</b> subkegiatan</span><span>{activeActivities} aktif · {sections.length} bagian</span></div>
