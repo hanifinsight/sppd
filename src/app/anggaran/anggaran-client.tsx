@@ -132,7 +132,7 @@ export default function AnggaranClient({
       bagian_id: sections.find((row) => row.aktif)?.id ?? "",
       kode_subkegiatan: "",
       nama_subkegiatan: "",
-      tahun_anggaran: String(new Date().getFullYear()), rekening_ids: [], pagu_by_rekening: {}
+      tahun_anggaran: String(new Date().getFullYear())
     });
     setModal("activity");
   }
