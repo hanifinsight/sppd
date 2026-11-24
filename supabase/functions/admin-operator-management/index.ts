@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const cors = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const json=(status:number,body:Record<string,unknown>)=>new Response(JSON.stringify(body),{status,headers:cors});
 const clean=(v:unknown,n=200)=>typeof v==="string"?v.trim().slice(0,n):"";
-const uuid=(v:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(v);
+const uuid=(v:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const uuidList=(value:unknown):string[]|null=>{
  if(!Array.isArray(value)||value.length===0||value.length>200) return null;
  const values=value.map(v=>clean(v,36));
@@ -33,7 +33,10 @@ Deno.serve(async(req:Request)=>{
    const employeeId=clean(body?.pegawai_id,36), activityIds=uuidList(body?.kegiatan_ids);
    if(!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) return json(400,{error:"Username 3–32 karakter; gunakan huruf kecil, angka, titik, garis bawah, atau tanda hubung."});
    if(password.length<8||password.length>72) return json(400,{error:"Password awal harus 8–72 karakter."});
-   if(!uuid(employeeId)||!activityIds) return json(400,{error:"Pegawai dan sekurang-kurangnya satu kegiatan wajib dipilih."});
+   if(!employeeId) return json(400,{error:"Pegawai belum terkirim. Pilih ulang pegawai."});
+   if(!uuid(employeeId)) return json(400,{error:"ID pegawai tidak valid. Muat ulang halaman dan pilih ulang pegawai."});
+   if(!Array.isArray(body?.kegiatan_ids)||body.kegiatan_ids.length===0) return json(400,{error:"Belum ada kegiatan yang terkirim. Centang sekurang-kurangnya satu kegiatan."});
+   if(!activityIds) return json(400,{error:"ID kegiatan tidak valid atau ada pilihan kegiatan ganda. Muat ulang dan pilih ulang kegiatan."});
    const [{data:employee,error:eErr},{data:activityRows,error:aErr}]=await Promise.all([
     admin.from("pegawai").select("id,nama,bagian_id,aktif").eq("id",employeeId).maybeSingle(),
     admin.from("kegiatan").select("id,nama_subkegiatan,bagian_id,aktif").in("id",activityIds)
