@@ -11,15 +11,22 @@ export const dynamic = "force-dynamic";
 type DbRow = Record<string, any>;
 
 export default async function PerjalananPage({ startNew = false }: { startNew?: boolean }) {
+  const perfStart = performance.now();
+  const markPerf = (phase: string) => {
+    console.info(`[SPPD_PERF] /perjalanan ${phase}: ${Math.round(performance.now() - perfStart)}ms`);
+  };
   const supabase = await createClient();
+  markPerf("client");
   const { data: claimsData } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
+  markPerf("auth");
   if (!userId) redirect("/login");
 
   const { data: profile } = await supabase.from("user_akun")
     .select("username,role,pegawai_id,aktif,must_change_password")
     .eq("id", userId)
     .maybeSingle();
+  markPerf("profile");
 
   if (!profile || !profile.aktif || profile.must_change_password) redirect("/login");
   if (profile.role !== "admin" && profile.role !== "operator") redirect("/dashboard");
@@ -58,6 +65,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
     supabase.from("perjalanan_biaya_lain").select("perjalanan_id,jenis_biaya,nominal"),
     supabase.from("tarif_uang_harian").select("provinsi").eq("aktif", true)
   ]);
+  markPerf("13 parallel queries");
 
   const activityRows = (activityResult.data ?? []) as DbRow[];
   const sectionRows = (sectionResult.data ?? []) as DbRow[];
@@ -190,6 +198,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
 
   const provinces = Array.from(new Set(((rateResult.data ?? []) as DbRow[]).map((row) => String(row.provinsi))))
     .filter(Boolean).sort((a, b) => a.localeCompare(b, "id"));
+  markPerf("transform");
 
   return (
     <PerjalananShell username={profile.username ?? "Pengguna"} role={profile.role}>
