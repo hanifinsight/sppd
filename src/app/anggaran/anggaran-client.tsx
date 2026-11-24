@@ -570,7 +570,7 @@ export default function AnggaranClient({
               const linked = budgets.some((item) => item.kegiatan_id === editingActivityId && item.rekening_id === account.id);
               const checked = activityForm.rekening_ids.includes(account.id);
               return <div className="activity-account-option" key={account.id}>
-                <label><input type="checkbox" checked={checked} onChange={(e) => setActivityForm((current) => ({ ...current, rekening_ids: e.target.checked ? [...current.rekening_ids, account.id] : current.rekening_ids.filter((id) => id !== account.id) }))}/><span><strong>{account.kode_rekening}</strong><small>{account.nama_rekening}{linked ? " · Sudah dialokasikan" : ""}</small></span></label>
+                <label><input type="checkbox" checked={linked || checked} disabled={linked} onChange={(e) => setActivityForm((current) => ({ ...current, rekening_ids: e.target.checked ? [...current.rekening_ids, account.id] : current.rekening_ids.filter((id) => id !== account.id) }))}/><span><strong>{account.kode_rekening}</strong><small>{account.nama_rekening}{linked ? " · Sudah dialokasikan" : ""}</small></span></label>
                 {checked && !linked && <input aria-label={"Pagu awal " + account.kode_rekening} type="number" min="1" step="1" placeholder="Pagu awal (Rp)" value={activityForm.pagu_by_rekening[account.id] ?? ""} onChange={(e) => setActivityForm((current) => ({ ...current, pagu_by_rekening: { ...current.pagu_by_rekening, [account.id]: moneyInput(e.target.value) } }))}/>}
               </div>;
             })}</div>
