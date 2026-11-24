@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowUpRight, CalendarDays, ClipboardList, FileText, Wallet, Users,
@@ -75,7 +76,7 @@ export default async function Home() {
             <h1>Selamat datang, {profile.username ?? "Pengguna"} <span>✦</span></h1>
             <p>Pantau dan kelola aktivitas perjalanan dinas dalam satu tempat.</p>
           </div>
-          <a className="primary-btn" href="/perjalanan/baru"><Plus size={17}/> Buat perjalanan dinas</a>
+          <Link className="primary-btn" href="/perjalanan/baru" prefetch={false}><Plus size={17}/> Buat perjalanan dinas</a>
         </div>
 
         <div className="stats-grid">
@@ -93,7 +94,7 @@ export default async function Home() {
 
         <div className="section-heading">
           <div><h2>Aktivitas perjalanan</h2><p>Data pengajuan terbaru dari database SPPD.</p></div>
-          <a href="/perjalanan">Lihat semua <ArrowUpRight size={15}/></a>
+          <Link href="/perjalanan" prefetch={false}>Lihat semua <ArrowUpRight size={15}/></Link>
         </div>
 
         <div className="table-card dashboard-activity-card">
@@ -119,7 +120,7 @@ export default async function Home() {
           </div>
           <div className="table-footer">
             <span>Menampilkan <b>{recent.length}</b> data terbaru · total <b>{tripCount ?? 0}</b> perjalanan</span>
-            <a href="/perjalanan">Buka daftar perjalanan →</a>
+            <Link href="/perjalanan" prefetch={false}>Buka daftar perjalanan →</Link>
           </div>
         </div>
 
@@ -132,8 +133,8 @@ export default async function Home() {
           <article className="quick-card">
             <span className="eyebrow">AKSES CEPAT</span><h3>Mulai pekerjaan</h3>
             <div className="quick-links">
-              <a href="/perjalanan/baru"><div className="quick-icon blue"><Plus size={17}/></div><span><b>Buat perjalanan baru</b><small>Ajukan perjalanan dinas</small></span><ArrowUpRight size={15}/></a>
-              <a href="/pegawai"><div className="quick-icon green"><ClipboardList size={17}/></div><span><b>Kelola data pegawai</b><small>Periksa data pegawai</small></span><ArrowUpRight size={15}/></a>
+              <Link href="/perjalanan/baru" prefetch={false}><div className="quick-icon blue"><Plus size={17}/></div><span><b>Buat perjalanan baru</b><small>Ajukan perjalanan dinas</small></span><ArrowUpRight size={15}/></Link>
+              <Link href="/pegawai" prefetch={false}><div className="quick-icon green"><ClipboardList size={17}/></div><span><b>Kelola data pegawai</b><small>Periksa data pegawai</small></span><ArrowUpRight size={15}/></Link>
             </div>
           </article>
         </div>
