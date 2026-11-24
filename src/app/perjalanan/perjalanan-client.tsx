@@ -23,7 +23,7 @@ export type TripRecord = {
   status: string; penandatangan_sp_id: string; kpa_sppd_id: string; created_at: string;
   nama_kegiatan: string; kode_kegiatan: string; nama_bagian: string;
   nama_peserta: string[]; peserta_ids: string[]; pengikut: CompanionRecord[];
-  bbm: number; tol: number;
+  bbm: number; tol: number; penginapan: number;
 };
 type TripForm = {
   kegiatan_id: string; anggaran_id: string; jenis_perjalanan: "luar_kota" | "dalam_kota";
@@ -92,6 +92,10 @@ export default function PerjalananClient({
   });
   const [issueError, setIssueError] = useState("");
   const [issueBusy, setIssueBusy] = useState(false);
+  const [costEditingTrip, setCostEditingTrip] = useState<TripRecord | null>(null);
+  const [penginapanInput, setPenginapanInput] = useState("0");
+  const [costEditError, setCostEditError] = useState("");
+  const [costEditBusy, setCostEditBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
