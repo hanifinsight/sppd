@@ -448,6 +448,7 @@ export default function PerjalananClient({
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}
+                  {trip.status === "published" && <button onClick={() => openPublishedCostEdit(trip)} title="Ubah biaya penginapan"><Edit3 size={15}/></button>}
                 </div></td>
               </tr>
             )) : <tr><td colSpan={7} className="trip-empty"><Plane size={24}/><b>Belum ada perjalanan yang cocok</b><span>Buat pengajuan baru atau ubah kata kunci pencarian.</span></td></tr>}</tbody>
