@@ -40,7 +40,7 @@ export type BudgetRecord = {
   pagu_tersedia: number;
 };
 type SectionOption = { id: string; nama: string; aktif: boolean };
-type ActivityForm = { bagian_id: string; kode_subkegiatan: string; nama_subkegiatan: string; tahun_anggaran: string };
+type ActivityForm = { bagian_id: string; kode_subkegiatan: string; nama_subkegiatan: string; tahun_anggaran: string; rekening_ids: string[]; pagu_by_rekening: Record<string, string> };
 type AccountForm = { kode_rekening: string; nama_rekening: string };
 type BudgetForm = { kegiatan_id: string; rekening_id: string; pagu_awal: string };
 type MutationForm = {
@@ -82,7 +82,7 @@ export default function AnggaranClient({
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [mutationBudgetId, setMutationBudgetId] = useState<string | null>(null);
   const [activityForm, setActivityForm] = useState<ActivityForm>({
-    bagian_id: "", kode_subkegiatan: "", nama_subkegiatan: "", tahun_anggaran: String(new Date().getFullYear())
+    bagian_id: "", kode_subkegiatan: "", nama_subkegiatan: "", tahun_anggaran: String(new Date().getFullYear()), rekening_ids: [], pagu_by_rekening: {}
   });
   const [accountForm, setAccountForm] = useState<AccountForm>({ kode_rekening: "", nama_rekening: "" });
   const [budgetForm, setBudgetForm] = useState<BudgetForm>({ kegiatan_id: "", rekening_id: "", pagu_awal: "" });
@@ -130,7 +130,7 @@ export default function AnggaranClient({
       bagian_id: sections.find((row) => row.aktif)?.id ?? "",
       kode_subkegiatan: "",
       nama_subkegiatan: "",
-      tahun_anggaran: String(new Date().getFullYear())
+      tahun_anggaran: String(new Date().getFullYear()), rekening_ids: [], pagu_by_rekening: {}
     });
     setModal("activity");
   }
@@ -141,7 +141,7 @@ export default function AnggaranClient({
       bagian_id: row.bagian_id,
       kode_subkegiatan: row.kode_subkegiatan,
       nama_subkegiatan: row.nama_subkegiatan,
-      tahun_anggaran: String(row.tahun_anggaran)
+      tahun_anggaran: String(row.tahun_anggaran), rekening_ids: budgets.filter((item) => item.kegiatan_id === row.id).map((item) => item.rekening_id), pagu_by_rekening: {}
     });
     setModal("activity");
   }
@@ -192,40 +192,51 @@ export default function AnggaranClient({
        (row.bagian_id === activityForm.bagian_id && row.nama_subkegiatan.trim().toLowerCase() === name.toLowerCase())));
     if (duplicate) { setFormError("Kode atau nama subkegiatan sudah terdaftar pada tahun anggaran tersebut."); return; }
 
+    const existingBudgetAccounts = new Set(budgets.filter((item) => item.kegiatan_id === editingActivityId).map((item) => item.rekening_id));
+    const newAccountIds = activityForm.rekening_ids.filter((id) => !existingBudgetAccounts.has(id));
+    if (newAccountIds.some((id) => !Number.isFinite(Number(activityForm.pagu_by_rekening[id])) || Number(activityForm.pagu_by_rekening[id]) <= 0)) {
+      setFormError("Isi pagu awal lebih besar dari nol untuk setiap rekening baru yang dipilih."); return;
+    }
     setBusy(true);
     const supabase = createClient();
-    const payload = {
-      bagian_id: activityForm.bagian_id,
-      kode_subkegiatan: code || null,
-      nama_subkegiatan: name,
-      tahun_anggaran: year
-    };
+    const payload = { bagian_id: activityForm.bagian_id, kode_subkegiatan: code || null, nama_subkegiatan: name, tahun_anggaran: year };
     try {
+      let savedActivity: any;
       if (editingActivityId) {
-        const { data, error } = await supabase.from("kegiatan").update(payload).eq("id", editingActivityId)
-          .select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran,aktif").single();
-        if (error) throw error;
-        const section = sections.find((row) => row.id === data.bagian_id);
-        setActivities((current) => current.map((row) => row.id === editingActivityId ? {
-          ...row, ...data, kode_subkegiatan: (data.kode_subkegiatan ?? "").trim(),
-          nama_subkegiatan: data.nama_subkegiatan.trim(), nama_bagian: section?.nama ?? row.nama_bagian
-        } : row));
-        setNotice("Data subkegiatan berhasil diperbarui.");
+        const { data, error } = await supabase.from("kegiatan").update(payload).eq("id", editingActivityId).select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran,aktif").single();
+        if (error) throw error; savedActivity = data;
       } else {
-        const { data, error } = await supabase.from("kegiatan").insert(payload)
-          .select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran,aktif").single();
-        if (error) throw error;
-        const section = sections.find((row) => row.id === data.bagian_id);
-        setActivities((current) => [...current, {
-          ...data, kode_subkegiatan: (data.kode_subkegiatan ?? "").trim(),
-          nama_subkegiatan: data.nama_subkegiatan.trim(), nama_bagian: section?.nama ?? "Bagian tidak ditemukan", pptk_names: []
-        }].sort((a,b) => b.tahun_anggaran-a.tahun_anggaran || a.nama_subkegiatan.localeCompare(b.nama_subkegiatan, "id")));
-        setNotice("Subkegiatan baru berhasil ditambahkan.");
+        const { data, error } = await supabase.from("kegiatan").insert(payload).select("id,bagian_id,kode_subkegiatan,nama_subkegiatan,tahun_anggaran,aktif").single();
+        if (error) throw error; savedActivity = data;
+      }
+      if (newAccountIds.length) {
+        const { data: inserted, error: allocationError } = await supabase.from("anggaran").insert(newAccountIds.map((rekening_id) => ({
+          kegiatan_id: savedActivity.id, rekening_id, pagu_awal: Number(activityForm.pagu_by_rekening[rekening_id]), aktif: true
+        }))).select("id,kegiatan_id,rekening_id,pagu_awal,aktif");
+        if (allocationError) throw new Error("Subkegiatan tersimpan, tetapi pengaitan rekening gagal: " + allocationError.message);
+        const section = sections.find((row) => row.id === savedActivity.bagian_id);
+        const newBudgets: BudgetRecord[] = (inserted ?? []).map((row) => {
+          const account = accounts.find((item) => item.id === row.rekening_id); const pagu = Number(row.pagu_awal);
+          return { ...row, nama_subkegiatan: savedActivity.nama_subkegiatan.trim(), kode_subkegiatan: (savedActivity.kode_subkegiatan ?? "").trim(),
+            tahun_anggaran: savedActivity.tahun_anggaran, nama_bagian: section?.nama ?? "Bagian tidak ditemukan",
+            kode_rekening: account?.kode_rekening ?? "", nama_rekening: account?.nama_rekening ?? "Rekening tidak ditemukan",
+            pagu_setelah_mutasi: pagu, komitmen_aktif: 0, pagu_tersedia: pagu };
+        });
+        setBudgets((current) => [...current, ...newBudgets]);
+      }
+      const section = sections.find((row) => row.id === savedActivity.bagian_id);
+      const activityRecord = { ...savedActivity, kode_subkegiatan: (savedActivity.kode_subkegiatan ?? "").trim(),
+        nama_subkegiatan: savedActivity.nama_subkegiatan.trim(), nama_bagian: section?.nama ?? "Bagian tidak ditemukan" };
+      if (editingActivityId) {
+        setActivities((current) => current.map((row) => row.id === editingActivityId ? { ...row, ...activityRecord } : row));
+        setNotice(newAccountIds.length ? "Subkegiatan diperbarui dan rekening baru berhasil dilekatkan." : "Data subkegiatan berhasil diperbarui.");
+      } else {
+        setActivities((current) => [...current, { ...activityRecord, pptk_names: [] }].sort((a,b) => b.tahun_anggaran-a.tahun_anggaran || a.nama_subkegiatan.localeCompare(b.nama_subkegiatan, "id")));
+        setNotice("Subkegiatan baru berhasil ditambahkan beserta rekening yang dipilih.");
       }
       setModal(null);
-    } catch (e) {
-      setFormError(e instanceof Error ? e.message : "Gagal menyimpan subkegiatan.");
-    } finally { setBusy(false); }
+    } catch (e) { setFormError(e instanceof Error ? e.message : "Gagal menyimpan subkegiatan."); }
+    finally { setBusy(false); }
   }
 
   async function toggleActivity(row: ActivityRecord) {
@@ -548,12 +559,22 @@ export default function AnggaranClient({
 
     {modal === "activity" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal" role="dialog" aria-modal="true" aria-labelledby="activity-modal-title">
-        <div className="master-modal-head"><div><h2 id="activity-modal-title">{editingActivityId ? "Ubah Subkegiatan" : "Tambah Subkegiatan"}</h2><p>Masukkan kode, nama, Bagian, dan tahun anggaran.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <div className="master-modal-head"><div><h2 id="activity-modal-title">{editingActivityId ? "Ubah Subkegiatan" : "Tambah Subkegiatan"}</h2><p>Masukkan identitas subkegiatan dan lekatkan rekening beserta pagu awalnya.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={saveActivity}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="activity-section">Bagian *</label><select id="activity-section" value={activityForm.bagian_id} onChange={(e) => setActivityForm({ ...activityForm, bagian_id: e.target.value })} required><option value="">Pilih Bagian</option>{allowedSections.map((row) => <option value={row.id} key={row.id}>{row.nama}</option>)}</select></div>
           <div className="master-field"><label htmlFor="activity-code">Kode Subkegiatan</label><input id="activity-code" value={activityForm.kode_subkegiatan} onChange={(e) => setActivityForm({ ...activityForm, kode_subkegiatan: e.target.value })} placeholder="Contoh: 4.01.03.2.01.0002" maxLength={80}/></div>
           <div className="master-field"><label htmlFor="activity-year">Tahun Anggaran *</label><input id="activity-year" type="number" min="2000" max="2200" step="1" value={activityForm.tahun_anggaran} onChange={(e) => setActivityForm({ ...activityForm, tahun_anggaran: e.target.value })} required/></div>
           <div className="master-field full"><label htmlFor="activity-name">Nama Subkegiatan *</label><textarea id="activity-name" value={activityForm.nama_subkegiatan} onChange={(e) => setActivityForm({ ...activityForm, nama_subkegiatan: e.target.value })} placeholder="Nama lengkap subkegiatan sesuai dokumen anggaran" required maxLength={500}/></div>
+          <div className="master-field full"><label>Rekening Belanja untuk Subkegiatan</label><span className="field-hint">Pilih satu atau beberapa rekening. Isi pagu awal untuk setiap rekening baru. Rekening yang sudah dialokasikan tidak diubah di sini; gunakan Mutasi Anggaran untuk mengubah pagu.</span>
+            <div className="activity-account-picker">{allowedAccounts.map((account) => {
+              const linked = budgets.some((item) => item.kegiatan_id === editingActivityId && item.rekening_id === account.id);
+              const checked = activityForm.rekening_ids.includes(account.id);
+              return <div className="activity-account-option" key={account.id}>
+                <label><input type="checkbox" checked={checked} onChange={(e) => setActivityForm((current) => ({ ...current, rekening_ids: e.target.checked ? [...current.rekening_ids, account.id] : current.rekening_ids.filter((id) => id !== account.id) }))}/><span><strong>{account.kode_rekening}</strong><small>{account.nama_rekening}{linked ? " · Sudah dialokasikan" : ""}</small></span></label>
+                {checked && !linked && <input aria-label={"Pagu awal " + account.kode_rekening} type="number" min="1" step="1" placeholder="Pagu awal (Rp)" value={activityForm.pagu_by_rekening[account.id] ?? ""} onChange={(e) => setActivityForm((current) => ({ ...current, pagu_by_rekening: { ...current.pagu_by_rekening, [account.id]: moneyInput(e.target.value) } }))}/>}
+              </div>;
+            })}</div>
+          </div>
         </div>{formError && <div className="master-form-error" role="alert">{formError}</div>}<div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy}>{busy ? "Menyimpan..." : "Simpan Subkegiatan"}</button></div></form>
       </section>
     </div>}
