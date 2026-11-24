@@ -40,7 +40,7 @@ export default async function AnggaranPage() {
       .select("id,nama_bagian,aktif")
       .order("nama_bagian", { ascending: true }),
     supabase.from("rekening_belanja")
-      .select("id,kode_rekening,nama_rekening,aktif")
+      .select("id,kode_rekening,nama_rekening,kategori,perubahan_ke,aktif")
       .order("kode_rekening", { ascending: true }),
     supabase.from("anggaran")
       .select("id,kegiatan_id,rekening_id,pagu_awal,aktif"),
@@ -74,6 +74,8 @@ export default async function AnggaranPage() {
     id: row.id,
     kode_rekening: row.kode_rekening.trim(),
     nama_rekening: row.nama_rekening.trim(),
+    kategori: row.kategori ?? "penetapan",
+    perubahan_ke: row.perubahan_ke ?? null,
     aktif: row.aktif
   }));
   const summaryMap = new Map<string, { pagu_setelah_mutasi: number; komitmen_aktif: number; pagu_tersedia: number }>();
