@@ -26,8 +26,9 @@ const date = (s: string) => new Intl.DateTimeFormat("id-ID", {
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { data: { claims } } = await supabase.auth.getClaims();
+  const userId = claims?.sub;
+  if (!userId) redirect("/login");
 
   const [
     { count: tripCount },
@@ -42,7 +43,7 @@ export default async function Home() {
     supabase.from("perjalanan_dinas")
       .select("id,maksud_perjalanan,tempat_tujuan,tanggal_berangkat,tanggal_kembali,status,jenis_perjalanan")
       .order("created_at", { ascending: false }).limit(5),
-    supabase.from("user_akun").select("username,role,pegawai_id,aktif,must_change_password").eq("id", user.id).maybeSingle()
+    supabase.from("user_akun").select("username,role,pegawai_id,aktif,must_change_password").eq("id", userId).maybeSingle()
   ]);
 
   if (!profile || !profile.aktif || profile.must_change_password) redirect("/login");
