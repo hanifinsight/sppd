@@ -63,7 +63,7 @@
 .annexTable small,.nameCell small{display:block;font-size:8pt;margin-top:1mm}
 .receiptTitle{font-size:11.5pt;margin:4mm 0 2mm}
 .receiptSub{display:flex;flex-direction:column;text-align:center;font-size:9.3pt;line-height:1.5;margin-bottom:6mm}
-.receipt{font-size:8.4pt;table-layout:fixed}.receipt th{white-space:nowrap;vertical-align:middle;padding:1.5mm 1mm;font-size:7.8pt;line-height:1.1}
+.receipt{font-size:8.4pt;table-layout:fixed}.receipt th{white-space:nowrap;vertical-align:middle;padding:1.5mm 1mm;font-size:7.8pt;line-height:1.1}.receipt th:nth-child(4){white-space:normal;min-width:0;padding-left:.5mm;padding-right:.5mm;font-size:7pt;line-height:1.05}
 .receipt col.receiptColNo{width:4%}.receipt col.receiptColName{width:26%}.receipt col.receiptColGol{width:7%}.receipt col.receiptColDays{width:7%}.receipt col.receiptColNominal{width:12%}.receipt col.receiptColAmount{width:22%}.receipt col.receiptColSignNo{width:3%}.receipt col.receiptColSign{width:19%}
 .receipt td{text-align:center;height:13mm;box-sizing:border-box}.receipt .nameCell{text-align:left;padding:1.5mm 2mm;font-size:7.8pt;line-height:1.25;white-space:normal;overflow-wrap:anywhere;word-break:normal}.receipt .costLabel{text-align:right}
 .receipt .receiptSignatureNumber{text-align:left;padding:1.5mm 0 1.5mm 2mm;border-right:0;white-space:nowrap}
@@ -71,7 +71,7 @@
 .receipt .costRow td{height:auto;padding:1mm 1.5mm;vertical-align:middle;line-height:1.15;font-size:8pt}
 .receipt .total td{font-weight:700;height:auto;min-height:12mm;vertical-align:middle;padding:2mm}
 .receipt .total .wordsCell{text-align:left;font-weight:400!important;font-style:normal;font-size:8.2pt;line-height:1.25;white-space:normal;overflow-wrap:anywhere;word-break:break-word;min-width:0;padding:1.5mm 2mm}
-.receiptDate{text-align:right;margin:8mm 8mm 5mm 0}
+.receiptDate{height:8mm;text-align:right;margin:4mm 8mm 1mm 0}
 .receiptSigns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;margin-top:1mm;text-align:center;font-size:8.2pt}
 .receiptSigns>div{display:flex;flex-direction:column;align-items:center;min-height:48mm}
 .receiptSigns span{min-height:5mm}.receiptSigns b{line-height:1.35}.receiptSigns .receiptSignGap{height:23mm}
