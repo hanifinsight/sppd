@@ -45,7 +45,7 @@ export default function AdminShell({ username, active, children }: Props) {
         />
       )}
       <aside id="app-sidebar" className={`sidebar${mobileMenuOpen ? " sidebar-open" : ""}`}>
-        <Link prefetch={false} onMouseEnter={prefetchRoute("/dashboard")} href="/dashboard" className="brand master-brand-link">
+        <Link prefetch={false} onMouseEnter={prefetchRoute("/dashboard")} onTouchStart={prefetchRoute("/dashboard")} href="/dashboard" className="brand master-brand-link">
           <div className="brand-mark">S</div>
           <div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div>
         </Link>
