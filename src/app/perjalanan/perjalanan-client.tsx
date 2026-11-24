@@ -104,6 +104,16 @@ export default function PerjalananClient({
   const selectedKpa = selectedActivity ? kpas.find((row) => row.bagian_id === selectedActivity.bagian_id) : undefined;
   const eligibleEmployees = employees.filter((row) => selectedActivity && row.bagian_id === selectedActivity.bagian_id &&
     (row.nama + " " + row.nip + " " + row.jabatan).toLowerCase().includes(participantSearch.toLowerCase()));
+  const employeeConflict = (pegawaiId: string) => {
+    if (!form.tanggal_berangkat || !form.tanggal_kembali) return undefined;
+    return trips.find((trip) =>
+      trip.id !== editingTrip?.id &&
+      trip.status !== "cancelled" &&
+      trip.peserta_ids.includes(pegawaiId) &&
+      trip.tanggal_berangkat <= form.tanggal_kembali &&
+      trip.tanggal_kembali >= form.tanggal_berangkat
+    );
+  };
   const activeSigners = signers;
 
   function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
@@ -142,6 +152,15 @@ export default function PerjalananClient({
     setForm((current) => ({ ...current, kegiatan_id: activityId, anggaran_id: budget?.id ?? "", penandatangan_sp_id: "" }));
   }
   function toggleParticipant(id: string) {
+    if (!form.peserta_ids.includes(id)) {
+      const conflict = employeeConflict(id);
+      if (conflict) {
+        const person = employees.find((row) => row.id === id);
+        setFormError(`${person?.nama ?? "Pegawai"} sudah dijadwalkan pada perjalanan dinas lain tanggal ${dateLabel(conflict.tanggal_berangkat)} s.d. ${dateLabel(conflict.tanggal_kembali)}.`);
+        return;
+      }
+    }
+    setFormError("");
     setForm((current) => ({ ...current, peserta_ids: current.peserta_ids.includes(id)
       ? current.peserta_ids.filter((value) => value !== id) : [...current.peserta_ids, id] }));
   }
@@ -171,6 +190,12 @@ export default function PerjalananClient({
     }
     if (form.peserta_ids.some((id) => !employees.some((person) => person.id === id && person.bagian_id === selectedActivity.bagian_id))) {
       return setFormError("Pastikan seluruh peserta merupakan pegawai aktif pada Bagian subkegiatan yang dipilih.");
+    }
+    const conflictingParticipant = form.peserta_ids.map((id) => ({ id, conflict: employeeConflict(id) })).find((item) => item.conflict);
+    if (conflictingParticipant?.conflict) {
+      const person = employees.find((row) => row.id === conflictingParticipant.id);
+      const conflict = conflictingParticipant.conflict;
+      return setFormError(`${person?.nama ?? "Pegawai"} sudah memiliki perjalanan dinas lain pada ${dateLabel(conflict.tanggal_berangkat)} s.d. ${dateLabel(conflict.tanggal_kembali)}. Hapus pegawai tersebut atau ubah rentang tanggal perjalanan.`);
     }
     const signer = signers.find((row) => row.id === form.penandatangan_sp_id);
     if (!signer) return setFormError("Penandatangan SP tidak tersedia atau sudah tidak aktif. Periksa pengaturan pejabat.");
@@ -397,10 +422,15 @@ export default function PerjalananClient({
                 <div className="trip-section-title"><span>03</span><div><h3>Peserta perjalanan</h3><p>Pilih pegawai aktif dari Bagian yang memiliki subkegiatan.</p></div></div>
                 <div className="trip-participant-head"><div className="trip-search"><Search size={15}/><input value={participantSearch} onChange={(event) => setParticipantSearch(event.target.value)} placeholder="Cari nama atau NIP..." /></div><span>{form.peserta_ids.length} peserta dipilih</span></div>
                 <div className="trip-employee-list">
-                  {eligibleEmployees.length ? eligibleEmployees.map((person) => <label className={"trip-employee-option " + (form.peserta_ids.includes(person.id) ? "selected" : "")} key={person.id}>
-                    <input type="checkbox" checked={form.peserta_ids.includes(person.id)} onChange={() => toggleParticipant(person.id)} /><span className="trip-check"><Check size={13}/></span>
-                    <span className="trip-employee-avatar"><UserRound size={16}/></span><span className="trip-employee-info"><b>{person.nama}</b><small>{person.nip || "NIP belum tersedia"} · {person.pangkat_golongan || person.status_kepegawaian}</small></span>
-                  </label>) : <div className="trip-no-employee">Tidak ada pegawai aktif yang sesuai dengan Bagian subkegiatan.</div>}
+                  {eligibleEmployees.length ? eligibleEmployees.map((person) => {
+                    const conflict = employeeConflict(person.id);
+                    const selected = form.peserta_ids.includes(person.id);
+                    return <label className={"trip-employee-option " + (selected ? "selected" : "") + (conflict ? " unavailable" : "")} key={person.id}>
+                      <input type="checkbox" checked={selected} disabled={Boolean(conflict) && !selected} onChange={() => toggleParticipant(person.id)} /><span className="trip-check"><Check size={13}/></span>
+                      <span className="trip-employee-avatar"><UserRound size={16}/></span><span className="trip-employee-info"><b>{person.nama}</b><small>{person.nip || "NIP belum tersedia"} · {person.pangkat_golongan || person.status_kepegawaian}</small>
+                      {conflict && <small className="trip-employee-conflict">Tidak tersedia: perjalanan lain {dateLabel(conflict.tanggal_berangkat)} s.d. {dateLabel(conflict.tanggal_kembali)}</small>}</span>
+                    </label>;
+                  }) : <div className="trip-no-employee">Tidak ada pegawai aktif yang sesuai dengan Bagian subkegiatan.</div>}
                 </div>
                 {form.peserta_ids.length > 4 && <div className="trip-attachment-hint"><FileText size={16}/><span>Lebih dari 4 peserta. Daftar nama pegawai akan ditempatkan pada lampiran dokumen.</span></div>}
                 <label className="trip-field trip-signer-field">Penandatangan Surat Perintah (SP)
