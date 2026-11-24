@@ -16,7 +16,7 @@ const terbilang=(n:number)=>(n<0?"minus ":"")+(words(n)||"nol")+" rupiah";
 
 function Header(){return <header className={styles.header}><img src="/images/lambang-kabupaten-pekalongan.jpeg" alt="Lambang Kabupaten Pekalongan"/><div><div>PEMERINTAH KABUPATEN PEKALONGAN</div><strong>SEKRETARIAT DAERAH</strong><small>Jalan Alun-alun Utara Nomor 1 Kajen Pekalongan, Kode Pos 51161, Telepon (0285) 381000,</small><small>Faksimile (0285) 381006, Laman setda.pekalongankab.go.id, Pos-el setda@pekalongankab.go.id</small></div></header>}
 function Line({label,children}:{label:string;children:any}){return <div className={styles.line}><span>{label}</span><b>:</b><div>{children}</div></div>}
-function Annex({people,number,issued,title}:{people:Person[];number:string;issued:string;title:string}){return <section className={styles.paper}><Header/><h1 className={styles.annexTitle}>{title}</h1><h2 className={styles.annexSub}>DAFTAR PEGAWAI YANG MELAKSANAKAN PERJALANAN DINAS</h2><p className={styles.annexMeta}>Nomor : {number}<br/>Tanggal : {date(issued)}</p><table className={styles.annexTable}><thead><tr><th>No.</th><th>Nama / NIP</th><th>Pangkat / Golongan</th><th>Jabatan</th></tr></thead><tbody>{people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td><b>{p.name}</b><small>NIP. {p.nip||"—"}</small></td><td>{p.rank||"—"}</td><td>{p.job||"—"}</td></tr>)}</tbody></table></section>}
+function Annex({people,number,issued,title}:{people:Person[];number:string;issued:string;title:string}){return <section className={styles.paper}><Header/><h1 className={styles.annexTitle}>{title}</h1><h2 className={styles.annexSub}>DAFTAR PEGAWAI YANG DIPERINTAHKAN</h2><p className={styles.annexMeta}>Nomor : {number}<br/>Tanggal : {date(issued)}</p><table className={styles.annexTable}><thead><tr><th>No.</th><th>Nama / NIP</th><th>Pangkat / Golongan</th><th>Jabatan</th></tr></thead><tbody>{people.map((p,i)=><tr key={p.id}><td>{i+1}</td><td><b>{p.name}</b><small>NIP. {p.nip||"—"}</small></td><td>{p.rank||"—"}</td><td>{p.job||"—"}</td></tr>)}</tbody></table></section>}
 
 export default async function PrintPage({params}:{params:Promise<{type:string;documentId:string}>}){
  const {type,documentId}=await params;
@@ -29,7 +29,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  if(profile.role==="admin"&&profile.pegawai_id!==null)redirect("/dashboard");
  if(profile.role==="operator"&&!profile.pegawai_id)redirect("/dashboard");
 
- const docQuery=type==="sp"
+ const docQuery=type==="sp"||type==="lampiran"
   ? await db.from("dokumen_sp").select("id,perjalanan_id,nomor_sp,tanggal_terbit,penandatangan_id,nama_penandatangan_snapshot,jabatan_snapshot").eq("id",documentId).maybeSingle()
   : await db.from("dokumen_sppd").select("id,perjalanan_id,nomor_sppd,tanggal_terbit,ppk_id,nama_ppk_snapshot,jabatan_ppk_snapshot").eq("id",documentId).maybeSingle();
  const doc=docQuery.data as R|null;
@@ -88,7 +88,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const spSignerDisplayName=spSignerNeedsShortName
   ?spSigner.name.split(",")[0].replace(/^(?:Dr\.?|Drs\.?|Dra\.?|Ir\.?|H\.?|Hj\.?)\s+/i,"").trim()
   :spSigner.name;
- const number=v(type==="sp"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
+ const number=v(type==="sp"||type==="lampiran"?doc.nomor_sp:doc.nomor_sppd),issued=v(doc.tanggal_terbit);
  const costRows=(costRes.data??[]) as R[];
  const sum=(match:(kind:string)=>boolean)=>costRows.filter(c=>match(v(c.jenis_biaya).toLowerCase())).reduce((s,c)=>s+Number(c.nominal||0),0);
  const bbm=sum(s=>s.includes("bbm")||s.includes("tiket")),tol=sum(s=>s.includes("tol")),hotel=sum(s=>s.includes("hotel")||s.includes("penginapan"));
@@ -108,7 +108,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"\u00A0"}</p>
    <div className={styles.signerIntro}><Line label="Nama"><b>{spSigner.name}</b></Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
-   <div className={styles.spGrid}><div>Kepada</div><div><ol className={styles.peopleList}>{people.slice(0,4).map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>{people.length>4&&<p className={styles.italic}>Pegawai lainnya tercantum dalam lampiran Surat Tugas ini.</p>}</div></div>
+   <div className={styles.spGrid}><div>Kepada</div><div>{people.length>4?<b>(TERLAMPIR)</b>:<ol className={styles.peopleList}>{people.map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>}</div></div>
    <div className={styles.spGrid}><div>Untuk</div><div>{v(trip.maksud_perjalanan)||"—"}</div></div><div className={styles.spGrid}><div>Hari / Tanggal</div><div>{range(v(trip.tanggal_acara_mulai),v(trip.tanggal_acara_selesai))}</div></div><div className={styles.spGrid}><div>Tempat</div><div>{v(trip.lokasi_acara)||v(trip.tempat_tujuan)}</div></div>
    <p className={styles.closing}>Demikian Surat Perintah ini dibuat untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggungjawab.</p>
    <div className={styles.spSign}><div>Kajen, {date(issued)}</div>{!spSignerIsSekda&&<b>a.n. SEKRETARIS DAERAH</b>}<b>{spSignerIsSekda?"SEKRETARIS DAERAH":spSigner.job||"—"}</b><div className={styles.signGap}/><b className={styles.underlined}>{spSignerNeedsShortName?spSignerDisplayName:spSigner.name}</b>{!spSignerIsEselonII&&<><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></>}</div>
@@ -147,6 +147,6 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     </div>
    </section>}
   </>}
-  {type==="lampiran"&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN DAFTAR PESERTA PERJALANAN DINAS"/>}
+  {type==="lampiran"&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN SURAT TUGAS"/>}
  </main>;
 }
