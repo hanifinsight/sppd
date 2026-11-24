@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AnggaranPage() {
   const supabase = await createClient();
-  const { data: { claims } } = await supabase.auth.getClaims();
-  const userId = claims?.sub;
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
   if (!userId) redirect("/login");
 
   const { data: profile } = await supabase.from("user_akun")
