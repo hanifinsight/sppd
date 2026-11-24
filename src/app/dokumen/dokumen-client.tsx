@@ -375,7 +375,7 @@ export default function DokumenClient({
                         {trip.sp && <a href={`/dokumen/cetak/sp/${trip.sp.id}`} target="_blank" rel="noreferrer"><Printer size={15} /> Cetak SP</a>}
                         {trip.sppd && <a href={`/dokumen/cetak/sppd/${trip.sppd.id}`} target="_blank" rel="noreferrer"><Printer size={15} /> Cetak SPPD</a>}
                         {trip.sppd && <a href={`/dokumen/cetak/penerimaan/${trip.sppd.id}`} target="_blank" rel="noreferrer"><FileText size={15} /> Cetak Penerimaan</a>}
-                        {trip.participants.length > 4 && trip.sp && <a className={styles.annexAction} href={`/dokumen/cetak/lampiran/${trip.sp.id}`} target="_blank" rel="noreferrer"><Users size={15} /> Lampiran SP</a>}
+                        {trip.participants.length > 4 && trip.sp && <a className={styles.annexAction} href={`/dokumen/cetak/lampiran/${trip.sp.id}`} target="_blank" rel="noreferrer"><Users size={15} /> Lampiran SP</a>}{trip.participants.length > 4 && trip.sppd && <a className={styles.annexAction} href={`/dokumen/cetak/lampiran-sppd/${trip.sppd.id}`} target="_blank" rel="noreferrer"><Users size={15} /> Lampiran SPPD</a>}
                       </div>
                     </div>
 
