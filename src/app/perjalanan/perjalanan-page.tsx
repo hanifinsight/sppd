@@ -144,18 +144,19 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
     companionsByTrip.set(row.perjalanan_id, values);
   });
 
-  const costsByTrip = new Map<string, { bbm: number; tol: number }>();
+  const costsByTrip = new Map<string, { bbm: number; tol: number; penginapan: number }>();
   ((otherCostResult.data ?? []) as DbRow[]).forEach((row) => {
-    const value = costsByTrip.get(row.perjalanan_id) ?? { bbm: 0, tol: 0 };
+    const value = costsByTrip.get(row.perjalanan_id) ?? { bbm: 0, tol: 0, penginapan: 0 };
     if (row.jenis_biaya === "bbm") value.bbm = Number(row.nominal ?? 0);
     if (row.jenis_biaya === "tol") value.tol = Number(row.nominal ?? 0);
+    if (row.jenis_biaya === "penginapan") value.penginapan = Number(row.nominal ?? 0);
     costsByTrip.set(row.perjalanan_id, value);
   });
 
   const activityMap = new Map(activities.map((row) => [row.id, row]));
   const trips: TripRecord[] = ((tripResult.data ?? []) as DbRow[]).map((row) => {
     const activity = activityMap.get(row.kegiatan_id);
-    const costs = costsByTrip.get(row.id) ?? { bbm: 0, tol: 0 };
+    const costs = costsByTrip.get(row.id) ?? { bbm: 0, tol: 0, penginapan: 0 };
     return {
       id: row.id,
       kegiatan_id: row.kegiatan_id,
@@ -185,6 +186,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
       pengikut: companionsByTrip.get(row.id) ?? [],
       bbm: costs.bbm,
       tol: costs.tol,
+      penginapan: costs.penginapan,
     };
   });
 
