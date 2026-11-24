@@ -869,3 +869,16 @@
 .activity-account-option label small{font-size:12px;color:#758582;line-height:1.4}
 .activity-account-option>input[type=number]{width:100%;min-width:0;padding:10px 12px;border:1px solid #dce5e2;border-radius:9px;background:#fff;font:inherit}
 .activity-account-option input:disabled{opacity:.65}
+
+
+/* Top navbar profile menu */
+.profile-menu-wrap{position:relative;display:flex;align-items:center}
+.profile-trigger{border:0;padding:0;cursor:pointer;font:700 10px Arial,Helvetica,sans-serif}
+.profile-trigger:hover{box-shadow:0 0 0 3px #e8f2ef}
+.profile-trigger:focus-visible{outline:3px solid rgba(20,125,101,.22);outline-offset:3px}
+.profile-dropdown{position:absolute;z-index:60;right:0;top:calc(100% + 11px);width:210px;background:#fff;border:1px solid #e8edf0;border-radius:10px;box-shadow:0 12px 30px rgba(25,48,58,.14);padding:8px}
+.profile-dropdown-label{padding:9px 10px 11px;color:#344a57;font-size:11px;font-weight:700;overflow-wrap:anywhere}
+.profile-dropdown-label small{display:block;margin-top:4px;color:#89979f;font-size:10px;font-weight:400}
+.profile-dropdown form{border-top:1px solid #f0f2f3;padding-top:6px}
+.profile-dropdown form button{width:100%;display:flex;align-items:center;gap:9px;padding:10px;border:0;border-radius:7px;background:#fffafa;color:#a6534d;font:700 11px Arial,Helvetica,sans-serif;text-align:left;cursor:pointer}
+.profile-dropdown form button:hover{background:#fff0ee}
