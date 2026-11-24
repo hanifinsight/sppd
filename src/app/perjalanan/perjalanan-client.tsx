@@ -41,7 +41,7 @@ type PreviewResult = {
   biaya?: {
     peserta: { nama: string; kelompok_pegawai: string; tarif_harian: number; jumlah_hari: number; total_uang_harian: number }[];
     rincian_biaya_lain: { jenis: string; nominal: number; keterangan?: string }[];
-    total_uh: number; total_bbm: number; total_tol: number; total_biaya: number; jumlah_hari: number;
+    total_uh: number; total_bbm: number; total_tol: number; total_penginapan: number; total_biaya: number; jumlah_hari: number;
   } | null;
   catatan?: string;
 };
@@ -628,7 +628,7 @@ export default function PerjalananClient({
             {validation?.warnings?.length ? <div className="trip-check-list warning"><h3>Catatan pemeriksaan</h3>{validation.warnings.map((item, index) => <div key={index}><AlertCircle size={15}/>{item}</div>)}</div> : null}
             {preview?.biaya && <>
               <div className="trip-cost-summary"><span>Total perkiraan biaya</span><strong>{money(preview.biaya.total_biaya)}</strong><small>{preview.biaya.jumlah_hari} hari perjalanan · belum menjadi komitmen anggaran</small></div>
-              <div className="trip-cost-lines"><div><span>Uang Harian</span><b>{money(preview.biaya.total_uh)}</b></div><div><span>BBM</span><b>{money(preview.biaya.total_bbm)}</b></div><div><span>Tol</span><b>{money(preview.biaya.total_tol)}</b></div></div>
+              <div className="trip-cost-lines"><div><span>Uang Harian</span><b>{money(preview.biaya.total_uh)}</b></div><div><span>BBM</span><b>{money(preview.biaya.total_bbm)}</b></div><div><span>Tol</span><b>{money(preview.biaya.total_tol)}</b></div><div><span>Penginapan</span><b>{money(preview.biaya.total_penginapan)}</b></div></div>
               <h3 className="trip-result-subtitle">Rincian Uang Harian peserta</h3>
               <div className="trip-preview-table"><table><thead><tr><th>Nama peserta</th><th>Kelompok</th><th>Tarif / hari</th><th>Jumlah</th></tr></thead><tbody>{preview.biaya.peserta.map((item, index) => <tr key={index}><td>{item.nama}</td><td>{item.kelompok_pegawai}</td><td>{money(item.tarif_harian)}</td><td>{money(item.total_uang_harian)}</td></tr>)}</tbody></table></div>
               {preview.catatan && <p className="trip-field-note">{preview.catatan}</p>}
