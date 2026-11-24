@@ -546,6 +546,32 @@ export default function PerjalananClient({
         </section>
       </div>}
 
+      {costEditingTrip && <div className="trip-modal-backdrop" role="presentation">
+        <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-cost-edit-title">
+          <div className="trip-modal-header">
+            <div><span className="eyebrow">PERUBAHAN BIAYA PERJALANAN</span><h2 id="trip-cost-edit-title">Tambah / ubah biaya penginapan</h2>
+              <p>{costEditingTrip.maksud_perjalanan} · {costEditingTrip.tempat_tujuan}</p></div>
+            <button className="trip-close" onClick={() => setCostEditingTrip(null)} aria-label="Tutup"><X size={18}/></button>
+          </div>
+          <form onSubmit={savePublishedCosts}>
+            <div className="trip-result-body">
+              <div className="trip-form-grid">
+                <label className="trip-field trip-field-wide">Biaya penginapan (Rp)
+                  <input inputMode="numeric" value={penginapanInput} onChange={(event) => setPenginapanInput(digits(event.target.value))} placeholder="0" />
+                  <small className="trip-field-note">Isi total biaya penginapan untuk seluruh perjalanan, bukan per malam.</small>
+                </label>
+              </div>
+              <div className="trip-field-note">Nomor SP/SPPD, peserta, tanggal, dan tujuan tidak akan berubah. Sistem menghitung ulang komitmen anggaran dan menolak perubahan jika pagu tidak mencukupi.</div>
+              {costEditError && <div className="trip-form-error"><AlertCircle size={16}/>{costEditError}</div>}
+            </div>
+            <div className="trip-modal-footer"><span><Wallet size={14}/> Perubahan dicatat pada riwayat aktivitas.</span><div>
+              <button type="button" className="secondary-btn" onClick={() => setCostEditingTrip(null)} disabled={costEditBusy}>Batal</button>
+              <button type="submit" className="primary-btn" disabled={costEditBusy}>{costEditBusy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan biaya</>}</button>
+            </div></div>
+          </form>
+        </section>
+      </div>}
+
       {issuingTrip && <div className="trip-modal-backdrop" role="presentation">
         <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-issue-title">
           <div className="trip-modal-header">
