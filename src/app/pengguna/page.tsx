@@ -54,7 +54,12 @@ export default async function PenggunaPage() {
   const sectionMap = new Map((sectionRows ?? []).map((row) => [row.id, row.nama_bagian]));
   const employeeMap = new Map((employeeRows ?? []).map((row) => [row.id, row]));
   const activityMap = new Map((activityRows ?? []).map((row) => [row.id, row]));
-  const assignmentMap = new Map((assignmentRows ?? []).map((row) => [row.user_id, row.kegiatan_id]));
+  const assignmentMap = new Map<string, string[]>();
+  for (const row of assignmentRows ?? []) {
+    const current = assignmentMap.get(row.user_id) ?? [];
+    current.push(row.kegiatan_id);
+    assignmentMap.set(row.user_id, current);
+  }
 
   const employeeOptions: EmployeeOption[] = (employeeRows ?? []).map((row) => ({
     id: row.id, nama: row.nama, nip: row.nip ?? "", bagian_id: row.bagian_id,
@@ -67,8 +72,8 @@ export default async function PenggunaPage() {
   }));
   const accountRecords: AccountRecord[] = (accounts ?? []).map((row) => {
     const employee = row.pegawai_id ? employeeMap.get(row.pegawai_id) : null;
-    const activityId = assignmentMap.get(row.id) ?? null;
-    const activity = activityId ? activityMap.get(activityId) : null;
+    const activityIds = assignmentMap.get(row.id) ?? [];
+    const assignedActivities = activityIds.map((id) => activityMap.get(id)).filter(Boolean);
     return {
       id: row.id,
       username: row.username ?? "",
@@ -79,11 +84,9 @@ export default async function PenggunaPage() {
       bagian_id: employee?.bagian_id ?? null,
       nama_bagian: employee ? (sectionMap.get(employee.bagian_id) ?? "Bagian tidak ditemukan") : "Seluruh Sekretariat Daerah",
       pegawai_aktif: employee?.aktif ?? true,
-      kegiatan_id: activityId,
-      nama_kegiatan: activity ? activity.nama_subkegiatan.trim() : "Belum ditugaskan",
-      kode_kegiatan: activity ? (activity.kode_subkegiatan ?? "").trim() : "",
-      tahun_anggaran: activity?.tahun_anggaran ?? null,
-      kegiatan_aktif: activity?.aktif ?? false,
+      kegiatan_ids: activityIds,
+      nama_kegiatan: assignedActivities.map((item) => item!.nama_subkegiatan.trim()).join(" • ") || "Belum ditugaskan",
+      kode_kegiatan: assignedActivities.map((item) => [item!.kode_subkegiatan, item!.tahun_anggaran].filter(Boolean).join(" · ")).join(" | "),
       aktif: row.aktif,
       must_change_password: row.must_change_password,
       created_at: row.created_at
