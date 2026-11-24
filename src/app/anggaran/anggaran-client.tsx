@@ -41,7 +41,7 @@ export type BudgetRecord = {
 };
 type SectionOption = { id: string; nama: string; aktif: boolean };
 type ActivityForm = { bagian_id: string; kode_subkegiatan: string; nama_subkegiatan: string; tahun_anggaran: string };
-type AccountForm = { kode_rekening: string; nama_rekening: string; kegiatan_id: string; pagu_awal: string };
+type AccountForm = { kode_rekening: string; nama_rekening: string };
 type BudgetForm = { kegiatan_id: string; rekening_id: string; pagu_awal: string };
 type MutationForm = {
   jenis_mutasi: "tambah" | "kurang" | "penyesuaian_tambah" | "penyesuaian_kurang";
@@ -84,7 +84,7 @@ export default function AnggaranClient({
   const [activityForm, setActivityForm] = useState<ActivityForm>({
     bagian_id: "", kode_subkegiatan: "", nama_subkegiatan: "", tahun_anggaran: String(new Date().getFullYear())
   });
-  const [accountForm, setAccountForm] = useState<AccountForm>({ kode_rekening: "", nama_rekening: "", kegiatan_id: "", pagu_awal: "" });
+  const [accountForm, setAccountForm] = useState<AccountForm>({ kode_rekening: "", nama_rekening: "" });
   const [budgetForm, setBudgetForm] = useState<BudgetForm>({ kegiatan_id: "", rekening_id: "", pagu_awal: "" });
   const [mutationForm, setMutationForm] = useState<MutationForm>({
     jenis_mutasi: "tambah", nominal: "", tanggal: "", keterangan: ""
@@ -148,14 +148,13 @@ export default function AnggaranClient({
   function openNewAccount() {
     clearFeedback();
     setEditingAccountId(null);
-    setAccountForm({ kode_rekening: "", nama_rekening: "", kegiatan_id: allowedActivities[0]?.id ?? "", pagu_awal: "" });
+    setAccountForm({ kode_rekening: "", nama_rekening: "" });
     setModal("account");
   }
   function openEditAccount(row: AccountRecord) {
     clearFeedback();
     setEditingAccountId(row.id);
-    const linked = budgets.find((item) => item.rekening_id === row.id);
-    setAccountForm({ kode_rekening: row.kode_rekening, nama_rekening: row.nama_rekening, kegiatan_id: linked?.kegiatan_id ?? allowedActivities[0]?.id ?? "", pagu_awal: linked ? String(linked.pagu_awal) : "" });
+    setAccountForm({ kode_rekening: row.kode_rekening, nama_rekening: row.nama_rekening });
     setModal("account");
   }
   function openNewBudget() {
@@ -280,53 +279,33 @@ export default function AnggaranClient({
     clearFeedback();
     const code = accountForm.kode_rekening.trim();
     const name = accountForm.nama_rekening.trim();
-    const amount = Number(accountForm.pagu_awal);
     if (!code || !name) { setFormError("Kode dan nama rekening wajib diisi."); return; }
-    if (!accountForm.kegiatan_id) { setFormError("Pilih subkegiatan yang akan memiliki rekening ini."); return; }
-    if (!Number.isFinite(amount) || amount <= 0) { setFormError("Pagu awal untuk subkegiatan ini harus lebih besar dari nol."); return; }
-    const duplicate = accounts.find((row) => row.id !== editingAccountId && row.kode_rekening.toLowerCase() === code.toLowerCase());
-    if (duplicate && !editingAccountId) { setFormError("Kode rekening sudah terdaftar. Gunakan rekening yang ada melalui Alokasi Anggaran untuk menambahkannya ke subkegiatan lain."); return; }
+    const duplicate = accounts.some((row) => row.id !== editingAccountId && row.kode_rekening.toLowerCase() === code.toLowerCase());
+    if (duplicate) { setFormError("Kode rekening tersebut sudah digunakan."); return; }
+
     setBusy(true);
     const supabase = createClient();
     const payload = { kode_rekening: code, nama_rekening: name };
     try {
-      let accountId = editingAccountId;
-      let savedAccount: AccountRecord;
       if (editingAccountId) {
         const { data, error } = await supabase.from("rekening_belanja").update(payload).eq("id", editingAccountId)
           .select("id,kode_rekening,nama_rekening,aktif").single();
         if (error) throw error;
-        savedAccount = data;
+        setAccounts((current) => current.map((row) => row.id === editingAccountId ? data : row));
+        setNotice("Data rekening belanja berhasil diperbarui.");
       } else {
         const { data, error } = await supabase.from("rekening_belanja").insert({ ...payload, aktif: true })
           .select("id,kode_rekening,nama_rekening,aktif").single();
         if (error) throw error;
-        accountId = data.id;
-        savedAccount = data;
+        setAccounts((current) => [...current, data].sort((a,b) => a.kode_rekening.localeCompare(b.kode_rekening)));
+        setNotice("Rekening belanja berhasil ditambahkan.");
       }
-      const alreadyLinked = budgets.some((item) => item.kegiatan_id === accountForm.kegiatan_id && item.rekening_id === accountId);
-      if (!alreadyLinked) {
-        const { data: allocation, error: allocationError } = await supabase.from("anggaran").insert({
-          kegiatan_id: accountForm.kegiatan_id, rekening_id: accountId, pagu_awal: amount, aktif: true
-        }).select("id,kegiatan_id,rekening_id,pagu_awal,aktif").single();
-        if (allocationError) throw new Error("Rekening tersimpan, tetapi pengaitan ke subkegiatan gagal: " + allocationError.message);
-        const activity = activities.find((row) => row.id === allocation.kegiatan_id);
-        const section = sections.find((row) => row.id === activity?.bagian_id);
-        setBudgets((current) => [...current, {
-          ...allocation, nama_subkegiatan: activity?.nama_subkegiatan ?? "Subkegiatan",
-          kode_subkegiatan: activity?.kode_subkegiatan ?? "", tahun_anggaran: activity?.tahun_anggaran ?? 0,
-          nama_bagian: activity?.nama_bagian ?? section?.nama ?? "", kode_rekening: savedAccount.kode_rekening,
-          nama_rekening: savedAccount.nama_rekening, pagu_setelah_mutasi: amount, komitmen_aktif: 0, pagu_tersedia: amount
-        }]);
-      }
-      if (editingAccountId) setAccounts((current) => current.map((row) => row.id === editingAccountId ? savedAccount : row));
-      else setAccounts((current) => [...current, savedAccount].sort((a,b) => a.kode_rekening.localeCompare(b.kode_rekening)));
-      setNotice(alreadyLinked ? "Data rekening diperbarui. Rekening tersebut sudah terhubung dengan subkegiatan yang dipilih." : "Rekening berhasil disimpan dan dihubungkan dengan subkegiatan.");
       setModal(null);
     } catch (e) {
       setFormError(e instanceof Error ? e.message : "Gagal menyimpan rekening belanja.");
     } finally { setBusy(false); }
   }
+
 
   async function deleteAccount(row: AccountRecord) {
     const linkedCount = budgets.filter((budget) => budget.rekening_id === row.id).length;
@@ -583,12 +562,11 @@ export default function AnggaranClient({
 
     {modal === "account" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
-        <div className="master-modal-head"><div><h2 id="account-modal-title">{editingAccountId ? "Ubah Rekening Belanja" : "Tambah Rekening Belanja"}</h2><p>Masukkan rekening belanja, pilih subkegiatan, lalu isi pagu awalnya.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <div className="master-modal-head"><div><h2 id="account-modal-title">{editingAccountId ? "Ubah Rekening Belanja" : "Tambah Rekening Belanja"}</h2><p>Masukkan kode dan uraian rekening belanja.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={saveAccount}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="account-code">Kode Rekening *</label><input id="account-code" value={accountForm.kode_rekening} onChange={(e) => setAccountForm({ ...accountForm, kode_rekening: e.target.value })} placeholder="Contoh: 5.1.02.04.001.00001" required maxLength={100}/></div>
           <div className="master-field full"><label htmlFor="account-name">Nama Rekening *</label><textarea id="account-name" value={accountForm.nama_rekening} onChange={(e) => setAccountForm({ ...accountForm, nama_rekening: e.target.value })} placeholder="Contoh: Belanja Perjalanan Dinas Biasa" required maxLength={300}/></div>
-          <div className="master-field full"><label htmlFor="account-activity">Subkegiatan *</label><select id="account-activity" value={accountForm.kegiatan_id} onChange={(e) => setAccountForm({ ...accountForm, kegiatan_id: e.target.value })} required><option value="">Pilih subkegiatan</option>{allowedActivities.map((row) => <option key={row.id} value={row.id}>{row.tahun_anggaran} · {row.kode_subkegiatan} · {row.nama_subkegiatan}</option>)}</select><span className="field-hint">Rekening ini akan dihubungkan ke subkegiatan yang dipilih.</span></div>
-          <div className="master-field full"><label htmlFor="account-pagu">Pagu Awal pada Subkegiatan (Rp) *</label><input id="account-pagu" type="number" min="1" step="1" value={accountForm.pagu_awal} onChange={(e) => setAccountForm({ ...accountForm, pagu_awal: moneyInput(e.target.value) })} placeholder="Contoh: 10000000" required/></div>
+
         </div>{formError && <div className="master-form-error" role="alert">{formError}</div>}<div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy}>{busy ? "Menyimpan..." : "Simpan Rekening"}</button></div></form>
       </section>
     </div>}
