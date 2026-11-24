@@ -533,7 +533,15 @@
 .trip-search input::placeholder{color:#9aa5b1}
 .trip-tools select{height:39px;min-width:132px;border:1px solid #dfe5eb;border-radius:9px;padding:0 10px;background:#fff;color:#3b4a5a;font-size:12px}
 .trip-table-wrap{width:100%;overflow-x:auto}
-.trip-table{border-collapse:collapse;width:100%;min-width:950px}
+.trip-table{border-collapse:collapse;width:100%;min-width:1100px;table-layout:fixed}
+.trip-table th:nth-child(1),.trip-table td:nth-child(1){width:23%}
+.trip-table th:nth-child(2),.trip-table td:nth-child(2){width:19%}
+.trip-table th:nth-child(3),.trip-table td:nth-child(3){width:12%}
+.trip-table th:nth-child(4),.trip-table td:nth-child(4){width:11%}
+.trip-table th:nth-child(5),.trip-table td:nth-child(5){width:18%}
+.trip-table th:nth-child(6),.trip-table td:nth-child(6){width:10%}
+.trip-table th:nth-child(7),.trip-table td:nth-child(7){width:7%}
+.trip-table tbody td>b,.trip-table tbody td>small,.trip-table td small{max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal}
 .trip-table thead th{background:#f8fafc;color:#8793a1;font-size:9px;letter-spacing:.09em;font-weight:800;text-align:left;padding:13px 15px;border-bottom:1px solid #e8edf2;white-space:nowrap}
 .trip-table tbody td{padding:16px 15px;border-bottom:1px solid #edf0f3;color:#425164;font-size:12px;vertical-align:middle}
 .trip-table tbody tr:last-child td{border-bottom:0}
