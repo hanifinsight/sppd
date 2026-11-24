@@ -68,6 +68,9 @@ export default function PerjalananClient({
   const router = useRouter();
   const [trips, setTrips] = useState(initialTrips);
   useEffect(() => { setTrips(initialTrips); }, [initialTrips]);
+  const [remoteEmployeeConflicts, setRemoteEmployeeConflicts] = useState<Record<string, { tanggal_berangkat: string; tanggal_kembali: string }>>({});
+  const [availabilityChecking, setAvailabilityChecking] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(startNew);
@@ -90,6 +93,42 @@ export default function PerjalananClient({
   const [issueError, setIssueError] = useState("");
   const [issueBusy, setIssueBusy] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    if (!form.kegiatan_id || !form.tanggal_berangkat || !form.tanggal_kembali || form.tanggal_kembali < form.tanggal_berangkat) {
+      setRemoteEmployeeConflicts({});
+      setAvailabilityChecking(false);
+      setAvailabilityError("");
+      return () => { active = false; };
+    }
+    setAvailabilityChecking(true);
+    setAvailabilityError("");
+    setRemoteEmployeeConflicts({});
+    const supabase = createClient();
+    supabase.rpc("sppd_cek_ketersediaan_pegawai", {
+      p_kegiatan_id: form.kegiatan_id,
+      p_tanggal_berangkat: form.tanggal_berangkat,
+      p_tanggal_kembali: form.tanggal_kembali,
+      p_perjalanan_id: editingTrip?.id ?? null
+    }).then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        setAvailabilityError("Ketersediaan pegawai belum dapat diperiksa. Muat ulang halaman atau coba lagi.");
+        return;
+      }
+      const next: Record<string, { tanggal_berangkat: string; tanggal_kembali: string }> = {};
+      (data ?? []).forEach((row: { pegawai_id: string; tanggal_berangkat: string; tanggal_kembali: string }) => {
+        next[row.pegawai_id] = { tanggal_berangkat: row.tanggal_berangkat, tanggal_kembali: row.tanggal_kembali };
+      });
+      setRemoteEmployeeConflicts(next);
+    }).catch(() => {
+      if (active) setAvailabilityError("Ketersediaan pegawai belum dapat diperiksa. Muat ulang halaman atau coba lagi.");
+    }).finally(() => {
+      if (active) setAvailabilityChecking(false);
+    });
+    return () => { active = false; };
+  }, [form.kegiatan_id, form.tanggal_berangkat, form.tanggal_kembali, editingTrip?.id]);
+
   const activeDrafts = trips.filter((trip) => trip.status === "draft").length;
   const publishedTrips = trips.filter((trip) => trip.status === "published").length;
   const cancelledTrips = trips.filter((trip) => trip.status === "cancelled").length;
@@ -105,6 +144,8 @@ export default function PerjalananClient({
   const eligibleEmployees = employees.filter((row) => selectedActivity && row.bagian_id === selectedActivity.bagian_id &&
     (row.nama + " " + row.nip + " " + row.jabatan).toLowerCase().includes(participantSearch.toLowerCase()));
   const employeeConflict = (pegawaiId: string) => {
+    const remote = remoteEmployeeConflicts[pegawaiId];
+    if (remote) return { ...remote, maksud_perjalanan: "Perjalanan dinas lain" };
     if (!form.tanggal_berangkat || !form.tanggal_kembali) return undefined;
     return trips.find((trip) =>
       trip.id !== editingTrip?.id &&
@@ -153,6 +194,14 @@ export default function PerjalananClient({
   }
   function toggleParticipant(id: string) {
     if (!form.peserta_ids.includes(id)) {
+      if (!form.tanggal_berangkat || !form.tanggal_kembali) {
+        setFormError("Isi tanggal berangkat dan tanggal kembali terlebih dahulu untuk memeriksa ketersediaan pegawai.");
+        return;
+      }
+      if (availabilityChecking || availabilityError) {
+        setFormError(availabilityError || "Sedang memeriksa jadwal perjalanan pegawai. Tunggu sebentar.");
+        return;
+      }
       const conflict = employeeConflict(id);
       if (conflict) {
         const person = employees.find((row) => row.id === id);
@@ -184,6 +233,8 @@ export default function PerjalananClient({
     if (form.peserta_ids.length === 0) return setFormError("Pilih minimal satu pegawai sebagai peserta perjalanan.");
     if (!form.tanggal_berangkat || !form.tanggal_kembali || !form.tanggal_acara_mulai || !form.tanggal_acara_selesai) return setFormError("Lengkapi tanggal perjalanan dan tanggal acara.");
     if (form.tanggal_kembali < form.tanggal_berangkat) return setFormError("Tanggal kembali tidak boleh sebelum tanggal berangkat.");
+    if (availabilityChecking) return setFormError("Tunggu sebentar, sistem sedang memeriksa ketersediaan pegawai.");
+    if (availabilityError) return setFormError(availabilityError);
     if (form.tanggal_acara_selesai < form.tanggal_acara_mulai) return setFormError("Tanggal acara selesai tidak boleh sebelum tanggal mulai.");
     if (!form.maksud_perjalanan.trim() || !form.lokasi_acara.trim() || !form.tempat_berangkat.trim() || !form.tempat_tujuan.trim() || !form.provinsi_tujuan) {
       return setFormError("Lengkapi maksud perjalanan, lokasi acara, asal, tujuan, dan provinsi tujuan.");
@@ -421,12 +472,19 @@ export default function PerjalananClient({
               <section className="trip-form-section">
                 <div className="trip-section-title"><span>03</span><div><h3>Peserta perjalanan</h3><p>Pilih pegawai aktif dari Bagian yang memiliki subkegiatan.</p></div></div>
                 <div className="trip-participant-head"><div className="trip-search"><Search size={15}/><input value={participantSearch} onChange={(event) => setParticipantSearch(event.target.value)} placeholder="Cari nama atau NIP..." /></div><span>{form.peserta_ids.length} peserta dipilih</span></div>
+                {!form.tanggal_berangkat || !form.tanggal_kembali
+                  ? <div className="trip-field-note">Isi tanggal berangkat dan kembali terlebih dahulu agar sistem dapat memeriksa jadwal pegawai.</div>
+                  : availabilityChecking
+                    ? <div className="trip-field-note">Memeriksa ketersediaan jadwal pegawai...</div>
+                    : availabilityError
+                      ? <div className="trip-form-error"><AlertCircle size={15}/>{availabilityError}</div>
+                      : <div className="trip-field-note">Pemeriksaan jadwal selesai. Pegawai yang memiliki perjalanan dinas pada rentang tanggal ini akan dinonaktifkan.</div>}
                 <div className="trip-employee-list">
                   {eligibleEmployees.length ? eligibleEmployees.map((person) => {
                     const conflict = employeeConflict(person.id);
                     const selected = form.peserta_ids.includes(person.id);
                     return <label className={"trip-employee-option " + (selected ? "selected" : "") + (conflict ? " unavailable" : "")} key={person.id}>
-                      <input type="checkbox" checked={selected} disabled={Boolean(conflict) && !selected} onChange={() => toggleParticipant(person.id)} /><span className="trip-check"><Check size={13}/></span>
+                      <input type="checkbox" checked={selected} disabled={!selected && (!form.tanggal_berangkat || !form.tanggal_kembali || availabilityChecking || Boolean(availabilityError) || Boolean(conflict))} onChange={() => toggleParticipant(person.id)} /><span className="trip-check"><Check size={13}/></span>
                       <span className="trip-employee-avatar"><UserRound size={16}/></span><span className="trip-employee-info"><b>{person.nama}</b><small>{person.nip || "NIP belum tersedia"} · {person.pangkat_golongan || person.status_kepegawaian}</small>
                       {conflict && <small className="trip-employee-conflict">Tidak tersedia: perjalanan lain {dateLabel(conflict.tanggal_berangkat)} s.d. {dateLabel(conflict.tanggal_kembali)}</small>}</span>
                     </label>;
