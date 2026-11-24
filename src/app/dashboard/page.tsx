@@ -76,7 +76,7 @@ export default async function Home() {
             <h1>Selamat datang, {profile.username ?? "Pengguna"} <span>✦</span></h1>
             <p>Pantau dan kelola aktivitas perjalanan dinas dalam satu tempat.</p>
           </div>
-          <Link className="primary-btn" href="/perjalanan/baru" prefetch={false}><Plus size={17}/> Buat perjalanan dinas</a>
+          <Link className="primary-btn" href="/perjalanan/baru" prefetch={false}><Plus size={17}/> Buat perjalanan dinas</Link>
         </div>
 
         <div className="stats-grid">
