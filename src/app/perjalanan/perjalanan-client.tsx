@@ -105,12 +105,12 @@ export default function PerjalananClient({
     setAvailabilityError("");
     setRemoteEmployeeConflicts({});
     const supabase = createClient();
-    supabase.rpc("sppd_cek_ketersediaan_pegawai", {
+    Promise.resolve(supabase.rpc("sppd_cek_ketersediaan_pegawai", {
       p_kegiatan_id: form.kegiatan_id,
       p_tanggal_berangkat: form.tanggal_berangkat,
       p_tanggal_kembali: form.tanggal_kembali,
       p_perjalanan_id: editingTrip?.id ?? null
-    }).then(({ data, error }) => {
+    })).then(({ data, error }) => {
       if (!active) return;
       if (error) {
         setAvailabilityError("Ketersediaan pegawai belum dapat diperiksa. Muat ulang halaman atau coba lagi.");
