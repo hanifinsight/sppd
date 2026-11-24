@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -19,6 +19,8 @@ type Props = {
 export default function PerjalananShell({ username, role, active = "perjalanan", children }: Props) {
   const isAdmin = role === "admin";
   const pathname = usePathname();
+  const router = useRouter();
+  const prefetchRoute = (href: string) => () => router.prefetch(href);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
         />
       )}
       <aside id="app-sidebar" className={`sidebar${mobileMenuOpen ? " sidebar-open" : ""}`}>
-        <Link prefetch={false} href="/dashboard" className="brand master-brand-link">
+        <Link prefetch={false} onMouseEnter={prefetchRoute("/dashboard")} href="/dashboard" className="brand master-brand-link">
           <div className="brand-mark">S</div>
           <div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div>
         </Link>
