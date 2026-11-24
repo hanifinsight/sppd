@@ -329,6 +329,39 @@ export default function PerjalananClient({
     });
   }
 
+  function openPublishedCostEdit(trip: TripRecord) {
+    setCostEditingTrip(trip);
+    setPenginapanInput(String(trip.penginapan || 0));
+    setCostEditError("");
+  }
+
+  async function savePublishedCosts(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!costEditingTrip) return;
+    const nominal = Number(digits(penginapanInput) || 0);
+    if (!Number.isFinite(nominal) || nominal < 0) {
+      setCostEditError("Masukkan nominal biaya penginapan yang valid.");
+      return;
+    }
+    setCostEditBusy(true);
+    setCostEditError("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc("sppd_perbarui_biaya_penginapan", {
+        p_perjalanan_id: costEditingTrip.id,
+        p_nominal_penginapan: nominal
+      });
+      if (error) throw new Error(error.message);
+      setNotice("Biaya penginapan berhasil diperbarui. Komitmen anggaran telah disesuaikan.");
+      setCostEditingTrip(null);
+      router.refresh();
+    } catch (error) {
+      setCostEditError(error instanceof Error ? error.message : "Biaya penginapan gagal diperbarui.");
+    } finally {
+      setCostEditBusy(false);
+    }
+  }
+
   async function publishTrip(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!issuingTrip) return;
