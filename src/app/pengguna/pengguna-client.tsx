@@ -73,7 +73,7 @@ export default function PenggunaClient({
 
   const admins = accounts.filter((row) => row.role === "admin");
   const operators = accounts.filter((row) => row.role === "operator");
-  const activeStaf Admins = operators.filter((row) => row.aktif).length;
+  const activeStaffAdmins = operators.filter((row) => row.aktif).length;
   const availableEmployees = employees.filter((employee) =>
     employee.aktif && !accounts.some((account) => account.pegawai_id === employee.id)
   );
@@ -88,7 +88,7 @@ export default function PenggunaClient({
     (!assignedElsewhere(activity.id, modal.account.id) || modal.account.kegiatan_ids.includes(activity.id))
   );
 
-  const filteredStaf Admins = useMemo(() => operators.filter((row) => {
+  const filteredStaffAdmins = useMemo(() => operators.filter((row) => {
     const text = (row.nama_pegawai + " " + row.nip + " " + row.username + " " +
       row.nama_bagian + " " + row.nama_kegiatan + " " + row.kode_kegiatan).toLowerCase();
     const matchStatus = statusFilter === "all" ||
@@ -126,7 +126,7 @@ export default function PenggunaClient({
     setModal(null); setFormError(""); setNewPassword(""); setConfirmPassword("");
   }
 
-  async function createStaf Admin(event: FormEvent<HTMLFormElement>) {
+  async function createStaffAdmin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearFeedback();
     const chosen = employees.find((row) => row.id === selectedEmployee);
@@ -245,7 +245,7 @@ export default function PenggunaClient({
 
     <div className="user-summary-grid">
       <article className="user-summary-card"><span className="user-summary-icon"><Users size={18}/></span><div><small>Total akun</small><strong>{accounts.length}</strong></div></article>
-      <article className="user-summary-card"><span className="user-summary-icon"><UserRound size={18}/></span><div><small>Staf Admin aktif</small><strong>{activeStaf Admins}</strong></div></article>
+      <article className="user-summary-card"><span className="user-summary-icon"><UserRound size={18}/></span><div><small>Staf Admin aktif</small><strong>{activeStaffAdmins}</strong></div></article>
       <article className="user-summary-card"><span className="user-summary-icon"><ShieldCheck size={18}/></span><div><small>Admin global</small><strong>{admins.length}</strong></div></article>
       <article className="user-summary-card"><span className="user-summary-icon"><UserPlus size={18}/></span><div><small>Pegawai belum punya akun</small><strong>{availableEmployees.length}</strong></div></article>
     </div>
@@ -271,7 +271,7 @@ export default function PenggunaClient({
     <div className="master-table-card">
       <div className="master-table-wrap"><table className="master-table user-table">
         <thead><tr><th>PEGAWAI / USERNAME</th><th>BAGIAN</th><th>KEGIATAN YANG DIKELOLA</th><th>STATUS AKUN</th><th>DIBUAT</th><th>AKSI</th></tr></thead>
-        <tbody>{filteredStaf Admins.length ? filteredStaf Admins.map((row) => <tr key={row.id}>
+        <tbody>{filteredStaffAdmins.length ? filteredStaffAdmins.map((row) => <tr key={row.id}>
           <td><strong>{row.nama_pegawai}</strong><small>{row.nip || "NIP belum diisi"}</small><span className="user-username">@{row.username}</span></td>
           <td>{row.nama_bagian}</td>
           <td><strong className="user-activity-name">{row.nama_kegiatan}</strong><small>{row.kode_kegiatan || (row.kegiatan_ids.length ? "" : "Belum ditugaskan")}</small></td>
@@ -284,7 +284,7 @@ export default function PenggunaClient({
           </div></td>
         </tr>) : <tr><td colSpan={6} className="master-empty">Belum ada akun operator yang sesuai filter.</td></tr>}</tbody>
       </table></div>
-      <div className="master-table-foot"><span>Menampilkan <b>{filteredStaf Admins.length}</b> dari <b>{operators.length}</b> Staf Admin</span><span>Akun login menggunakan username, bukan email.</span></div>
+      <div className="master-table-foot"><span>Menampilkan <b>{filteredStaffAdmins.length}</b> dari <b>{operators.length}</b> Staf Admin</span><span>Akun login menggunakan username, bukan email.</span></div>
     </div>
 
     <div className="user-access-note">
@@ -295,7 +295,7 @@ export default function PenggunaClient({
     {modal?.type === "create" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal user-modal" role="dialog" aria-modal="true" aria-labelledby="create-user-title">
         <div className="master-modal-head"><div><h2 id="create-user-title">Buat Akun Staf Admin</h2><p>Satu akun dapat langsung diberi tanggung jawab atas beberapa kegiatan.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
-        <form className="master-form" onSubmit={createStaf Admin}><div className="master-form-grid">
+        <form className="master-form" onSubmit={createStaffAdmin}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="operator-employee">Pegawai *</label><select id="operator-employee" value={selectedEmployee} onChange={(e) => { setSelectedEmployee(e.target.value); setCreateForm({ ...createForm, kegiatan_ids: [] }); }} required><option value="">Pilih pegawai aktif</option>{availableEmployees.map((row) => <option value={row.id} key={row.id}>{row.nama} — {row.nip || "Tanpa NIP"} · {row.nama_bagian}</option>)}</select><span className="field-hint">Setiap pegawai hanya dapat memiliki satu akun Staf Admin.</span></div>
           <div className="master-field full"><label>Kegiatan yang dikelola *</label>{renderActivityChoices(eligibleActivities, createForm.kegiatan_ids, (id) => setCreateForm((current) => ({...current,kegiatan_ids:toggleSelection(current.kegiatan_ids,id)})))}<span className="field-hint">{employee ? "Hanya kegiatan milik " + employee.nama_bagian + " yang belum ditugaskan." : "Pilih pegawai terlebih dahulu."}</span></div>
           <div className="master-field"><label htmlFor="operator-username">Username *</label><input id="operator-username" autoComplete="off" value={createForm.username} onChange={(e) => setCreateForm({ ...createForm, username: e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0,32) })} placeholder="contoh: operator.perekonomian" minLength={3} maxLength={32} required/><span className="field-hint">3–32 karakter, huruf kecil/angka/._-.</span></div>
