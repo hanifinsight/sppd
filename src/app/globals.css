@@ -883,3 +883,9 @@
 .profile-dropdown > button[role="menuitem"]:hover{background:#fff0ee}
 .profile-dropdown > button[role="menuitem"]:disabled{opacity:.65;cursor:wait}
 .profile-signout-error{margin:6px 10px;color:#b42318;font-size:10px}
+
+/* Employee availability when a trip date range overlaps */
+.trip-employee-option.unavailable{border-color:#f0d7d4;background:#fffafa;cursor:not-allowed}
+.trip-employee-option.unavailable .trip-employee-avatar{background:#f8e8e6;color:#b56b63}
+.trip-employee-option.unavailable .trip-employee-conflict{display:block;margin-top:4px;color:#b4534b;font-weight:700;line-height:1.45}
+.trip-employee-option.unavailable input:disabled{cursor:not-allowed}
