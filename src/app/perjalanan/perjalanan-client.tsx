@@ -92,10 +92,7 @@ export default function PerjalananClient({
   });
   const [issueError, setIssueError] = useState("");
   const [issueBusy, setIssueBusy] = useState(false);
-  const [costEditingTrip, setCostEditingTrip] = useState<TripRecord | null>(null);
-  const [penginapanInput, setPenginapanInput] = useState("0");
-  const [costEditError, setCostEditError] = useState("");
-  const [costEditBusy, setCostEditBusy] = useState(false);
+
 
   useEffect(() => {
     let active = true;
@@ -330,39 +327,6 @@ export default function PerjalananClient({
     });
   }
 
-  function openPublishedCostEdit(trip: TripRecord) {
-    setCostEditingTrip(trip);
-    setPenginapanInput(String(trip.penginapan || 0));
-    setCostEditError("");
-  }
-
-  async function savePublishedCosts(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!costEditingTrip) return;
-    const nominal = Number(digits(penginapanInput) || 0);
-    if (!Number.isFinite(nominal) || nominal < 0) {
-      setCostEditError("Masukkan nominal biaya penginapan yang valid.");
-      return;
-    }
-    setCostEditBusy(true);
-    setCostEditError("");
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc("sppd_perbarui_biaya_penginapan", {
-        p_perjalanan_id: costEditingTrip.id,
-        p_nominal_penginapan: nominal
-      });
-      if (error) throw new Error(error.message);
-      setNotice("Biaya penginapan berhasil diperbarui. Komitmen anggaran telah disesuaikan.");
-      setCostEditingTrip(null);
-      router.refresh();
-    } catch (error) {
-      setCostEditError(error instanceof Error ? error.message : "Biaya penginapan gagal diperbarui.");
-    } finally {
-      setCostEditBusy(false);
-    }
-  }
-
   async function publishTrip(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!issuingTrip) return;
@@ -543,32 +507,6 @@ export default function PerjalananClient({
             <div className="trip-modal-footer"><span><Clock3 size={14}/> {editingTrip?.status === "published" ? "Komitmen anggaran dihitung ulang saat disimpan." : "Disimpan sebagai draf, belum diterbitkan."}</span><div>
               <button type="button" className="secondary-btn" onClick={() => setShowForm(false)} disabled={busy}>Tutup</button>
               <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan draf</>}</button>
-            </div></div>
-          </form>
-        </section>
-      </div>}
-
-      {costEditingTrip && <div className="trip-modal-backdrop" role="presentation">
-        <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-cost-edit-title">
-          <div className="trip-modal-header">
-            <div><span className="eyebrow">PERUBAHAN BIAYA PERJALANAN</span><h2 id="trip-cost-edit-title">Tambah / ubah biaya penginapan</h2>
-              <p>{costEditingTrip.maksud_perjalanan} · {costEditingTrip.tempat_tujuan}</p></div>
-            <button className="trip-close" onClick={() => setCostEditingTrip(null)} aria-label="Tutup"><X size={18}/></button>
-          </div>
-          <form onSubmit={savePublishedCosts}>
-            <div className="trip-result-body">
-              <div className="trip-form-grid">
-                <label className="trip-field trip-field-wide">Biaya penginapan (Rp)
-                  <input inputMode="numeric" value={penginapanInput} onChange={(event) => setPenginapanInput(digits(event.target.value))} placeholder="0" />
-                  <small className="trip-field-note">Isi total biaya penginapan untuk seluruh perjalanan, bukan per malam.</small>
-                </label>
-              </div>
-              <div className="trip-field-note">Nomor SP/SPPD, peserta, tanggal, dan tujuan tidak akan berubah. Sistem menghitung ulang komitmen anggaran dan menolak perubahan jika pagu tidak mencukupi.</div>
-              {costEditError && <div className="trip-form-error"><AlertCircle size={16}/>{costEditError}</div>}
-            </div>
-            <div className="trip-modal-footer"><span><Wallet size={14}/> Perubahan dicatat pada riwayat aktivitas.</span><div>
-              <button type="button" className="secondary-btn" onClick={() => setCostEditingTrip(null)} disabled={costEditBusy}>Batal</button>
-              <button type="submit" className="primary-btn" disabled={costEditBusy}>{costEditBusy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan biaya</>}</button>
             </div></div>
           </form>
         </section>
