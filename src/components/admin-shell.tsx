@@ -43,7 +43,7 @@ export default function AdminShell({ username, active, children }: Props) {
         />
       )}
       <aside id="app-sidebar" className={`sidebar${mobileMenuOpen ? " sidebar-open" : ""}`}>
-        <Link href="/dashboard" className="brand master-brand-link">
+        <Link prefetch={false} href="/dashboard" className="brand master-brand-link">
           <div className="brand-mark">S</div>
           <div><b>SPPD<span>.</span></b><small>SEKRETARIAT DAERAH</small></div>
         </Link>
@@ -54,18 +54,18 @@ export default function AdminShell({ username, active, children }: Props) {
         </div>
         <div className="nav-group">
           <p>MENU UTAMA</p>
-          <Link className="nav-item" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></Link>
-          <Link className={"nav-item " + (active === "bagian" ? "active" : "")} href="/master/bagian"><Building2 size={18}/><span>Master Bagian</span></Link>
-          <Link className={"nav-item " + (active === "pegawai" ? "active" : "")} href="/pegawai"><Users size={18}/><span>Data Pegawai</span></Link>
+          <Link prefetch={false} className="nav-item" href="/dashboard"><LayoutDashboard size={18}/><span>Ringkasan</span></Link>
+          <Link prefetch={false} className={"nav-item " + (active === "bagian" ? "active" : "")} href="/master/bagian"><Building2 size={18}/><span>Master Bagian</span></Link>
+          <Link prefetch={false} className={"nav-item " + (active === "pegawai" ? "active" : "")} href="/pegawai"><Users size={18}/><span>Data Pegawai</span></Link>
         </div>
         <div className="nav-group">
           <p>DATA DAN ADMINISTRASI</p>
-          <Link className={"nav-item " + (active === "pengelola" ? "active" : "")} href="/pengaturan"><Settings2 size={18}/><span>Pejabat & Pengelola</span></Link>
-          <Link className={"nav-item " + (active === "pengguna" ? "active" : "")} href="/pengguna"><Users size={18}/><span>Manajemen Pengguna</span></Link>
-          <Link className={"nav-item " + (active === "anggaran" ? "active" : "")} href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></Link>
-          <Link className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></Link>
-          <Link className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
-          <Link className="nav-item" href="/laporan"><ChartNoAxesCombined size={18}/><span>Laporan</span></Link>
+          <Link prefetch={false} className={"nav-item " + (active === "pengelola" ? "active" : "")} href="/pengaturan"><Settings2 size={18}/><span>Pejabat & Pengelola</span></Link>
+          <Link prefetch={false} className={"nav-item " + (active === "pengguna" ? "active" : "")} href="/pengguna"><Users size={18}/><span>Manajemen Pengguna</span></Link>
+          <Link prefetch={false} className={"nav-item " + (active === "anggaran" ? "active" : "")} href="/anggaran"><Wallet size={18}/><span>Kegiatan & Anggaran</span></Link>
+          <Link prefetch={false} className="nav-item" href="/perjalanan"><Plane size={18}/><span>Perjalanan Dinas</span></Link>
+          <Link prefetch={false} className="nav-item" href="/dokumen"><FileText size={18}/><span>Dokumen SP & SPPD</span></Link>
+          <Link prefetch={false} className="nav-item" href="/laporan"><ChartNoAxesCombined size={18}/><span>Laporan</span></Link>
         </div>
         <div className="sidebar-bottom">
           <div className="help-card">
