@@ -20,7 +20,7 @@ function Annex({people,number,issued,title}:{people:Person[];number:string;issue
 
 export default async function PrintPage({params}:{params:Promise<{type:string;documentId:string}>}){
  const {type,documentId}=await params;
- if(type!=="sp"&&type!=="sppd"&&type!=="penerimaan"&&type!=="lampiran")notFound();
+ if(type!=="sp"&&type!=="sppd"&&type!=="penerimaan"&&type!=="lampiran"&&type!=="lampiran-sppd")notFound();
  const db=await createClient();
  const {data:{user}}=await db.auth.getUser();
  if(!user)redirect("/login");
@@ -119,9 +119,9 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
      <tr><td className={styles.numberCell}>1.</td><td>Pejabat Pembuat Komitmen</td><td>{kpa.name}</td></tr>
-     <tr><td className={styles.numberCell}>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.slice(0,4).map((p,i)=><div className={styles.personIdentity} key={p.id}><span>{i+1})</span><div className={styles.personIdentityDetails}><div>{p.name}</div><div>NIP. {p.nip||"—"}</div></div></div>)}{people.length>4&&<i>Selengkapnya tercantum dalam lampiran.</i>}</td></tr>
-     <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.rank||"—"}</div></div>)}</td></tr>
-     <tr><td>b. Jabatan/Instansi</td><td>{people.slice(0,4).map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div></div>)}</td></tr>
+     <tr><td className={styles.numberCell}>2.</td><td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td><td>{people.length>4?<b>(TERLAMPIR)</b>:people.map((p,i)=><div className={styles.personIdentity} key={p.id}><span>{i+1})</span><div className={styles.personIdentityDetails}><div>{p.name}</div><div>NIP. {p.nip||"—"}</div></div></div>)}</td></tr>
+     <tr><td className={styles.numberCell} rowSpan={3}>3.</td><td>a. Pangkat dan Golongan</td><td>{people.length>4?<b>(TERLAMPIR)</b>:people.map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.rank||"—"}</div></div>)}</td></tr>
+     <tr><td>b. Jabatan/Instansi</td><td>{people.length>4?<b>(TERLAMPIR)</b>:people.map((p,i)=><div className={styles.numberedValue} key={p.id}><span>{i+1})</span><div>{p.job||"—"} / Sekretariat Daerah Kabupaten Pekalongan</div></div>)}</td></tr>
      <tr><td>c. Tingkat Biaya Perjalanan Dinas</td><td>{travelCostType}</td></tr>
      <tr><td className={styles.numberCell}>4.</td><td>Maksud perjalanan dinas</td><td>{v(trip.maksud_perjalanan)||"—"}</td></tr>
      <tr><td className={styles.numberCell}>5.</td><td>Alat angkut yang dipergunakan</td><td>{v(trip.alat_angkut)||"—"}</td></tr>
@@ -147,6 +147,6 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
     </div>
    </section>}
   </>}
-  {type==="lampiran"&&<Annex people={people} number={number} issued={issued} title="LAMPIRAN SURAT TUGAS"/>}
+  {(type==="lampiran"||type==="lampiran-sppd")&&<Annex people={people} number={number} issued={issued} title={type==="lampiran"?"LAMPIRAN SURAT TUGAS":"LAMPIRAN SURAT PERJALANAN DINAS"}/>}
  </main>;
 }
