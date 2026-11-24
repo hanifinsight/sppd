@@ -140,7 +140,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      {[["BBM/Tiket",bbm],["TOL",tol],["Penginapan/Hotel",hotel],...otherRows.map(r=>[v(r.jenis_biaya),Number(r.nominal||0)])].map((r,i)=><tr key={i} className={styles.costRow}><td></td><td colSpan={4} className={styles.costLabel}>{r[0]}</td><td>{Number(r[1])?"Rp "+rupiah(Number(r[1])):"—"}</td><td colSpan={2}></td></tr>)}
      <tr className={styles.total}><td colSpan={5}>Jumlah</td><td>Rp {rupiah(total)}</td><td colSpan={2} className={styles.wordsCell}>Terbilang: {terbilang(total).replace(/^./,c=>c.toUpperCase()).replace(/rupiah$/,"Rupiah")}</td></tr>
     </tbody></table>
-    <div className={styles.receiptDate}>Kajen, ................................</div>
+    <div className={styles.receiptDate}>Kajen, {date(issued)}</div>
     <div className={styles.receiptSigns}>
      <div><b>Mengetahui:</b><b>Kuasa Pengguna Anggaran</b><span>{sectionName}</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{kpa.name}</b><span>NIP. {kpa.nip||"—"}</span></div>
      <div><b>&nbsp;</b><b>PPTK</b><span>&nbsp;</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{pptk.name}</b><span>NIP. {pptk.nip||"—"}</span></div>
