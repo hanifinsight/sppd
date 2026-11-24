@@ -9,8 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 export type AccountRecord = {
   id: string; username: string; role: string; pegawai_id: string | null;
   nama_pegawai: string; nip: string; bagian_id: string | null; nama_bagian: string;
-  pegawai_aktif: boolean; kegiatan_id: string | null; nama_kegiatan: string;
-  kode_kegiatan: string; tahun_anggaran: number | null; kegiatan_aktif: boolean;
+  pegawai_aktif: boolean; kegiatan_ids: string[]; nama_kegiatan: string; kode_kegiatan: string;
   aktif: boolean; must_change_password: boolean; created_at: string;
 };
 export type EmployeeOption = {
@@ -62,8 +61,8 @@ export default function PenggunaClient({
   const [statusFilter, setStatusFilter] = useState("all");
   const [modal, setModal] = useState<ModalState>(null);
   const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [createForm, setCreateForm] = useState({ username: "", password: "", kegiatan_id: "" });
-  const [assignmentId, setAssignmentId] = useState("");
+  const [createForm, setCreateForm] = useState({ username: "", password: "", kegiatan_ids: [] as string[] });
+  const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -74,19 +73,22 @@ export default function PenggunaClient({
 
   const admins = accounts.filter((row) => row.role === "admin");
   const operators = accounts.filter((row) => row.role === "operator");
-  const activeOperators = operators.filter((row) => row.aktif).length;
+  const activeStaf Admins = operators.filter((row) => row.aktif).length;
   const availableEmployees = employees.filter((employee) =>
     employee.aktif && !accounts.some((account) => account.pegawai_id === employee.id)
   );
   const employee = employees.find((row) => row.id === selectedEmployee);
+  const assignedElsewhere = (activityId: string, exceptUserId?: string) =>
+    accounts.some((account) => account.id !== exceptUserId && account.kegiatan_ids.includes(activityId));
   const eligibleActivities = activities.filter((activity) =>
-    activity.aktif && employee && activity.bagian_id === employee.bagian_id
+    activity.aktif && employee && activity.bagian_id === employee.bagian_id && !assignedElsewhere(activity.id)
   );
   const assignmentActivities = activities.filter((activity) =>
-    activity.aktif && modal?.type === "assignment" && activity.bagian_id === modal.account.bagian_id
+    activity.aktif && modal?.type === "assignment" && activity.bagian_id === modal.account.bagian_id &&
+    (!assignedElsewhere(activity.id, modal.account.id) || modal.account.kegiatan_ids.includes(activity.id))
   );
 
-  const filteredOperators = useMemo(() => operators.filter((row) => {
+  const filteredStaf Admins = useMemo(() => operators.filter((row) => {
     const text = (row.nama_pegawai + " " + row.nip + " " + row.username + " " +
       row.nama_bagian + " " + row.nama_kegiatan + " " + row.kode_kegiatan).toLowerCase();
     const matchStatus = statusFilter === "all" ||
@@ -95,15 +97,28 @@ export default function PenggunaClient({
     return text.includes(search.toLowerCase()) && matchStatus;
   }), [operators, search, statusFilter]);
 
-  const filterActivities = (items: ActivityOption[]) => items.sort((a,b) =>
+  const filterActivities = (items: ActivityOption[]) => [...items].sort((a,b) =>
     b.tahun-a.tahun || a.nama.localeCompare(b.nama, "id")
+  );
+  const toggleSelection = (ids: string[], id: string) =>
+    ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
+  const renderActivityChoices = (items: ActivityOption[], selectedIds: string[], onToggle: (id: string) => void) => (
+    <div style={{display:"grid",gap:8,maxHeight:240,overflowY:"auto",padding:10,border:"1px solid var(--border, #dbe2ea)",borderRadius:10}}>
+      {filterActivities(items).map((row) => (
+        <label key={row.id} style={{display:"flex",alignItems:"flex-start",gap:9,cursor:"pointer",fontWeight:500}}>
+          <input type="checkbox" checked={selectedIds.includes(row.id)} onChange={() => onToggle(row.id)} style={{marginTop:3}}/>
+          <span><b>{row.tahun} · {row.kode || "Tanpa kode"}</b><br/><span style={{fontSize:12,opacity:.75}}>{row.nama}</span></span>
+        </label>
+      ))}
+      {!items.length && <span className="field-hint">Tidak ada kegiatan tersedia. Kegiatan mungkin sudah ditugaskan kepada Staf Admin lain.</span>}
+    </div>
   );
 
   function clearFeedback() { setNotice(""); setPageError(""); setFormError(""); }
   function openCreate() {
     clearFeedback();
     setSelectedEmployee("");
-    setCreateForm({ username: "", password: "", kegiatan_id: "" });
+    setCreateForm({ username: "", password: "", kegiatan_ids: [] });
     setModal({ type: "create" });
   }
   function closeModal() {
@@ -111,12 +126,12 @@ export default function PenggunaClient({
     setModal(null); setFormError(""); setNewPassword(""); setConfirmPassword("");
   }
 
-  async function createOperator(event: FormEvent<HTMLFormElement>) {
+  async function createStaf Admin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     clearFeedback();
     const chosen = employees.find((row) => row.id === selectedEmployee);
     if (!chosen || !chosen.aktif) { setFormError("Pilih pegawai aktif."); return; }
-    if (!createForm.kegiatan_id) { setFormError("Pilih satu subkegiatan untuk operator."); return; }
+    if (!createForm.kegiatan_ids.length) { setFormError("Pilih sekurang-kurangnya satu kegiatan."); return; }
     if (!createForm.username.trim()) { setFormError("Username wajib diisi."); return; }
     if (createForm.password.length < 8) { setFormError("Password awal minimal 8 karakter."); return; }
     if (createForm.password !== confirmPassword) { setFormError("Konfirmasi password tidak sama."); return; }
@@ -128,9 +143,9 @@ export default function PenggunaClient({
         username: createForm.username.trim().toLowerCase(),
         password: createForm.password,
         pegawai_id: chosen.id,
-        kegiatan_id: createForm.kegiatan_id
+        kegiatan_ids: createForm.kegiatan_ids
       });
-      const activity = activities.find((row) => row.id === createForm.kegiatan_id);
+      const selected = activities.filter((row) => createForm.kegiatan_ids.includes(row.id));
       setAccounts((current) => [...current, {
         id: String(result?.user?.id ?? "new-" + chosen.id),
         username: createForm.username.trim().toLowerCase(),
@@ -141,18 +156,16 @@ export default function PenggunaClient({
         bagian_id: chosen.bagian_id,
         nama_bagian: chosen.nama_bagian,
         pegawai_aktif: chosen.aktif,
-        kegiatan_id: activity?.id ?? null,
-        nama_kegiatan: activity?.nama ?? "Belum ditugaskan",
-        kode_kegiatan: activity?.kode ?? "",
-        tahun_anggaran: activity?.tahun ?? null,
-        kegiatan_aktif: activity?.aktif ?? false,
+        kegiatan_ids: [...createForm.kegiatan_ids],
+        nama_kegiatan: selected.map((row) => row.nama).join(" • "),
+        kode_kegiatan: selected.map((row) => [row.kode, row.tahun].join(" · ")).join(" | "),
         aktif: true,
         must_change_password: false,
         created_at: new Date().toISOString()
       }]);
-      setNotice("Akun operator berhasil dibuat. Username: " + createForm.username.trim().toLowerCase());
+      setNotice("Akun Staf Admin berhasil dibuat. Username: " + createForm.username.trim().toLowerCase());
       setModal(null);
-      setCreateForm({ username: "", password: "", kegiatan_id: "" });
+      setCreateForm({ username: "", password: "", kegiatan_ids: [] });
       setConfirmPassword("");
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Gagal membuat akun operator.");
@@ -161,7 +174,7 @@ export default function PenggunaClient({
 
   function openAssignment(row: AccountRecord) {
     clearFeedback();
-    setAssignmentId(row.kegiatan_id ?? "");
+    setAssignmentIds([...row.kegiatan_ids]);
     setModal({ type: "assignment", account: row });
   }
 
@@ -169,17 +182,17 @@ export default function PenggunaClient({
     event.preventDefault();
     if (modal?.type !== "assignment") return;
     clearFeedback();
-    if (!assignmentId) { setFormError("Pilih subkegiatan."); return; }
+    if (!assignmentIds.length) { setFormError("Pilih sekurang-kurangnya satu kegiatan."); return; }
     setBusy(true);
     try {
-      await invokeAdmin({ action: "update_assignment", user_id: modal.account.id, kegiatan_id: assignmentId });
-      const activity = activities.find((row) => row.id === assignmentId);
+      await invokeAdmin({ action: "update_assignment", user_id: modal.account.id, kegiatan_ids: assignmentIds });
+      const selected = activities.filter((row) => assignmentIds.includes(row.id));
       setAccounts((current) => current.map((row) => row.id === modal.account.id ? {
-        ...row, kegiatan_id: assignmentId, nama_kegiatan: activity?.nama ?? "Kegiatan",
-        kode_kegiatan: activity?.kode ?? "", tahun_anggaran: activity?.tahun ?? null,
-        kegiatan_aktif: activity?.aktif ?? false
+        ...row, kegiatan_ids: [...assignmentIds],
+        nama_kegiatan: selected.map((item) => item.nama).join(" • "),
+        kode_kegiatan: selected.map((item) => [item.kode, item.tahun].join(" · ")).join(" | ")
       } : row));
-      setNotice("Penugasan kegiatan operator berhasil diperbarui.");
+      setNotice("Penugasan kegiatan Staf Admin berhasil diperbarui.");
       setModal(null);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Gagal memperbarui kegiatan operator.");
@@ -194,7 +207,7 @@ export default function PenggunaClient({
     try {
       await invokeAdmin({ action: "set_active", user_id: row.id, aktif: next });
       setAccounts((current) => current.map((item) => item.id === row.id ? { ...item, aktif: next } : item));
-      setNotice("Status akun " + row.username + " berhasil diperbarui.");
+      setNotice("Status akun Staf Admin " + row.username + " berhasil diperbarui.");
     } catch (error) {
       setPageError(error instanceof Error ? error.message : "Gagal mengubah status akun.");
     } finally { setPendingId(null); }
@@ -216,7 +229,7 @@ export default function PenggunaClient({
     setBusy(true);
     try {
       await invokeAdmin({ action: "reset_password", user_id: modal.account.id, password: newPassword });
-      setNotice("Password akun " + modal.account.username + " berhasil direset. Sampaikan password baru melalui jalur yang aman.");
+      setNotice("Password Staf Admin " + modal.account.username + " berhasil direset. Sampaikan password baru melalui jalur yang aman.");
       setModal(null);
       setNewPassword(""); setConfirmPassword("");
     } catch (error) {
@@ -226,13 +239,13 @@ export default function PenggunaClient({
 
   return <>
     <div className="master-page-head">
-      <div><div className="eyebrow">ADMINISTRASI / AKSES APLIKASI</div><h1>Manajemen Pengguna</h1><p>Kelola akun operator, penempatan pegawai, dan batas akses subkegiatan.</p></div>
-      <button className="master-primary-btn" onClick={openCreate} disabled={availableEmployees.length === 0}><UserPlus size={16}/> Buat Akun Operator</button>
+      <div><div className="eyebrow">ADMINISTRASI / AKSES APLIKASI</div><h1>Manajemen Pengguna</h1><p>Kelola akun Staf Admin, penempatan pegawai, dan batas akses kegiatan.</p></div>
+      <button className="master-primary-btn" onClick={openCreate} disabled={availableEmployees.length === 0}><UserPlus size={16}/> Buat Akun Staf Admin</button>
     </div>
 
     <div className="user-summary-grid">
       <article className="user-summary-card"><span className="user-summary-icon"><Users size={18}/></span><div><small>Total akun</small><strong>{accounts.length}</strong></div></article>
-      <article className="user-summary-card"><span className="user-summary-icon"><UserRound size={18}/></span><div><small>Operator aktif</small><strong>{activeOperators}</strong></div></article>
+      <article className="user-summary-card"><span className="user-summary-icon"><UserRound size={18}/></span><div><small>Staf Admin aktif</small><strong>{activeStaf Admins}</strong></div></article>
       <article className="user-summary-card"><span className="user-summary-icon"><ShieldCheck size={18}/></span><div><small>Admin global</small><strong>{admins.length}</strong></div></article>
       <article className="user-summary-card"><span className="user-summary-icon"><UserPlus size={18}/></span><div><small>Pegawai belum punya akun</small><strong>{availableEmployees.length}</strong></div></article>
     </div>
@@ -248,7 +261,7 @@ export default function PenggunaClient({
       </div>
     </section>
 
-    <div className="user-section-head"><div><h2>Akun Operator</h2><p>Setiap operator terhubung ke satu pegawai dan satu subkegiatan sesuai Bagian pegawai.</p></div><span className="user-count-pill">{operators.length} akun</span></div>
+    <div className="user-section-head"><div><h2>Staf Admin</h2><p>Satu Staf Admin dapat memegang beberapa kegiatan. Satu kegiatan hanya dapat ditugaskan kepada satu Staf Admin.</p></div><span className="user-count-pill">{operators.length} akun</span></div>
 
     <div className="master-toolbar">
       <label className="master-search"><Search size={15}/><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, NIP, username, atau kegiatan..."/></label>
@@ -257,11 +270,11 @@ export default function PenggunaClient({
 
     <div className="master-table-card">
       <div className="master-table-wrap"><table className="master-table user-table">
-        <thead><tr><th>PEGAWAI / USERNAME</th><th>BAGIAN</th><th>KEGIATAN YANG DIAKSES</th><th>STATUS AKUN</th><th>DIBUAT</th><th>AKSI</th></tr></thead>
-        <tbody>{filteredOperators.length ? filteredOperators.map((row) => <tr key={row.id}>
+        <thead><tr><th>PEGAWAI / USERNAME</th><th>BAGIAN</th><th>KEGIATAN YANG DIKELOLA</th><th>STATUS AKUN</th><th>DIBUAT</th><th>AKSI</th></tr></thead>
+        <tbody>{filteredStaf Admins.length ? filteredStaf Admins.map((row) => <tr key={row.id}>
           <td><strong>{row.nama_pegawai}</strong><small>{row.nip || "NIP belum diisi"}</small><span className="user-username">@{row.username}</span></td>
           <td>{row.nama_bagian}</td>
-          <td><strong className="user-activity-name">{row.nama_kegiatan}</strong><small>{row.kode_kegiatan || (row.kegiatan_id ? "" : "Belum ditugaskan")}{row.tahun_anggaran ? " · " + row.tahun_anggaran : ""}</small></td>
+          <td><strong className="user-activity-name">{row.nama_kegiatan}</strong><small>{row.kode_kegiatan || (row.kegiatan_ids.length ? "" : "Belum ditugaskan")}</small></td>
           <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span>{!row.pegawai_aktif && <small className="user-alert-text">Pegawai nonaktif</small>}</td>
           <td>{dateLabel(row.created_at)}</td>
           <td><div className="master-row-actions user-actions">
@@ -271,42 +284,42 @@ export default function PenggunaClient({
           </div></td>
         </tr>) : <tr><td colSpan={6} className="master-empty">Belum ada akun operator yang sesuai filter.</td></tr>}</tbody>
       </table></div>
-      <div className="master-table-foot"><span>Menampilkan <b>{filteredOperators.length}</b> dari <b>{operators.length}</b> operator</span><span>Akun login menggunakan username, bukan email.</span></div>
+      <div className="master-table-foot"><span>Menampilkan <b>{filteredStaf Admins.length}</b> dari <b>{operators.length}</b> Staf Admin</span><span>Akun login menggunakan username, bukan email.</span></div>
     </div>
 
     <div className="user-access-note">
       <div><LockKeyhole size={17}/></div>
-      <p><b>Batas akses saat ini</b><br/>Satu akun operator hanya dapat ditugaskan ke satu subkegiatan. Pegawai dan subkegiatan harus berasal dari Bagian yang sama. Operator tidak dapat melihat kegiatan di luar penugasannya.</p>
+      <p><b>Batas akses</b><br/>Staf Admin hanya dapat melihat dan mengelola perjalanan dinas pada kegiatan yang ditugaskan kepadanya. Satu kegiatan hanya dapat dikelola oleh satu Staf Admin.</p>
     </div>
 
     {modal?.type === "create" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal user-modal" role="dialog" aria-modal="true" aria-labelledby="create-user-title">
-        <div className="master-modal-head"><div><h2 id="create-user-title">Buat Akun Operator</h2><p>Akun akan dibuat dan langsung ditautkan ke satu subkegiatan.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
-        <form className="master-form" onSubmit={createOperator}><div className="master-form-grid">
-          <div className="master-field full"><label htmlFor="operator-employee">Pegawai *</label><select id="operator-employee" value={selectedEmployee} onChange={(e) => { setSelectedEmployee(e.target.value); setCreateForm({ ...createForm, kegiatan_id: "" }); }} required><option value="">Pilih pegawai aktif</option>{availableEmployees.map((row) => <option value={row.id} key={row.id}>{row.nama} — {row.nip || "Tanpa NIP"} · {row.nama_bagian}</option>)}</select><span className="field-hint">Pegawai yang sudah memiliki akun tidak ditampilkan.</span></div>
-          <div className="master-field full"><label htmlFor="operator-activity">Subkegiatan yang diakses *</label><select id="operator-activity" value={createForm.kegiatan_id} onChange={(e) => setCreateForm({ ...createForm, kegiatan_id: e.target.value })} required disabled={!selectedEmployee}><option value="">{selectedEmployee ? "Pilih subkegiatan" : "Pilih pegawai terlebih dahulu"}</option>{filterActivities(eligibleActivities).map((row) => <option value={row.id} key={row.id}>{row.tahun} · {row.kode} · {row.nama}</option>)}</select><span className="field-hint">{employee ? "Hanya kegiatan milik " + employee.nama_bagian + " yang ditampilkan." : "Pilihan kegiatan mengikuti Bagian pegawai."}</span></div>
+        <div className="master-modal-head"><div><h2 id="create-user-title">Buat Akun Staf Admin</h2><p>Satu akun dapat langsung diberi tanggung jawab atas beberapa kegiatan.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <form className="master-form" onSubmit={createStaf Admin}><div className="master-form-grid">
+          <div className="master-field full"><label htmlFor="operator-employee">Pegawai *</label><select id="operator-employee" value={selectedEmployee} onChange={(e) => { setSelectedEmployee(e.target.value); setCreateForm({ ...createForm, kegiatan_ids: [] }); }} required><option value="">Pilih pegawai aktif</option>{availableEmployees.map((row) => <option value={row.id} key={row.id}>{row.nama} — {row.nip || "Tanpa NIP"} · {row.nama_bagian}</option>)}</select><span className="field-hint">Setiap pegawai hanya dapat memiliki satu akun Staf Admin.</span></div>
+          <div className="master-field full"><label>Kegiatan yang dikelola *</label>{renderActivityChoices(eligibleActivities, createForm.kegiatan_ids, (id) => setCreateForm((current) => ({...current,kegiatan_ids:toggleSelection(current.kegiatan_ids,id)})))}<span className="field-hint">{employee ? "Hanya kegiatan milik " + employee.nama_bagian + " yang belum ditugaskan." : "Pilih pegawai terlebih dahulu."}</span></div>
           <div className="master-field"><label htmlFor="operator-username">Username *</label><input id="operator-username" autoComplete="off" value={createForm.username} onChange={(e) => setCreateForm({ ...createForm, username: e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0,32) })} placeholder="contoh: operator.perekonomian" minLength={3} maxLength={32} required/><span className="field-hint">3–32 karakter, huruf kecil/angka/._-.</span></div>
           <div className="master-field"><label htmlFor="operator-password">Password awal *</label><input id="operator-password" type="password" autoComplete="new-password" value={createForm.password} onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} minLength={8} maxLength={72} placeholder="Minimal 8 karakter" required/></div>
           <div className="master-field full"><label htmlFor="operator-password-confirm">Konfirmasi password *</label><input id="operator-password-confirm" type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} minLength={8} maxLength={72} placeholder="Ulangi password awal" required/></div>
         </div>
         {formError && <div className="master-form-error" role="alert">{formError}</div>}
-        <div className="user-modal-hint"><LockKeyhole size={14}/> Password disimpan oleh Supabase Auth. Sistem tidak mengirim email; sampaikan username dan password awal secara aman kepada operator.</div>
-        <div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy || !availableEmployees.length}>{busy ? "Membuat akun..." : "Buat Akun Operator"}</button></div></form>
+        <div className="user-modal-hint"><LockKeyhole size={14}/> Password disimpan oleh Supabase Auth. Sistem tidak mengirim email; sampaikan username dan password awal secara aman kepada Staf Admin.</div>
+        <div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy || !availableEmployees.length}>{busy ? "Membuat akun..." : "Buat Akun Staf Admin"}</button></div></form>
       </section>
     </div>}
 
     {modal?.type === "assignment" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal user-modal" role="dialog" aria-modal="true" aria-labelledby="assignment-title">
-        <div className="master-modal-head"><div><h2 id="assignment-title">Ubah Penugasan Operator</h2><p>{modal.account.nama_pegawai} · @{modal.account.username}</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <div className="master-modal-head"><div><h2 id="assignment-title">Ubah Penugasan Staf Admin</h2><p>{modal.account.nama_pegawai} · @{modal.account.username}</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={saveAssignment}><div className="master-form-grid">
-          <div className="master-field full"><label htmlFor="operator-change-activity">Subkegiatan *</label><select id="operator-change-activity" value={assignmentId} onChange={(e) => setAssignmentId(e.target.value)} required><option value="">Pilih subkegiatan</option>{filterActivities(assignmentActivities).map((row) => <option value={row.id} key={row.id}>{row.tahun} · {row.kode} · {row.nama}</option>)}</select><span className="field-hint">Hanya subkegiatan aktif pada {modal.account.nama_bagian}.</span></div>
+          <div className="master-field full"><label>Kegiatan yang dikelola *</label>{renderActivityChoices(assignmentActivities, assignmentIds, (id) => setAssignmentIds((current) => toggleSelection(current,id)))}<span className="field-hint">Hanya kegiatan aktif pada {modal.account.nama_bagian}. Kegiatan yang sudah ditugaskan kepada staf lain tidak tersedia.</span></div>
         </div>{formError && <div className="master-form-error" role="alert">{formError}</div>}<div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy}>{busy ? "Menyimpan..." : "Simpan Penugasan"}</button></div></form>
       </section>
     </div>}
 
     {modal?.type === "password" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal user-modal" role="dialog" aria-modal="true" aria-labelledby="reset-password-title">
-        <div className="master-modal-head"><div><h2 id="reset-password-title">Reset Password Operator</h2><p>{modal.account.nama_pegawai} · @{modal.account.username}</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <div className="master-modal-head"><div><h2 id="reset-password-title">Reset Password Staf Admin</h2><p>{modal.account.nama_pegawai} · @{modal.account.username}</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={resetPassword}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="new-operator-password">Password baru *</label><input id="new-operator-password" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} maxLength={72} placeholder="Minimal 8 karakter" required/></div>
           <div className="master-field full"><label htmlFor="confirm-operator-password">Konfirmasi password baru *</label><input id="confirm-operator-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} minLength={8} maxLength={72} placeholder="Ulangi password baru" required/></div>
