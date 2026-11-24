@@ -306,6 +306,36 @@ export default function AnggaranClient({
     } finally { setBusy(false); }
   }
 
+  async function deleteAccount(row: AccountRecord) {
+    const linkedCount = budgets.filter((budget) => budget.rekening_id === row.id).length;
+    if (linkedCount > 0) {
+      setPageError("Rekening tidak dapat dihapus karena masih digunakan pada " + linkedCount + " alokasi anggaran. Nonaktifkan rekening jika tidak digunakan lagi.");
+      return;
+    }
+    if (!window.confirm("Hapus permanen rekening belanja " + row.kode_rekening + " — " + row.nama_rekening + "?")) return;
+    setPendingId(row.id);
+    clearFeedback();
+    const supabase = createClient();
+    try {
+      // Recheck the relationship in the database immediately before deletion.
+      const { count, error: checkError } = await supabase.from("anggaran")
+        .select("id", { count: "exact", head: true }).eq("rekening_id", row.id);
+      if (checkError) throw checkError;
+      if ((count ?? 0) > 0) {
+        setPageError("Rekening tidak dapat dihapus karena sudah digunakan pada alokasi anggaran. Muat ulang daftar untuk melihat data terbaru.");
+        return;
+      }
+      const { error } = await supabase.from("rekening_belanja").delete().eq("id", row.id);
+      if (error) throw error;
+      setAccounts((current) => current.filter((item) => item.id !== row.id));
+      setNotice("Rekening belanja berhasil dihapus.");
+    } catch (e) {
+      setPageError(e instanceof Error ? e.message : "Gagal menghapus rekening belanja.");
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   async function toggleAccount(row: AccountRecord) {
     if (!window.confirm("Yakin " + (row.aktif ? "menonaktifkan" : "mengaktifkan") + " rekening " + row.kode_rekening + "?")) return;
     setPendingId(row.id);
@@ -480,7 +510,7 @@ export default function AnggaranClient({
             <td><strong>{row.kode_rekening}</strong></td><td>{row.nama_rekening}</td>
             <td>{budgets.filter((budget) => budget.rekening_id === row.id).length} alokasi</td>
             <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
-            <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah rekening" aria-label="Ubah rekening" onClick={() => openEditAccount(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button></div></td>
+            <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah rekening" aria-label="Ubah rekening" onClick={() => openEditAccount(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus rekening" aria-label="Hapus rekening" disabled={pendingId === row.id} onClick={() => deleteAccount(row)}><Trash2 size={14}/></button></div></td>
           </tr>) : <tr><td colSpan={5} className="master-empty">Tidak ada rekening belanja yang sesuai.</td></tr>}</tbody>
         </table></div>
         <div className="master-table-foot"><span>Menampilkan <b>{filteredAccounts.length}</b> dari <b>{accounts.length}</b> rekening</span><span>Rekening nonaktif tidak muncul untuk alokasi baru</span></div>
