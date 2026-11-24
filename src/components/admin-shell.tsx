@@ -20,9 +20,11 @@ export default function AdminShell({ username, active, children }: Props) {
   const router = useRouter();
   const prefetchRoute = (href: string) => () => router.prefetch(href);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setProfileMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function AdminShell({ username, active, children }: Props) {
             <span>Menu</span>
           </button>
           <div className="breadcrumb">Workspace <span>/</span> <b>Data Master</b></div>
-          <div className="top-actions"><span className="master-admin-pill">Administrator Global</span><div className="top-avatar">AG</div></div>
+          <div className="top-actions"><span className="master-admin-pill">Administrator Global</span><div className="profile-menu-wrap"><button type="button" className="top-avatar profile-trigger" aria-label="Menu profil" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((open) => !open)}>AG</button>{profileMenuOpen && <div className="profile-dropdown" role="menu"><div className="profile-dropdown-label">{username}<small>Administrator Global</small></div><form action="/auth/signout" method="post"><button type="submit" role="menuitem"><LogOut size={15}/> Keluar</button></form></div>}</div></div>
         </header>
         <div className="content master-content">{children}</div>
       </section>
