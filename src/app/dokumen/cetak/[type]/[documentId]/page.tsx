@@ -22,8 +22,8 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const {type,documentId}=await params;
  if(type!=="sp"&&type!=="sppd"&&type!=="penerimaan"&&type!=="lampiran"&&type!=="lampiran-sppd")notFound();
  const db=await createClient();
- const {data:{claims}}=await db.auth.getClaims();
- const userId=claims?.sub;
+ const {data:claimsData}=await db.auth.getClaims();
+ const userId=claimsData?.claims?.sub;
  if(!userId)redirect("/login");
  const {data:profile}=await db.from("user_akun").select("role,pegawai_id,aktif,must_change_password").eq("id",userId).maybeSingle();
  if(!profile||!profile.aktif||profile.must_change_password||(profile.role!=="admin"&&profile.role!=="operator"))redirect("/login");
