@@ -79,8 +79,8 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
             <a href="mailto:administrator@setda.pekalongankab.go.id">Pusat bantuan <ArrowUpRight size={13}/></a>
           </div>
           <div className="user-mini">
-            <div className="avatar">{isAdmin ? "AG" : "OP"}</div>
-            <div><b>{username}</b><small>{isAdmin ? "Admin Global" : "Operator"}</small></div>
+            <div className="avatar">{isAdmin ? "AG" : "SA"}</div>
+            <div><b>{username}</b><small>{isAdmin ? "Admin Global" : "Staf Admin"}</small></div>
             <form action="/auth/signout" method="post"><button type="submit" className="logout-button" aria-label="Keluar dari aplikasi" title="Keluar"><LogOut size={15}/><span>Keluar</span></button></form>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
             <span>Menu</span>
           </button>
           <div className="breadcrumb">Workspace <span>/</span> <b>{active === "dashboard" ? "Ringkasan" : active === "dokumen" ? "Dokumen SP & SPPD" : active === "laporan" ? "Laporan" : "Perjalanan Dinas"}</b></div>
-          <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Operator Kegiatan"}</span><div className="top-avatar">{isAdmin ? "AG" : "OP"}</div></div>
+          <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Staf Admin Kegiatan"}</span><div className="top-avatar">{isAdmin ? "AG" : "OP"}</div></div>
         </header>
         <div className="content master-content">{children}</div>
       </section>
