@@ -21,6 +21,8 @@ export type AccountRecord = {
   id: string;
   kode_rekening: string;
   nama_rekening: string;
+  kategori: "penetapan" | "perubahan";
+  perubahan_ke: number | null;
   aktif: boolean;
 };
 export type BudgetRecord = {
@@ -41,7 +43,7 @@ export type BudgetRecord = {
 };
 type SectionOption = { id: string; nama: string; aktif: boolean };
 type ActivityForm = { bagian_id: string; kode_subkegiatan: string; nama_subkegiatan: string; tahun_anggaran: string };
-type AccountForm = { kode_rekening: string; nama_rekening: string };
+type AccountForm = { kode_rekening: string; nama_rekening: string; kategori: "penetapan" | "perubahan"; perubahan_ke: string };
 type BudgetForm = { kegiatan_id: string; rekening_id: string; pagu_awal: string };
 type MutationForm = {
   jenis_mutasi: "tambah" | "kurang" | "penyesuaian_tambah" | "penyesuaian_kurang";
@@ -148,13 +150,13 @@ export default function AnggaranClient({
   function openNewAccount() {
     clearFeedback();
     setEditingAccountId(null);
-    setAccountForm({ kode_rekening: "", nama_rekening: "" });
+    setAccountForm({ kode_rekening: "", nama_rekening: "", kategori: "penetapan", perubahan_ke: "" });
     setModal("account");
   }
   function openEditAccount(row: AccountRecord) {
     clearFeedback();
     setEditingAccountId(row.id);
-    setAccountForm({ kode_rekening: row.kode_rekening, nama_rekening: row.nama_rekening });
+    setAccountForm({ kode_rekening: row.kode_rekening, nama_rekening: row.nama_rekening, kategori: row.kategori, perubahan_ke: row.perubahan_ke ? String(row.perubahan_ke) : "" });
     setModal("account");
   }
   function openNewBudget() {
@@ -280,22 +282,27 @@ export default function AnggaranClient({
     const code = accountForm.kode_rekening.trim();
     const name = accountForm.nama_rekening.trim();
     if (!code || !name) { setFormError("Kode dan nama rekening wajib diisi."); return; }
+    const perubahanKe = accountForm.kategori === "perubahan" ? Number(accountForm.perubahan_ke) : null;
+    if (accountForm.kategori === "perubahan" && (!Number.isInteger(perubahanKe) || (perubahanKe ?? 0) < 1)) {
+      setFormError("Nomor perubahan wajib diisi mulai dari perubahan ke-1.");
+      return;
+    }
     const duplicate = accounts.some((row) => row.id !== editingAccountId && row.kode_rekening.toLowerCase() === code.toLowerCase());
     if (duplicate) { setFormError("Kode rekening tersebut sudah digunakan."); return; }
 
     setBusy(true);
     const supabase = createClient();
-    const payload = { kode_rekening: code, nama_rekening: name };
+    const payload = { kode_rekening: code, nama_rekening: name, kategori: accountForm.kategori, perubahan_ke: perubahanKe };
     try {
       if (editingAccountId) {
         const { data, error } = await supabase.from("rekening_belanja").update(payload).eq("id", editingAccountId)
-          .select("id,kode_rekening,nama_rekening,aktif").single();
+          .select("id,kode_rekening,nama_rekening,kategori,perubahan_ke,aktif").single();
         if (error) throw error;
         setAccounts((current) => current.map((row) => row.id === editingAccountId ? data : row));
         setNotice("Data rekening belanja berhasil diperbarui.");
       } else {
         const { data, error } = await supabase.from("rekening_belanja").insert({ ...payload, aktif: true })
-          .select("id,kode_rekening,nama_rekening,aktif").single();
+          .select("id,kode_rekening,nama_rekening,kategori,perubahan_ke,aktif").single();
         if (error) throw error;
         setAccounts((current) => [...current, data].sort((a,b) => a.kode_rekening.localeCompare(b.kode_rekening)));
         setNotice("Rekening belanja berhasil ditambahkan.");
@@ -513,13 +520,14 @@ export default function AnggaranClient({
       </div>
       <div className="master-table-card">
         <div className="master-table-wrap"><table className="master-table">
-          <thead><tr><th>KODE REKENING</th><th>NAMA REKENING BELANJA</th><th>DIPAKAI PADA ALOKASI</th><th>STATUS</th><th>AKSI</th></tr></thead>
+          <thead><tr><th>KODE REKENING</th><th>NAMA REKENING BELANJA</th><th>KATEGORI</th><th>DIPAKAI PADA ALOKASI</th><th>STATUS</th><th>AKSI</th></tr></thead>
           <tbody>{filteredAccounts.length ? filteredAccounts.map((row) => <tr key={row.id}>
             <td><strong>{row.kode_rekening}</strong></td><td>{row.nama_rekening}</td>
+            <td><span className="master-status is-active">{row.kategori === "penetapan" ? "Penetapan" : `Perubahan ke-${row.perubahan_ke}`}</span></td>
             <td>{budgets.filter((budget) => budget.rekening_id === row.id).length} alokasi</td>
             <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
             <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah rekening" aria-label="Ubah rekening" onClick={() => openEditAccount(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus rekening" aria-label="Hapus rekening" disabled={pendingId === row.id} onClick={() => deleteAccount(row)}><Trash2 size={14}/></button></div></td>
-          </tr>) : <tr><td colSpan={5} className="master-empty">Tidak ada rekening belanja yang sesuai.</td></tr>}</tbody>
+          </tr>) : <tr><td colSpan={6} className="master-empty">Tidak ada rekening belanja yang sesuai.</td></tr>}</tbody>
         </table></div>
         <div className="master-table-foot"><span>Menampilkan <b>{filteredAccounts.length}</b> dari <b>{accounts.length}</b> rekening</span><span>Rekening nonaktif tidak muncul untuk alokasi baru</span></div>
       </div>
@@ -562,10 +570,12 @@ export default function AnggaranClient({
 
     {modal === "account" && <div className="master-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
       <section className="master-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
-        <div className="master-modal-head"><div><h2 id="account-modal-title">{editingAccountId ? "Ubah Rekening Belanja" : "Tambah Rekening Belanja"}</h2><p>Masukkan kode dan uraian rekening belanja.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
+        <div className="master-modal-head"><div><h2 id="account-modal-title">{editingAccountId ? "Ubah Rekening Belanja" : "Tambah Rekening Belanja"}</h2><p>Masukkan kode, uraian, dan kategori rekening belanja.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={saveAccount}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="account-code">Kode Rekening *</label><input id="account-code" value={accountForm.kode_rekening} onChange={(e) => setAccountForm({ ...accountForm, kode_rekening: e.target.value })} placeholder="Contoh: 5.1.02.04.001.00001" required maxLength={100}/></div>
           <div className="master-field full"><label htmlFor="account-name">Nama Rekening *</label><textarea id="account-name" value={accountForm.nama_rekening} onChange={(e) => setAccountForm({ ...accountForm, nama_rekening: e.target.value })} placeholder="Contoh: Belanja Perjalanan Dinas Biasa" required maxLength={300}/></div>
+          <div className="master-field full"><label htmlFor="account-category">Kategori Rekening *</label><select id="account-category" value={accountForm.kategori} onChange={(e) => setAccountForm({ ...accountForm, kategori: e.target.value as AccountForm["kategori"], perubahan_ke: e.target.value === "perubahan" ? accountForm.perubahan_ke : "" })}><option value="penetapan">Penetapan</option><option value="perubahan">Perubahan</option></select></div>
+          {accountForm.kategori === "perubahan" && <div className="master-field full"><label htmlFor="account-change-number">Perubahan Ke- *</label><input id="account-change-number" type="number" min="1" step="1" value={accountForm.perubahan_ke} onChange={(e) => setAccountForm({ ...accountForm, perubahan_ke: e.target.value })} placeholder="Contoh: 1" required/><span className="field-hint">Isi nomor urut perubahan, misalnya 1 untuk Perubahan ke-1.</span></div>}
 
         </div>{formError && <div className="master-form-error" role="alert">{formError}</div>}<div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy}>{busy ? "Menyimpan..." : "Simpan Rekening"}</button></div></form>
       </section>
@@ -576,7 +586,7 @@ export default function AnggaranClient({
         <div className="master-modal-head"><div><h2 id="budget-modal-title">Tambah Alokasi Anggaran</h2><p>Pasangkan satu subkegiatan dengan rekening belanja dan tetapkan pagu awal.</p></div><button className="master-modal-close" onClick={closeModal} disabled={busy} aria-label="Tutup"><X size={16}/></button></div>
         <form className="master-form" onSubmit={saveBudget}><div className="master-form-grid">
           <div className="master-field full"><label htmlFor="budget-activity">Subkegiatan *</label><select id="budget-activity" value={budgetForm.kegiatan_id} onChange={(e) => setBudgetForm({ ...budgetForm, kegiatan_id: e.target.value })} required><option value="">Pilih subkegiatan</option>{allowedActivities.map((row) => <option value={row.id} key={row.id}>{row.tahun_anggaran} · {row.kode_subkegiatan} · {row.nama_subkegiatan}</option>)}</select></div>
-          <div className="master-field full"><label htmlFor="budget-account">Rekening Belanja *</label><select id="budget-account" value={budgetForm.rekening_id} onChange={(e) => setBudgetForm({ ...budgetForm, rekening_id: e.target.value })} required><option value="">Pilih rekening belanja</option>{allowedAccounts.map((row) => <option value={row.id} key={row.id}>{row.kode_rekening} · {row.nama_rekening}</option>)}</select></div>
+          <div className="master-field full"><label htmlFor="budget-account">Rekening Belanja *</label><select id="budget-account" value={budgetForm.rekening_id} onChange={(e) => setBudgetForm({ ...budgetForm, rekening_id: e.target.value })} required><option value="">Pilih rekening belanja</option>{allowedAccounts.map((row) => <option value={row.id} key={row.id}>{row.kode_rekening} · {row.nama_rekening} · {row.kategori === "penetapan" ? "Penetapan" : `Perubahan ke-${row.perubahan_ke}`}</option>)}</select></div>
           <div className="master-field full"><label htmlFor="budget-pagu">Pagu Awal (Rp) *</label><input id="budget-pagu" type="number" min="1" step="1" value={budgetForm.pagu_awal} onChange={(e) => setBudgetForm({ ...budgetForm, pagu_awal: moneyInput(e.target.value) })} placeholder="Contoh: 83669100" required/><span className="field-hint">Pagu awal hanya dicatat saat alokasi dibuat. Perubahan berikutnya dilakukan melalui Mutasi Anggaran.</span></div>
         </div>{formError && <div className="master-form-error" role="alert">{formError}</div>}<div className="master-form-actions"><button type="button" className="master-secondary-btn" onClick={closeModal} disabled={busy}>Batal</button><button className="master-primary-btn" disabled={busy}>{busy ? "Menyimpan..." : "Simpan Alokasi"}</button></div></form>
       </section>
