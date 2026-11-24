@@ -63,5 +63,7 @@ AS $function$
  );
 $function$;
 
+REVOKE ALL ON FUNCTION app_private.sppd_cek_ketersediaan_pegawai(uuid,date,date,uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app_private.sppd_cek_ketersediaan_pegawai(uuid,date,date,uuid) TO authenticated;
 REVOKE ALL ON FUNCTION public.sppd_cek_ketersediaan_pegawai(uuid,date,date,uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.sppd_cek_ketersediaan_pegawai(uuid,date,date,uuid) TO authenticated;
