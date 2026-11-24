@@ -105,7 +105,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  return <main className={styles.screen}>
   <div className={styles.toolbar}><a href="/dokumen">← Kembali ke dokumen</a><PrintActions/></div>
   {type==="sp"&&<section className={styles.paper}>
-   <Header/><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"\u00A0"}</p>
+   <Header/><div className={styles.spTitleBlock}><h1 className={styles.title}>SURAT TUGAS</h1><p className={styles.docNumber}>Nomor : {number||"\u00A0"}</p></div>
    <div className={styles.signerIntro}><Line label="Nama"><b>{spSigner.name}</b></Line><Line label="Jabatan">{spSigner.job||"—"}</Line></div>
    <h2 className={styles.command}>MEMERINTAHKAN</h2>
    <div className={styles.spGrid}><div>Kepada</div><div>{people.length>4?<b>(TERLAMPIR)</b>:<ol className={styles.peopleList}>{people.map(p=><li key={p.id}><div><span>Nama</span><b>:</b>{p.name}</div><div><span>NIP</span><b>:</b>{p.nip||"—"}</div><div><span>Jabatan</span><b>:</b>{p.job||"—"}</div></li>)}</ol>}</div></div>
