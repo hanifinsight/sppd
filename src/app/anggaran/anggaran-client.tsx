@@ -86,7 +86,7 @@ export default function AnggaranClient({
   const [activityForm, setActivityForm] = useState<ActivityForm>({
     bagian_id: "", kode_subkegiatan: "", nama_subkegiatan: "", tahun_anggaran: String(new Date().getFullYear())
   });
-  const [accountForm, setAccountForm] = useState<AccountForm>({ kode_rekening: "", nama_rekening: "" });
+  const [accountForm, setAccountForm] = useState<AccountForm>({ kode_rekening: "", nama_rekening: "", kategori: "penetapan", perubahan_ke: "" });
   const [budgetForm, setBudgetForm] = useState<BudgetForm>({ kegiatan_id: "", rekening_id: "", pagu_awal: "" });
   const [mutationForm, setMutationForm] = useState<MutationForm>({
     jenis_mutasi: "tambah", nominal: "", tanggal: "", keterangan: ""
