@@ -14,11 +14,11 @@ export default async function PenggunaPage() {
   if (!userId) redirect("/login");
 
   const { data: profile } = await supabase.from("user_akun")
-    .select("username,role,pegawai_id")
+    .select("username,role,pegawai_id,aktif,must_change_password")
     .eq("id", userId)
     .maybeSingle();
 
-  if (!profile || profile.role !== "admin" || profile.pegawai_id !== null) {
+  if (!profile || !profile.aktif || profile.must_change_password || profile.role !== "admin" || profile.pegawai_id !== null) {
     redirect("/dashboard");
   }
 
