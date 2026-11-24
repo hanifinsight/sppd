@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import type { ReactNode } from "react";
 import {
   ArrowUpRight, Building2, ChevronDown, LayoutDashboard, Plane,
@@ -23,6 +24,23 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
   const prefetchRoute = (href: string) => () => router.prefetch(href);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
+
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutError("");
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setSignOutError("Tidak dapat keluar. Silakan coba lagi.");
+      setSigningOut(false);
+      return;
+    }
+    router.replace("/login");
+    router.refresh();
+  }
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -101,7 +119,7 @@ export default function PerjalananShell({ username, role, active = "perjalanan",
             <span>Menu</span>
           </button>
           <div className="breadcrumb">Workspace <span>/</span> <b>{active === "dashboard" ? "Ringkasan" : active === "dokumen" ? "Dokumen SP & SPPD" : active === "laporan" ? "Laporan" : "Perjalanan Dinas"}</b></div>
-          <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Staf Admin Kegiatan"}</span><div className="profile-menu-wrap"><button type="button" className="top-avatar profile-trigger" aria-label="Menu profil" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((open) => !open)}>{isAdmin ? "AG" : "OP"}</button>{profileMenuOpen && <div className="profile-dropdown" role="menu"><div className="profile-dropdown-label">{username}<small>{isAdmin ? "Administrator Global" : "Staf Admin Kegiatan"}</small></div><form action="/auth/signout" method="post"><button type="submit" role="menuitem"><LogOut size={15}/> Keluar</button></form></div>}</div></div>
+          <div className="top-actions"><span className="master-admin-pill">{isAdmin ? "Administrator Global" : "Staf Admin Kegiatan"}</span><div className="profile-menu-wrap"><button type="button" className="top-avatar profile-trigger" aria-label="Menu profil" aria-haspopup="menu" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen((open) => !open)}>{isAdmin ? "AG" : "OP"}</button>{profileMenuOpen && <div className="profile-dropdown" role="menu"><div className="profile-dropdown-label">{username}<small>{isAdmin ? "Administrator Global" : "Staf Admin Kegiatan"}</small></div><button type="button" role="menuitem" onClick={handleSignOut} disabled={signingOut} aria-busy={signingOut}><LogOut size={15}/> {signingOut ? "Keluar..." : "Keluar"}</button>{signOutError && <p className="profile-signout-error" role="alert">{signOutError}</p>}</div>}</div></div>
         </header>
         <div className="content master-content">{children}</div>
       </section>
