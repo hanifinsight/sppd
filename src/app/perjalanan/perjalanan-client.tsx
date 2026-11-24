@@ -32,7 +32,7 @@ type TripForm = {
   tempat_berangkat: string; tempat_tujuan: string; provinsi_tujuan: string;
   tanggal_berangkat: string; tanggal_kembali: string; alat_angkut: string;
   penandatangan_sp_id: string; peserta_ids: string[]; pengikut: CompanionRecord[];
-  bbm: string; tol: string;
+  bbm: string; tol: string; penginapan: string;
 };
 type ValidationResult = { valid: boolean; errors: string[]; warnings: string[]; jumlah_peserta?: number; jumlah_hari?: number };
 type IssueForm = { nomor_sp: string; nomor_sppd: string; tanggal_terbit: string; penandatangan_sp_id: string };
@@ -55,7 +55,7 @@ const emptyForm = (province: string, activityId = ""): TripForm => ({
   tanggal_acara_selesai: "", lokasi_acara: "", maksud_perjalanan: "",
   tempat_berangkat: "", tempat_tujuan: "", provinsi_tujuan: province,
   tanggal_berangkat: "", tanggal_kembali: "", alat_angkut: "",
-  penandatangan_sp_id: "", peserta_ids: [], pengikut: [], bbm: "0", tol: "0"
+  penandatangan_sp_id: "", peserta_ids: [], pengikut: [], bbm: "0", tol: "0", penginapan: "0"
 });
 
 export default function PerjalananClient({
@@ -186,7 +186,7 @@ export default function PerjalananClient({
       provinsi_tujuan: trip.provinsi_tujuan, tanggal_berangkat: trip.tanggal_berangkat,
       tanggal_kembali: trip.tanggal_kembali, alat_angkut: trip.alat_angkut,
       penandatangan_sp_id: trip.penandatangan_sp_id, peserta_ids: trip.peserta_ids,
-      pengikut: trip.pengikut, bbm: String(trip.bbm), tol: String(trip.tol)
+      pengikut: trip.pengikut, bbm: String(trip.bbm), tol: String(trip.tol), penginapan: String(trip.penginapan)
     });
     setFormError("");
     setParticipantSearch("");
@@ -266,13 +266,14 @@ export default function PerjalananClient({
       pengikut: form.pengikut.filter((row) => row.nama.trim()).map((row) => ({
         nama: row.nama.trim(), tanggal_lahir: row.tanggal_lahir, keterangan: row.keterangan.trim()
       })),
-      biaya: { bbm: Number(form.bbm || 0), tol: Number(form.tol || 0) }
+      biaya: { bbm: Number(form.bbm || 0), tol: Number(form.tol || 0), penginapan: Number(form.penginapan || 0) }
     };
 
     setBusy(true);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.rpc("sppd_simpan_draft", { p_payload: payload, p_perjalanan_id: editingTrip?.id ?? null });
+      const rpcName = editingTrip?.status === "published" ? "sppd_perbarui_perjalanan_terbit" : "sppd_simpan_draft";
+      const { data, error } = await supabase.rpc(rpcName, { p_payload: payload, p_perjalanan_id: editingTrip?.id ?? null });
       if (error) throw new Error(error.message);
       const tripId = String(data);
       const { error: managerError } = await supabase.from("perjalanan_dinas").update({
@@ -281,7 +282,7 @@ export default function PerjalananClient({
       if (managerError) throw new Error("Draf tersimpan, tetapi pengaturan KPA gagal ditautkan: " + managerError.message);
       setShowForm(false);
       setEditingTrip(null);
-      setNotice(editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat.");
+      setNotice(editingTrip?.status === "published" ? "Seluruh data perjalanan terbit berhasil diperbarui. Komitmen anggaran dihitung ulang." : editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat.");
       router.refresh();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Draf perjalanan gagal disimpan.");
@@ -444,7 +445,7 @@ export default function PerjalananClient({
                 <td data-label="Peserta"><span className="trip-participant-count"><Users size={14}/>{trip.peserta_ids.length} orang</span><small>{trip.peserta_ids.length > 4 ? "Daftar pada lampiran" : trip.nama_peserta.slice(0,2).join(", ") || "Belum dipilih"}</small></td>
                 <td data-label="Status"><span className={"trip-status " + statusClass(trip.status)}><i/>{statusName(trip.status)}</span></td>
                 <td data-label="Aksi"><div className="trip-row-actions">
-                  {trip.status === "draft" && <button onClick={() => openEdit(trip)} title="Ubah draf"><Edit3 size={15}/></button>}
+                  {(trip.status === "draft" || trip.status === "published") && <button className={trip.status === "published" ? "trip-edit-cost" : ""} onClick={() => openEdit(trip)} title="Edit seluruh data perjalanan"><Edit3 size={15}/>{trip.status === "published" && <span>Edit</span>}</button>}
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}
@@ -459,7 +460,7 @@ export default function PerjalananClient({
 
       {showForm && <div className="trip-modal-backdrop" role="presentation">
         <section className="trip-modal" role="dialog" aria-modal="true" aria-labelledby="trip-form-title">
-          <div className="trip-modal-header"><div><span className="eyebrow">FORMULIR PENGAJUAN</span><h2 id="trip-form-title">{editingTrip ? "Ubah draf perjalanan" : "Buat perjalanan dinas"}</h2><p>Lengkapi rincian perjalanan sebelum draf disimpan.</p></div>
+          <div className="trip-modal-header"><div><span className="eyebrow">FORMULIR PENGAJUAN</span><h2 id="trip-form-title">{editingTrip?.status === "published" ? "Edit perjalanan yang telah terbit" : editingTrip ? "Ubah draf perjalanan" : "Buat perjalanan dinas"}</h2><p>{editingTrip?.status === "published" ? "Semua rincian perjalanan dapat diperbarui. Dokumen SP/SPPD yang sudah terbit tetap dipertahankan." : "Lengkapi rincian perjalanan sebelum draf disimpan."}</p></div>
             <button className="trip-close" onClick={() => setShowForm(false)} aria-label="Tutup"><X size={18}/></button>
           </div>
           <form onSubmit={saveDraft}>
@@ -534,11 +535,12 @@ export default function PerjalananClient({
                 <div className="trip-form-grid trip-cost-grid">
                   <label className="trip-field">Biaya BBM (Rp)<input inputMode="numeric" value={form.bbm} onChange={(event) => updateForm("bbm", digits(event.target.value))} placeholder="0" /></label>
                   <label className="trip-field">Biaya tol (Rp)<input inputMode="numeric" value={form.tol} onChange={(event) => updateForm("tol", digits(event.target.value))} placeholder="0" /></label>
+                  <label className="trip-field">Biaya penginapan (Rp)<input inputMode="numeric" value={form.penginapan} onChange={(event) => updateForm("penginapan", digits(event.target.value))} placeholder="0" /></label>
                 </div>
               </section>
             </div>
             {formError && <div className="trip-form-error"><AlertCircle size={16}/>{formError}</div>}
-            <div className="trip-modal-footer"><span><Clock3 size={14}/> Disimpan sebagai draf, belum diterbitkan.</span><div>
+            <div className="trip-modal-footer"><span><Clock3 size={14}/> {editingTrip?.status === "published" ? "Komitmen anggaran dihitung ulang saat disimpan." : "Disimpan sebagai draf, belum diterbitkan."}</span><div>
               <button type="button" className="secondary-btn" onClick={() => setShowForm(false)} disabled={busy}>Tutup</button>
               <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan draf</>}</button>
             </div></div>
