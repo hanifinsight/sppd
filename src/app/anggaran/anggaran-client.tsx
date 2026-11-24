@@ -330,7 +330,14 @@ export default function AnggaranClient({
       setAccounts((current) => current.filter((item) => item.id !== row.id));
       setNotice("Rekening belanja berhasil dihapus.");
     } catch (e) {
-      setPageError(e instanceof Error ? e.message : "Gagal menghapus rekening belanja.");
+      // Supabase/PostgREST errors are plain objects, not always Error instances.
+      // Preserve the database message so the actual constraint/policy failure is visible.
+      const dbError = e as { message?: string; details?: string; hint?: string; code?: string };
+      const message = [dbError?.message, dbError?.details, dbError?.hint]
+        .filter((part): part is string => Boolean(part))
+        .join(" — ");
+      setPageError(message || (e instanceof Error ? e.message : "Gagal menghapus rekening belanja."));
+      if (dbError?.code) console.error("Gagal menghapus rekening belanja:", dbError.code, e);
     } finally {
       setPendingId(null);
     }
