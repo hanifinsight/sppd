@@ -117,7 +117,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
    <div className={styles.spSign}><div>Kajen, {date(issued)}</div>{!spSignerIsSekda&&<b>a.n. SEKRETARIS DAERAH</b>}<b>{spSignerIsSekda?"SEKRETARIS DAERAH":spSigner.job||"—"}</b><div className={styles.signGap}/><b className={styles.underlined}>{spSignerNeedsShortName?spSignerDisplayName:spSigner.name}</b>{!spSignerIsEselonII&&<><div>{spSigner.rank||""}</div><div>{spSigner.nip?"NIP. "+spSigner.nip:""}</div></>}</div>
   </section>}
   {type!=="sp"&&<>
-   {type==="sppd"&&<section className={styles.paper}>
+   {type==="sppd"&&<section className={`${styles.paper} ${styles.sppdPaper}`}>
     <Header/><div className={styles.spdMeta}><div><span>Lembar ke</span><b>:</b> 1</div><div><span>Kode Nomor</span><b>:</b> 000.1.2.3</div><div><span>Nomor</span><b>:</b> {number||"\u00A0"}</div></div>
     <h1 className={styles.title}>SURAT PERJALANAN DINAS (SPD)</h1>
     <table className={styles.spd}><colgroup><col className={styles.no}/><col className={styles.label}/><col/></colgroup><tbody>
