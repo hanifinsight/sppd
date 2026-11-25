@@ -64,6 +64,8 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   sectionId?db.from("bagian").select("nama_bagian").eq("id",sectionId).maybeSingle():Promise.resolve({data:null}),
  ]);
  const managers=(mRes.data??[]) as R[];
+ const {data:pptkAssignments}=await db.from("pejabat_pengelola_kegiatan").select("pejabat_pengelola_id").eq("kegiatan_id",trip.kegiatan_id);
+ const assignedPptkIds=new Set(((pptkAssignments??[]) as R[]).map(r=>v(r.pejabat_pengelola_id)));
  const officialIds=Array.from(new Set([...managers.map(r=>v(r.pegawai_id)),...rawPeople.map(r=>v(r.pegawai_id)),v(spOfficialRow?.pegawai_id)].filter(Boolean)));
  const [employeeResult,masterJobResult]=await Promise.all([
   officialIds.length?db.from("pegawai").select("id,nama,nip,pangkat_golongan,jabatan,nomenklatur_jabatan").in("id",officialIds):Promise.resolve({data:[]}),
@@ -77,7 +79,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const people:Person[]=rawPeople.map(p=>{const r=rateMap.get(p.id);return{id:v(p.id),name:v(p.nama_snapshot)||"—",nip:v(p.nip_snapshot),rank:v(p.pangkat_snapshot),job:v(employeeMap.get(p.pegawai_id)?.nomenklatur_jabatan)||"—",days:Number(r?.jumlah_hari??duration),rate:Number(r?.tarif_snapshot??0),amount:Number(r?.total_uang_harian??0)};}).sort((a,b)=>{const rankDiff=rankPosition(b.rank)-rankPosition(a.rank);if(rankDiff)return rankDiff;const an=nipParts(a.nip),bn=nipParts(b.nip);if(an.tmt!==bn.tmt)return an.tmt.localeCompare(bn.tmt);if(an.birth!==bn.birth)return an.birth.localeCompare(bn.birth);return a.name.localeCompare(b.name,"id");});
  const official=(row:R|undefined,name="",job="")=>{const e=row?employeeMap.get(row.pegawai_id):undefined;const resolvedJob=v(e?.nomenklatur_jabatan)||v(e?.jabatan)||job;const eselon=jobEselonMap.get(resolvedJob.trim().toLowerCase())||jobEselonMap.get(v(e?.jabatan).trim().toLowerCase())||jobEselonMap.get(job.trim().toLowerCase())||"";return{name:name||v(e?.nama)||"—",nip:v(e?.nip),rank:v(e?.pangkat_golongan),job:resolvedJob,eselon};};
  const kpaRow=managers.find(r=>r.id===(type!=="sp"?doc.ppk_id:trip.kpa_sppd_id))??managers.find(r=>r.jenis_peran==="KPA"&&r.bagian_id===sectionId);
- const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
+ const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&assignedPptkIds.has(v(r.id)))??managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
  const pptk=official(pptkRow),bpp=official(bppRow);
