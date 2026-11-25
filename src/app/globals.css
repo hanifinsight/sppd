@@ -890,3 +890,28 @@
 .trip-employee-option.unavailable .trip-employee-avatar{background:#f8e8e6;color:#b56b63}
 .trip-employee-option.unavailable .trip-employee-conflict{display:block;margin-top:4px;color:#b4534b;font-weight:700;line-height:1.45}
 .trip-employee-option.unavailable input:disabled{cursor:not-allowed}
+
+
+/* Mobile layout fix: PPTK activity picker in Data Master */
+.official-modal{width:min(100%,620px);max-height:calc(100dvh - 28px);overscroll-behavior:contain}
+.official-activity-picker{width:100%;min-width:0;padding:12px}
+.official-activity-picker .master-search{display:flex;align-items:center;gap:10px;width:100%;max-width:none;min-width:0;height:42px;padding:0 12px;box-sizing:border-box}
+.official-activity-picker .master-search input{display:block!important;flex:1 1 0!important;width:100%!important;min-width:0!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;font:inherit!important;font-size:13px!important;line-height:1.35!important}
+.official-activity-list{max-height:260px;overflow-y:auto;overscroll-behavior:contain;margin-top:10px}
+.official-activity-option{display:flex;align-items:flex-start;gap:12px;min-width:0;padding:13px 8px}
+.official-activity-option input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;display:block!important;flex:0 0 20px!important;width:20px!important;min-width:20px!important;height:20px!important;min-height:20px!important;margin:2px 0 0!important;padding:0!important;border:0!important;border-radius:3px!important;box-shadow:none!important;accent-color:#147d65;cursor:pointer}
+.official-activity-option span{display:block;flex:1 1 auto;min-width:0}
+.official-activity-option b{font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.official-activity-option small{font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.official-activity-picker>.field-hint{display:block;margin-top:10px;line-height:1.6}
+@media(max-width:760px){
+  .official-modal{width:100%;max-height:calc(100dvh - 16px);border-radius:16px 16px 12px 12px}
+  .official-modal .master-modal-head{padding:18px 18px 14px}
+  .official-modal .master-form{padding:16px 18px 20px}
+  .official-modal .master-form-grid{gap:15px}
+  .official-activity-picker{padding:10px}
+  .official-activity-option{gap:10px;padding:12px 6px}
+  .official-activity-option b{font-size:12px}
+  .official-activity-option small{font-size:10px}
+  .official-modal .master-form-actions{position:sticky;bottom:-20px;background:#fff;padding:12px 0 2px;margin-top:16px}
+}
