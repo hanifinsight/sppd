@@ -506,7 +506,7 @@ export default function PerjalananClient({
             {formError && <div className="trip-form-error"><AlertCircle size={16}/>{formError}</div>}
             <div className="trip-modal-footer"><span><Clock3 size={14}/> {editingTrip?.status === "published" ? "Komitmen anggaran dihitung ulang saat disimpan." : "Disimpan sebagai draf, belum diterbitkan."}</span><div>
               <button type="button" className="secondary-btn" onClick={() => setShowForm(false)} disabled={busy}>Tutup</button>
-              <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> Simpan draf</>}</button>
+              <button type="submit" className="primary-btn" disabled={busy}>{busy ? "Menyimpan..." : <><CheckCircle2 size={16}/> {editingTrip?.status === "published" ? "Simpan perubahan" : "Simpan draf"}</>}</button>
             </div></div>
           </form>
         </section>
