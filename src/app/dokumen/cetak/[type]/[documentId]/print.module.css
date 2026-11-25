@@ -79,3 +79,29 @@
 @page{size:A4 portrait;margin:0}
 @media print{.screen{padding:0;background:#fff;min-height:0}.toolbar{display:none!important}.paper{width:210mm;min-height:297mm;margin:0;box-shadow:none;padding:12mm 15mm 13mm;break-after:page;page-break-after:always}.paper:last-child{break-after:auto;page-break-after:auto}}
 @media screen and (max-width:760px){.screen{padding:10px 6px}.toolbar,.paper{width:100%}.paper{min-height:0;padding:22px 18px}.header{grid-template-columns:18mm 1fr}.header strong{font-size:13pt}.header small{font-size:6.5pt}.spd{font-size:7.8pt}.receipt{font-size:6.8pt}.receipt th:nth-child(n){width:auto}.receiptSigns{gap:2mm;font-size:6.8pt}.companion{grid-template-columns:1fr}}
+
+
+/* SPPD: tata letak cetak dipadatkan agar muat dalam satu lembar A4 */
+.sppdPaper{padding:8mm 12mm 8mm;font-size:8.2pt}
+.sppdPaper .header{grid-template-columns:19mm 1fr;gap:2.5mm;padding-bottom:2mm;margin-bottom:2.5mm;min-height:19mm}
+.sppdPaper .header img{width:17mm;height:19mm}
+.sppdPaper .header>div>div{font-size:9.5pt}
+.sppdPaper .header strong{font-size:14pt}
+.sppdPaper .header small{font-size:6.4pt;line-height:1.15}
+.sppdPaper .spdMeta{gap:.5mm;margin:1mm 0 2mm}
+.sppdPaper .spdMeta>div{font-size:7.5pt;line-height:1.2}
+.sppdPaper .title{font-size:11pt;margin:2mm 0 1.5mm}
+.sppdPaper .spd{font-size:7.7pt;line-height:1.18}
+.sppdPaper .spd td{padding:1.1mm 1.5mm}
+.sppdPaper .spd tr:first-child td{padding-top:1.5mm;padding-bottom:1.5mm}
+.sppdPaper .personIdentity,.sppdPaper .numberedValue{margin-bottom:.4mm}
+.sppdPaper .personIdentityDetails{gap:0}
+.sppdPaper .spd .companionTable{font-size:7.1pt;line-height:1.12}
+.sppdPaper .spd .companionTable th,.sppdPaper .spd .companionTable td{padding:.7mm 1mm}
+.sppdPaper .spdSign{font-size:7.8pt;line-height:1.2;margin:1.5mm 2mm 0 auto}
+.sppdPaper .spdSign>div:first-child{margin-bottom:1mm}
+.sppdPaper .spdSign .signGap{height:5mm}
+@media print{
+ .sppdPaper{width:210mm;height:297mm;min-height:0;margin:0;padding:8mm 12mm 8mm;box-sizing:border-box;break-after:auto;page-break-after:auto}
+ .sppdPaper .spd tr,.sppdPaper .spdSign{break-inside:avoid;page-break-inside:avoid}
+}
