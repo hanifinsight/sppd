@@ -100,7 +100,7 @@
 .sppdPaper .spd .companionTable th,.sppdPaper .spd .companionTable td{padding:.7mm 1mm}
 .sppdPaper .spdSign{font-size:7.8pt;line-height:1.2;margin:1.5mm 2mm 0 auto}
 .sppdPaper .spdSign>div:first-child{margin-bottom:1mm}
-.sppdPaper .spdSign .signGap{height:5mm}
+.sppdPaper .spdSign .signGap{height:12mm}
 @media print{
  .sppdPaper{width:210mm;height:297mm;min-height:0;margin:0;padding:8mm 12mm 8mm;box-sizing:border-box;break-after:auto;page-break-after:auto}
  .sppdPaper .spd tr,.sppdPaper .spdSign{break-inside:avoid;page-break-inside:avoid}
