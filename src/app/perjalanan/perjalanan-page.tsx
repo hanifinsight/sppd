@@ -36,7 +36,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
   const isAdmin = profile.role === "admin";
   const [
     activityResult, sectionResult, budgetResult, accountResult, summaryResult,
-    employeeResult, signerResult, kpaResult, tripResult, participantResult,
+    employeeResult, signerResult, kpaResult, tripResult, spDocumentResult, sppdDocumentResult, participantResult,
     companionResult, otherCostResult, rateResult
   ] = await Promise.all([
     supabase.from("kegiatan")
@@ -60,6 +60,8 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
     supabase.from("perjalanan_dinas")
       .select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,tanggal_undangan,tanggal_penerimaan,tanggal_acara_mulai,tanggal_acara_selesai,lokasi_acara,maksud_perjalanan,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,alat_angkut,status,penandatangan_sp_id,kpa_sppd_id,created_at,updated_at")
       .order("created_at", { ascending: false }),
+    supabase.from("dokumen_sp").select("perjalanan_id,tanggal_terbit"),
+    supabase.from("dokumen_sppd").select("perjalanan_id,tanggal_terbit"),
     supabase.from("perjalanan_peserta").select("perjalanan_id,pegawai_id,nama_snapshot"),
     supabase.from("perjalanan_pengikut").select("perjalanan_id,nama,tanggal_lahir,keterangan"),
     supabase.from("perjalanan_biaya_lain").select("perjalanan_id,jenis_biaya,nominal"),
@@ -126,6 +128,11 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
     nama: employeeMap.get(row.pegawai_id)?.nama ?? "Pejabat KPA",
   }));
 
+  const spDateByTrip = new Map<string, string>();
+  ((spDocumentResult.data ?? []) as DbRow[]).forEach((row) => spDateByTrip.set(row.perjalanan_id, row.tanggal_terbit ?? ""));
+  const sppdDateByTrip = new Map<string, string>();
+  ((sppdDocumentResult.data ?? []) as DbRow[]).forEach((row) => sppdDateByTrip.set(row.perjalanan_id, row.tanggal_terbit ?? ""));
+
   const peopleByTrip = new Map<string, string[]>();
   const participantIdsByTrip = new Map<string, string[]>();
   ((participantResult.data ?? []) as DbRow[]).forEach((row) => {
@@ -165,6 +172,8 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
       nomor_undangan: row.nomor_undangan ?? "",
       tanggal_undangan: row.tanggal_undangan ?? "",
       tanggal_penerimaan: row.tanggal_penerimaan ?? "",
+      tanggal_sp: spDateByTrip.get(row.id) ?? "",
+      tanggal_sppd: sppdDateByTrip.get(row.id) ?? "",
       tanggal_acara_mulai: row.tanggal_acara_mulai,
       tanggal_acara_selesai: row.tanggal_acara_selesai,
       lokasi_acara: row.lokasi_acara,
