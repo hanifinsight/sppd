@@ -299,16 +299,16 @@ export default function PerjalananClient({
   }
 
   async function deleteDraft(trip: TripRecord) {
-    if (trip.status !== "draft") return setPageError("Hanya draf yang boleh dihapus. Perjalanan terbit/dibatalkan dipertahankan sebagai riwayat.");
-    if (!window.confirm("Hapus permanen draf perjalanan ke " + trip.tujuan + "? Data yang dihapus tidak dapat dipulihkan.")) return;
-    setActionBusy(trip.id); setPageError(""); setNotice("");
+    if (trip.status !== "draft") return setFormError("Hanya draf yang boleh dihapus. Perjalanan terbit/dibatalkan dipertahankan sebagai riwayat.");
+    if (!window.confirm("Hapus permanen draf perjalanan ke " + trip.tempat_tujuan + "? Data yang dihapus tidak dapat dipulihkan.")) return;
+    setActionBusy(trip.id); setFormError(""); setNotice("");
     try {
       const supabase = createClient();
       const { error } = await supabase.from("perjalanan_dinas").delete().eq("id", trip.id).eq("status", "draft");
       if (error) throw error;
       setTrips(current => current.filter(item => item.id !== trip.id));
       setNotice("Draf perjalanan berhasil dihapus.");
-    } catch (e) { setPageError(e instanceof Error ? e.message : "Draf tidak dapat dihapus. Periksa relasi data."); }
+    } catch (e) { setFormError(e instanceof Error ? e.message : "Draf tidak dapat dihapus. Periksa relasi data."); }
     finally { setActionBusy(""); }
   }
 
