@@ -35,7 +35,7 @@ type TripForm = {
   bbm: string; tol: string; penginapan: string;
 };
 type ValidationResult = { valid: boolean; errors: string[]; warnings: string[]; jumlah_peserta?: number; jumlah_hari?: number };
-type IssueForm = { nomor_sp: string; nomor_sppd: string; tanggal_terbit: string; penandatangan_sp_id: string };
+type IssueForm = { nomor_sp: string; nomor_sppd: string; tanggal_sp: string; tanggal_sppd: string; tanggal_penerimaan: string; penandatangan_sp_id: string };
 type PreviewResult = {
   validasi?: ValidationResult;
   biaya?: {
@@ -88,7 +88,9 @@ export default function PerjalananClient({
   const [issuingTrip, setIssuingTrip] = useState<TripRecord | null>(null);
   const [issueForm, setIssueForm] = useState<IssueForm>({
     nomor_sp: "", nomor_sppd: "",
-    tanggal_terbit: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+    tanggal_sp: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+    tanggal_sppd: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+    tanggal_penerimaan: "",
     penandatangan_sp_id: ""
   });
   const [issueError, setIssueError] = useState("");
@@ -350,7 +352,9 @@ export default function PerjalananClient({
     setIssueForm({
       nomor_sp: "",
       nomor_sppd: "",
-      tanggal_terbit: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+      tanggal_sp: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+      tanggal_sppd: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
+      tanggal_penerimaan: trip.tanggal_penerimaan ?? "",
       penandatangan_sp_id: currentSigner?.id || availableSigners[0]?.id || ""
     });
   }
@@ -359,8 +363,8 @@ export default function PerjalananClient({
     event.preventDefault();
     if (!issuingTrip) return;
     setIssueError("");
-    if (!issueForm.tanggal_terbit || !issueForm.penandatangan_sp_id) {
-      setIssueError("Lengkapi tanggal terbit dan penandatangan SP.");
+    if (!issueForm.tanggal_sp || !issueForm.tanggal_sppd || !issueForm.penandatangan_sp_id) {
+      setIssueError("Lengkapi tanggal SP, tanggal SPPD, dan penandatangan SP.");
       return;
     }
     const selectedSigner = eligibleSigners(issuingTrip.peserta_ids).find((signer) => signer.id === issueForm.penandatangan_sp_id);
@@ -382,11 +386,13 @@ export default function PerjalananClient({
       if (!result.valid) {
         throw new Error("Draf belum lolos validasi: " + (result.errors ?? []).join("; "));
       }
-      const { data, error } = await supabase.rpc("sppd_terbitkan", {
+      const { data, error } = await supabase.rpc("sppd_terbitkan_dengan_tanggal", {
         p_perjalanan_id: issuingTrip.id,
         p_nomor_sp: issueForm.nomor_sp.trim() || null,
         p_nomor_sppd: issueForm.nomor_sppd.trim() || null,
-        p_tanggal_terbit: issueForm.tanggal_terbit,
+        p_tanggal_sp: issueForm.tanggal_sp,
+        p_tanggal_sppd: issueForm.tanggal_sppd,
+        p_tanggal_penerimaan: issueForm.tanggal_penerimaan || null,
         p_penandatangan_sp_id: issueForm.penandatangan_sp_id
       });
       if (error) throw new Error(error.message);
@@ -569,8 +575,15 @@ export default function PerjalananClient({
                   <input value={issueForm.nomor_sppd} onChange={(event) => setIssueForm((current) => ({ ...current, nomor_sppd: event.target.value }))} placeholder="Kosongkan untuk diisi manual (ditulis tangan)" />
                   <small className="trip-field-note">Opsional</small>
                 </label>
-                <label className="trip-field trip-field-wide">Tanggal terbit
-                  <input required type="date" value={issueForm.tanggal_terbit} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_terbit: event.target.value }))} />
+                <label className="trip-field">Tanggal Surat Perintah (SP)
+                  <input required type="date" value={issueForm.tanggal_sp} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_sp: event.target.value }))} />
+                </label>
+                <label className="trip-field">Tanggal SPPD
+                  <input required type="date" value={issueForm.tanggal_sppd} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_sppd: event.target.value }))} />
+                </label>
+                <label className="trip-field trip-field-wide">Tanggal penerimaan (opsional)
+                  <input type="date" value={issueForm.tanggal_penerimaan} onChange={(event) => setIssueForm((current) => ({ ...current, tanggal_penerimaan: event.target.value }))} />
+                  <small className="trip-field-note">Kosongkan jika akan diisi setelah dokumen dicetak.</small>
                 </label>
                 <label className="trip-field trip-field-wide">Penandatangan Surat Perintah (SP)
                   <select required value={issueForm.penandatangan_sp_id} onChange={(event) => setIssueForm((current) => ({ ...current, penandatangan_sp_id: event.target.value }))}>
