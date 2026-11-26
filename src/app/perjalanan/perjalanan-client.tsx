@@ -298,6 +298,20 @@ export default function PerjalananClient({
     }
   }
 
+  async function deleteDraft(trip: TripRecord) {
+    if (trip.status !== "draft") return setPageError("Hanya draf yang boleh dihapus. Perjalanan terbit/dibatalkan dipertahankan sebagai riwayat.");
+    if (!window.confirm("Hapus permanen draf perjalanan ke " + trip.tujuan + "? Data yang dihapus tidak dapat dipulihkan.")) return;
+    setActionBusy(trip.id); setPageError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("perjalanan_dinas").delete().eq("id", trip.id).eq("status", "draft");
+      if (error) throw error;
+      setTrips(current => current.filter(item => item.id !== trip.id));
+      setNotice("Draf perjalanan berhasil dihapus.");
+    } catch (e) { setPageError(e instanceof Error ? e.message : "Draf tidak dapat dihapus. Periksa relasi data."); }
+    finally { setActionBusy(""); }
+  }
+
   async function validateTrip(trip: TripRecord) {
     setActionBusy(trip.id); setValidation(null); setPreview(null); setResultTrip(trip);
     try {
@@ -426,7 +440,7 @@ export default function PerjalananClient({
                   {(trip.status === "draft" || trip.status === "published") && <button className={trip.status === "published" ? "trip-edit-cost" : ""} onClick={() => openEdit(trip)} title="Edit seluruh data perjalanan"><Edit3 size={15}/>{trip.status === "published" && <span>Edit</span>}</button>}
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
-                  {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}\n                  {trip.status === "draft" && <button onClick={() => deleteDraft(trip)} title="Hapus draf" disabled={actionBusy === trip.id}><Trash2 size={15}/></button>}
                   
                 </div></td>
               </tr>
