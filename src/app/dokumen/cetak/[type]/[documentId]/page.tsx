@@ -82,7 +82,9 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&assignedPptkIds.has(v(r.id)))??managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
- const pptkCurrent=official(pptkRow);\n  const pptk={...pptkCurrent,name:v(doc.nama_pptk_snapshot)||pptkCurrent.name,nip:v(doc.nip_pptk_snapshot)||pptkCurrent.nip,job:v(doc.jabatan_pptk_snapshot)||pptkCurrent.job};\n  const bpp=official(bppRow);
+ const pptkCurrent=official(pptkRow);
+  const pptk={...pptkCurrent,name:v(doc.nama_pptk_snapshot)||pptkCurrent.name,nip:v(doc.nip_pptk_snapshot)||pptkCurrent.nip,job:v(doc.jabatan_pptk_snapshot)||pptkCurrent.job};
+  const bpp=official(bppRow);
  const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
  const spSignerIsSekda=/sekretaris\s+daerah/i.test(spSigner.job);
  const spSignerIsEselonII=!spSignerIsSekda&&/^II(?:\.|$)/i.test(spSigner.eselon.trim());
