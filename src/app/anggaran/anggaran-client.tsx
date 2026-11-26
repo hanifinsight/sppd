@@ -462,6 +462,24 @@ export default function AnggaranClient({
     setPendingId(null);
   }
 
+  async function deleteBudget(row: BudgetRecord) {
+    if (row.komitmen_aktif > 0) { setPageError("Alokasi tidak dapat dihapus karena masih memiliki komitmen perjalanan dinas."); return; }
+    if (!window.confirm("Hapus permanen alokasi " + row.nama_subkegiatan + " — " + row.nama_rekening + "? Riwayat mutasi/relasi yang masih ada akan mencegah penghapusan.")) return;
+    setPendingId(row.id); clearFeedback();
+    try {
+      const supabase = createClient();
+      const { count, error: checkError } = await supabase.from("perjalanan_dinas")
+        .select("id", { count: "exact", head: true }).eq("anggaran_id", row.id);
+      if (checkError) throw checkError;
+      if ((count ?? 0) > 0) throw new Error("Alokasi sudah digunakan pada perjalanan dinas. Nonaktifkan jika tidak digunakan lagi.");
+      const { error } = await supabase.from("anggaran").delete().eq("id", row.id);
+      if (error) throw error;
+      setBudgets(current => current.filter(item => item.id !== row.id));
+      setNotice("Alokasi anggaran berhasil dihapus.");
+    } catch (e) { setPageError(e instanceof Error ? e.message : "Alokasi tidak dapat dihapus karena masih memiliki relasi."); }
+    finally { setPendingId(null); }
+  }
+
   function closeModal() { if (!busy) setModal(null); }
 
   return <>
@@ -548,7 +566,7 @@ export default function AnggaranClient({
             <td>{formatMoney(row.komitmen_aktif)}</td>
             <td><strong className={row.pagu_tersedia < 0 ? "budget-negative" : "budget-positive"}>{formatMoney(row.pagu_tersedia)}</strong></td>
             <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
-            <td><div className="budget-actions"><button className="master-primary-btn budget-mutation-btn" onClick={() => openMutation(row)} disabled={!row.aktif || !summaryAvailable}><ArrowUpRight size={13}/> Mutasi</button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleBudget(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button></div></td>
+            <td><div className="budget-actions"><button className="master-primary-btn budget-mutation-btn" onClick={() => openMutation(row)} disabled={!row.aktif || !summaryAvailable}><ArrowUpRight size={13}/> Mutasi</button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleBudget(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus alokasi" aria-label="Hapus alokasi" disabled={pendingId === row.id} onClick={() => deleteBudget(row)}><Trash2 size={14}/></button></div></td>
           </tr>) : <tr><td colSpan={6} className="master-empty">Belum ada alokasi anggaran yang sesuai.</td></tr>}</tbody>
         </table></div>
         <div className="master-table-foot"><span>Menampilkan <b>{filteredBudgets.length}</b> dari <b>{budgets.length}</b> alokasi</span><span>Penyesuaian pagu tersimpan pada riwayat mutasi</span></div>
