@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle, Archive, ArrowDownToLine, CalendarDays, CheckCircle2,
   ChevronDown, ChevronUp, Clock3, FileText, FileUp, FolderOpen,
-  MapPin, Printer, Search, ShieldCheck, UploadCloud, Users, Wallet
+  MapPin, Printer, Search, ShieldCheck, UploadCloud, Users, Wallet, Trash2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./dokumen.module.css";
@@ -214,6 +214,21 @@ export default function DokumenClient({
     }
   }
 
+  async function deleteArchive(file: ArchiveRecord) {
+    if (!window.confirm("Hapus berkas arsip " + file.type.toUpperCase() + " versi " + file.version + "? Tindakan ini menghapus file dari penyimpanan.")) return;
+    setBusyKey("delete:" + file.id); setError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const { error: storageError } = await supabase.storage.from("sppd-arsip").remove([file.filePath]);
+      if (storageError) throw new Error("File arsip gagal dihapus: " + storageError.message);
+      const { error: rowError } = await supabase.from("arsip_dokumen").delete().eq("id", file.id);
+      if (rowError) throw new Error("File di penyimpanan sudah dihapus, tetapi metadata arsip gagal dihapus: " + rowError.message);
+      setNotice("Arsip " + file.type.toUpperCase() + " versi " + file.version + " berhasil dihapus.");
+      router.refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Gagal menghapus arsip."); }
+    finally { setBusyKey(""); }
+  }
+
   async function downloadArchive(file: ArchiveRecord) {
     setDownloadBusyId(file.id);
     setError("");
@@ -396,7 +411,7 @@ export default function DokumenClient({
                               {files.map((file) => (
                                 <div className={styles.archiveRow} key={file.id}>
                                   <div className={styles.fileInfo}><b>{file.format.toUpperCase()} · Versi {file.version}</b><span>{fileDateLabel(file.createdAt)} · {statusName(file.status)}</span></div>
-                                  <button className={styles.downloadButton} disabled={downloadBusyId === file.id} onClick={() => downloadArchive(file)}><ArrowDownToLine size={14} />{downloadBusyId === file.id ? "..." : "Unduh"}</button>
+                                  <button className={styles.downloadButton} disabled={downloadBusyId === file.id} onClick={() => downloadArchive(file)}><ArrowDownToLine size={14} />{downloadBusyId === file.id ? "..." : "Unduh"}</button>\n                                  <button className={styles.downloadButton} disabled={busyKey === "delete:" + file.id} onClick={() => deleteArchive(file)} title="Hapus arsip"><Trash2 size={14}/>{busyKey === "delete:" + file.id ? "..." : "Hapus"}</button>
                                 </div>
                               ))}
                             </div>
