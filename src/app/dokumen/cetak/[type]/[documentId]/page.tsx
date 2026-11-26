@@ -32,7 +32,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
 
  const docQuery=type==="sp"||type==="lampiran"
   ? await db.from("dokumen_sp").select("id,perjalanan_id,nomor_sp,tanggal_terbit,penandatangan_id,nama_penandatangan_snapshot,jabatan_snapshot").eq("id",documentId).maybeSingle()
-  : await db.from("dokumen_sppd").select("id,perjalanan_id,nomor_sppd,tanggal_terbit,ppk_id,nama_ppk_snapshot,jabatan_ppk_snapshot").eq("id",documentId).maybeSingle();
+  : await db.from("dokumen_sppd").select("id,perjalanan_id,nomor_sppd,tanggal_terbit,ppk_id,nama_ppk_snapshot,jabatan_ppk_snapshot,pptk_pengelola_id,nama_pptk_snapshot,nip_pptk_snapshot,jabatan_pptk_snapshot").eq("id",documentId).maybeSingle();
  const doc=docQuery.data as R|null;
  if(!doc)notFound();
  const {data:tripData}=await db.from("perjalanan_dinas").select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,maksud_perjalanan,lokasi_acara,tanggal_acara_mulai,tanggal_acara_selesai,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,tanggal_penerimaan,alat_angkut,status,kpa_sppd_id").eq("id",doc.perjalanan_id).maybeSingle();
@@ -82,7 +82,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
  const pptkRow=managers.find(r=>r.jenis_peran==="PPTK"&&assignedPptkIds.has(v(r.id)))??managers.find(r=>r.jenis_peran==="PPTK"&&r.kegiatan_id===trip.kegiatan_id);
  const bppRow=managers.find(r=>r.jenis_peran==="Bendahara Pengeluaran Pembantu"&&r.bagian_id===sectionId);
  const kpa=official(kpaRow,type!=="sp"?v(doc.nama_ppk_snapshot):"",type!=="sp"?v(doc.jabatan_ppk_snapshot):"");
- const pptk=official(pptkRow),bpp=official(bppRow);
+ const pptkCurrent=official(pptkRow);\n  const pptk={...pptkCurrent,name:v(doc.nama_pptk_snapshot)||pptkCurrent.name,nip:v(doc.nip_pptk_snapshot)||pptkCurrent.nip,job:v(doc.jabatan_pptk_snapshot)||pptkCurrent.job};\n  const bpp=official(bppRow);
  const spSigner=official(spOfficialRow??undefined,type==="sp"?v(doc.nama_penandatangan_snapshot):"",type==="sp"?v(doc.jabatan_snapshot):"");
  const spSignerIsSekda=/sekretaris\s+daerah/i.test(spSigner.job);
  const spSignerIsEselonII=!spSignerIsSekda&&/^II(?:\.|$)/i.test(spSigner.eselon.trim());
