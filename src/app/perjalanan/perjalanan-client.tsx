@@ -27,7 +27,7 @@ export type TripRecord = {
 };
 type TripForm = {
   kegiatan_id: string; anggaran_id: string; jenis_perjalanan: "luar_kota" | "dalam_kota";
-  nomor_undangan: string; tanggal_undangan: string; tanggal_acara_mulai: string;
+  nomor_undangan: string; tanggal_undangan: string; tanggal_penerimaan: string; tanggal_acara_mulai: string;
   tanggal_acara_selesai: string; lokasi_acara: string; maksud_perjalanan: string;
   tempat_berangkat: string; tempat_tujuan: string; provinsi_tujuan: string;
   tanggal_berangkat: string; tanggal_kembali: string; alat_angkut: string;
