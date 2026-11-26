@@ -16,7 +16,7 @@ export type KpaOption = { id: string; bagian_id: string | null; nama: string };
 export type CompanionRecord = { nama: string; tanggal_lahir: string; keterangan: string };
 export type TripRecord = {
   id: string; kegiatan_id: string; anggaran_id: string; jenis_perjalanan: string;
-  nomor_undangan: string; tanggal_undangan: string; tanggal_penerimaan: string; tanggal_acara_mulai: string;
+  nomor_undangan: string; tanggal_undangan: string; tanggal_acara_mulai: string;
   tanggal_acara_selesai: string; lokasi_acara: string; maksud_perjalanan: string;
   tempat_berangkat: string; tempat_tujuan: string; provinsi_tujuan: string;
   tanggal_berangkat: string; tanggal_kembali: string; alat_angkut: string;
@@ -51,7 +51,7 @@ const dateLabel = (value: string) => value ? new Intl.DateTimeFormat("id-ID", { 
 const digits = (value: string) => value.replace(/[^0-9]/g, "");
 const emptyForm = (province: string, activityId = ""): TripForm => ({
   kegiatan_id: activityId, anggaran_id: "", jenis_perjalanan: "luar_kota",
-  nomor_undangan: "", tanggal_undangan: "", tanggal_penerimaan: "", tanggal_acara_mulai: "",
+  nomor_undangan: "", tanggal_undangan: "", tanggal_acara_mulai: "",
   tanggal_acara_selesai: "", lokasi_acara: "", maksud_perjalanan: "",
   tempat_berangkat: "", tempat_tujuan: "", provinsi_tujuan: province,
   tanggal_berangkat: "", tanggal_kembali: "", alat_angkut: "",
@@ -181,7 +181,7 @@ export default function PerjalananClient({
     setForm({
       kegiatan_id: trip.kegiatan_id, anggaran_id: trip.anggaran_id,
       jenis_perjalanan: trip.jenis_perjalanan === "dalam_kota" ? "dalam_kota" : "luar_kota",
-      nomor_undangan: trip.nomor_undangan, tanggal_undangan: trip.tanggal_undangan, tanggal_penerimaan: trip.tanggal_penerimaan ?? "", 
+      nomor_undangan: trip.nomor_undangan, tanggal_undangan: trip.tanggal_undangan, 
       tanggal_acara_mulai: trip.tanggal_acara_mulai, tanggal_acara_selesai: trip.tanggal_acara_selesai,
       lokasi_acara: trip.lokasi_acara, maksud_perjalanan: trip.maksud_perjalanan,
       tempat_berangkat: trip.tempat_berangkat, tempat_tujuan: trip.tempat_tujuan,
@@ -264,7 +264,7 @@ export default function PerjalananClient({
       perjalanan: {
         kegiatan_id: selectedActivity.id, anggaran_id: selectedBudget.id,
         jenis_perjalanan: form.jenis_perjalanan, nomor_undangan: form.nomor_undangan.trim(),
-        tanggal_undangan: form.tanggal_undangan, tanggal_penerimaan: form.tanggal_penerimaan || null, tanggal_acara_mulai: form.tanggal_acara_mulai,
+        tanggal_undangan: form.tanggal_undangan, tanggal_acara_mulai: form.tanggal_acara_mulai,
         tanggal_acara_selesai: form.tanggal_acara_selesai, lokasi_acara: form.lokasi_acara.trim(),
         maksud_perjalanan: form.maksud_perjalanan.trim(), tempat_berangkat: form.tempat_berangkat.trim(),
         tempat_tujuan: form.tempat_tujuan.trim(), provinsi_tujuan: form.provinsi_tujuan,
@@ -287,8 +287,7 @@ export default function PerjalananClient({
       if (error) throw new Error(error.message);
       const tripId = String(data);
       const { error: managerError } = await supabase.from("perjalanan_dinas").update({
-        kpa_sppd_id: selectedKpa.id,
-        tanggal_penerimaan: form.tanggal_penerimaan || null
+        kpa_sppd_id: selectedKpa.id
       }).eq("id", tripId);
       if (managerError) throw new Error("Draf tersimpan, tetapi pengaturan KPA gagal ditautkan: " + managerError.message);
       setShowForm(false);
@@ -491,7 +490,6 @@ export default function PerjalananClient({
                 <div className="trip-form-grid">
                   <label className="trip-field">Tanggal berangkat<input required type="date" value={form.tanggal_berangkat} onChange={(event) => updateForm("tanggal_berangkat", event.target.value)} /></label>
                   <label className="trip-field">Tanggal kembali<input required type="date" min={form.tanggal_berangkat || undefined} value={form.tanggal_kembali} onChange={(event) => updateForm("tanggal_kembali", event.target.value)} /></label>
-                   <label className="trip-field">Tanggal penerimaan (opsional)<input type="date" value={form.tanggal_penerimaan} onChange={(event) => updateForm("tanggal_penerimaan", event.target.value)} /><small className="trip-field-note">Kosongkan jika tanggal penerimaan akan diisi setelah dokumen dicetak.</small></label>
                   <label className="trip-field">Tanggal acara mulai<input required type="date" value={form.tanggal_acara_mulai} onChange={(event) => updateForm("tanggal_acara_mulai", event.target.value)} /></label>
                   <label className="trip-field">Tanggal acara selesai<input required type="date" min={form.tanggal_acara_mulai || undefined} value={form.tanggal_acara_selesai} onChange={(event) => updateForm("tanggal_acara_selesai", event.target.value)} /></label>
                   <label className="trip-field">Tempat berangkat<input required value={form.tempat_berangkat} onChange={(event) => updateForm("tempat_berangkat", event.target.value)} placeholder="Contoh: Kajen" /></label>
