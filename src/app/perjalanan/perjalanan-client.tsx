@@ -478,7 +478,8 @@ export default function PerjalananClient({
                   {(trip.status === "draft" || trip.status === "published") && <button className={trip.status === "published" ? "trip-edit-cost" : ""} onClick={() => openEdit(trip)} title="Edit seluruh data perjalanan"><Edit3 size={15}/>{trip.status === "published" && <span>Edit</span>}</button>}
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
-                  {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}\n                  {trip.status === "draft" && <button onClick={() => deleteDraft(trip)} title="Hapus draf" disabled={actionBusy === trip.id}><Trash2 size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}
+                  {trip.status === "draft" && <button onClick={() => deleteDraft(trip)} title="Hapus draf" disabled={actionBusy === trip.id}><Trash2 size={15}/></button>}
                   {(trip.status === "draft" || trip.status === "published") && <button className="trip-cancel-action" onClick={() => { setCancellingTrip(trip); setCancelReason(""); setCancelError(""); }} title="Batalkan perjalanan" disabled={cancelBusy}><Ban size={15}/><span>Batalkan</span></button>}
                   
                 </div></td>
