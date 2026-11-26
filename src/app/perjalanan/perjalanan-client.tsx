@@ -149,7 +149,7 @@ export default function PerjalananClient({
   const activityBudgets = budgets.filter((row) => row.kegiatan_id === form.kegiatan_id);
   const selectedBudget = activityBudgets.find((row) => row.id === form.anggaran_id) ?? activityBudgets[0];
   const selectedKpa = selectedActivity ? kpas.find((row) => row.bagian_id === selectedActivity.bagian_id) : undefined;
-  const eligibleEmployees = employees.filter((row) => selectedActivity && row.bagian_id === selectedActivity.bagian_id &&
+  const eligibleEmployees = employees.filter((row) =>
     (row.nama + " " + row.nip + " " + row.jabatan).toLowerCase().includes(participantSearch.toLowerCase()));
   const employeeConflict = (pegawaiId: string) => {
     const remote = remoteEmployeeConflicts[pegawaiId];
@@ -256,8 +256,8 @@ export default function PerjalananClient({
     if (!form.maksud_perjalanan.trim() || !form.lokasi_acara.trim() || !form.tempat_berangkat.trim() || !form.tempat_tujuan.trim() || !form.provinsi_tujuan) {
       return setFormError("Lengkapi maksud perjalanan, lokasi acara, asal, tujuan, dan provinsi tujuan.");
     }
-    if (form.peserta_ids.some((id) => !employees.some((person) => person.id === id && person.bagian_id === selectedActivity.bagian_id))) {
-      return setFormError("Pastikan seluruh peserta merupakan pegawai aktif pada Bagian subkegiatan yang dipilih.");
+    if (form.peserta_ids.some((id) => !employees.some((person) => person.id === id))) {
+      return setFormError("Pastikan seluruh peserta merupakan pegawai aktif yang terdaftar di master pegawai.");
     }
     const conflictingParticipant = form.peserta_ids.map((id) => ({ id, conflict: employeeConflict(id) })).find((item) => item.conflict);
     if (conflictingParticipant?.conflict) {
@@ -533,7 +533,7 @@ export default function PerjalananClient({
                 </div>
               </section>
               <section className="trip-form-section">
-                <div className="trip-section-title"><span>03</span><div><h3>Peserta perjalanan</h3><p>Pilih pegawai aktif dari Bagian yang memiliki subkegiatan.</p></div></div>
+                <div className="trip-section-title"><span>03</span><div><h3>Peserta perjalanan</h3><p>Pilih pegawai aktif dari seluruh OPD yang terdaftar di master pegawai.</p></div></div>
                 <div className="trip-participant-head"><div className="trip-search"><Search size={15}/><input value={participantSearch} onChange={(event) => setParticipantSearch(event.target.value)} placeholder="Cari nama atau NIP..." /></div><span>{form.peserta_ids.length} peserta dipilih</span></div>
                 {!form.tanggal_berangkat || !form.tanggal_kembali
                   ? <div className="trip-field-note">Isi tanggal berangkat dan kembali terlebih dahulu agar sistem dapat memeriksa jadwal pegawai.</div>
@@ -551,7 +551,7 @@ export default function PerjalananClient({
                       <span className="trip-employee-avatar"><UserRound size={16}/></span><span className="trip-employee-info"><b>{person.nama}</b><small>{person.nip || "NIP belum tersedia"} · {person.pangkat_golongan || person.status_kepegawaian}</small>
                       {conflict && <small className="trip-employee-conflict">Tidak tersedia: perjalanan lain {dateLabel(conflict.tanggal_berangkat)} s.d. {dateLabel(conflict.tanggal_kembali)}</small>}</span>
                     </label>;
-                  }) : <div className="trip-no-employee">Tidak ada pegawai aktif yang sesuai dengan Bagian subkegiatan.</div>}
+                  }) : <div className="trip-no-employee">Tidak ada pegawai aktif yang cocok dengan pencarian.</div>}
                 </div>
                 {form.peserta_ids.length > 4 && <div className="trip-attachment-hint"><FileText size={16}/><span>Lebih dari 4 peserta. Daftar nama pegawai akan ditempatkan pada lampiran dokumen.</span></div>}
               </section>
