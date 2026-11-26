@@ -268,7 +268,7 @@ export default function PerjalananClient({
     const payload = {
       perjalanan: {
         kegiatan_id: selectedActivity.id, anggaran_id: selectedBudget.id,
-        jenis_perjalanan: form.jenis_perjalanan, nomor_undangan: form.nomor_undangan.trim(),
+        jenis_perjalanan: selectedBudget.kode_rekening === "5.1.02.04.001.00003" ? "dalam_kota" : "luar_kota", nomor_undangan: form.nomor_undangan.trim(),
         tanggal_undangan: form.tanggal_undangan, tanggal_acara_mulai: form.tanggal_acara_mulai,
         tanggal_acara_selesai: form.tanggal_acara_selesai, lokasi_acara: form.lokasi_acara.trim(),
         maksud_perjalanan: form.maksud_perjalanan.trim(), tempat_berangkat: form.tempat_berangkat.trim(),
@@ -512,7 +512,9 @@ export default function PerjalananClient({
                     {selectedBudget && <small className="trip-field-note">Pagu tersedia: <b>{money(selectedBudget.pagu_tersedia)}</b> · Komitmen: {money(selectedBudget.komitmen_aktif)}</small>}
                     {!activityBudgets.length && form.kegiatan_id && <small className="trip-field-error">Belum ada alokasi anggaran aktif untuk subkegiatan ini.</small>}
                   </label>
-                  <label className="trip-field">Jenis perjalanan<select value={form.jenis_perjalanan} onChange={(event) => updateForm("jenis_perjalanan", event.target.value as TripForm["jenis_perjalanan"])}><option value="luar_kota">Perjalanan dinas luar kota</option><option value="dalam_kota">Perjalanan dinas dalam kota</option></select></label>
+                  <label className="trip-field">Jenis perjalanan
+                    <div className="trip-field-note" role="status"><b>{selectedBudget?.kode_rekening === "5.1.02.04.001.00003" ? "Perjalanan Dinas Dalam Kota" : selectedBudget?.kode_rekening === "5.1.02.04.001.00001" ? "Perjalanan Dinas Biasa" : "Ditentukan oleh kode rekening"}</b><br/>Jenis perjalanan mengikuti rekening anggaran yang dipilih.</div>
+                  </label>
                   <label className="trip-field">Alat angkut<input value={form.alat_angkut} onChange={(event) => updateForm("alat_angkut", event.target.value)} placeholder="Contoh: Kendaraan dinas" /></label>
                   <label className="trip-field">Nomor undangan (opsional)<input value={form.nomor_undangan} onChange={(event) => updateForm("nomor_undangan", event.target.value)} placeholder="Nomor surat undangan" /></label>
                   <label className="trip-field">Tanggal undangan (opsional)<input type="date" value={form.tanggal_undangan} onChange={(event) => updateForm("tanggal_undangan", event.target.value)} /></label>
