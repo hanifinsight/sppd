@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Building2, CheckCircle2, Edit3, Plus, Search, Users, X } from "lucide-react";
+import { Building2, CheckCircle2, Edit3, Plus, Search, Users, X, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export type BagianRecord = {
@@ -138,7 +138,7 @@ export default function BagianClient({ initialRows }: { initialRows: BagianRecor
               <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
               <td><div className="master-row-actions">
                 <button className="master-icon-btn" title="Ubah bagian" aria-label="Ubah bagian" onClick={() => openEdit(row)}><Edit3 size={14}/></button>
-                <button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActive(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>
+                <button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActive(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>\n                <button className="master-icon-btn" title="Hapus bagian" aria-label="Hapus bagian" disabled={pendingId === row.id} onClick={() => deleteSection(row)}><Trash2 size={14}/></button>
               </div></td>
             </tr>) : <tr><td colSpan={5} className="master-empty">Tidak ada data bagian yang sesuai dengan pencarian.</td></tr>}
           </tbody>
