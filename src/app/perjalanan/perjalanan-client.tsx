@@ -156,6 +156,8 @@ export default function PerjalananClient({
       trip.tanggal_kembali >= form.tanggal_berangkat
     );
   };
+  const isEselonII = (signer: SignerOption) => /eselon\s*ii|jabatan pimpinan tinggi pratama|sekretaris daerah|asisten|kepala dinas|kepala badan|staf ahli/i.test(signer.jabatan);
+  const eligibleSigners = (participantIds: string[]) => signers.filter((signer) => !participantIds.includes(signer.pegawai_id) || isEselonII(signer));
   const activeSigners = signers;
 
   function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
@@ -327,11 +329,13 @@ export default function PerjalananClient({
   function openIssue(trip: TripRecord) {
     setIssuingTrip(trip);
     setIssueError("");
+    const availableSigners = eligibleSigners(trip.peserta_ids);
+    const currentSigner = availableSigners.find((signer) => signer.id === trip.penandatangan_sp_id);
     setIssueForm({
       nomor_sp: "",
       nomor_sppd: "",
       tanggal_terbit: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
-      penandatangan_sp_id: trip.penandatangan_sp_id || signers[0]?.id || ""
+      penandatangan_sp_id: currentSigner?.id || availableSigners[0]?.id || ""
     });
   }
 
@@ -343,6 +347,8 @@ export default function PerjalananClient({
       setIssueError("Lengkapi tanggal terbit dan penandatangan SP.");
       return;
     }
+    const selectedSigner = eligibleSigners(issuingTrip.peserta_ids).find((signer) => signer.id === issueForm.penandatangan_sp_id);
+    if (!selectedSigner) { setIssueError("Penandatangan SP tidak boleh menjadi peserta perjalanan dinas, kecuali pejabat Eselon II."); return; }
     const activity = activities.find((row) => row.id === issuingTrip.kegiatan_id);
     const kpa = activity ? kpas.find((row) => row.bagian_id === activity.bagian_id) : undefined;
     if (!kpa) {
@@ -552,7 +558,7 @@ export default function PerjalananClient({
                 <label className="trip-field trip-field-wide">Penandatangan Surat Perintah (SP)
                   <select required value={issueForm.penandatangan_sp_id} onChange={(event) => setIssueForm((current) => ({ ...current, penandatangan_sp_id: event.target.value }))}>
                     <option value="">Pilih penandatangan SP</option>
-                    {signers.map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
+                    {eligibleSigners(issuingTrip.peserta_ids).map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
                   </select>
                 </label>
               </div>
