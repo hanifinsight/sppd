@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import {
   BadgeCheck, Building2, Check, ChevronDown, Edit3, FileSignature,
-  Plus, Search, ShieldCheck, Users, Wallet, X
+  Plus, Search, ShieldCheck, Users, Wallet, X, Trash2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -298,6 +298,19 @@ export default function PengelolaClient({
     setPendingId(null);
   }
 
+  async function deleteManager(row: ManagerRecord) {
+    if (!window.confirm("Hapus permanen penugasan " + row.jenis_peran + " untuk " + employeeName(row.pegawai_id, employees) + "? Jika masih dipakai dokumen/perjalanan, database akan menolak penghapusan.")) return;
+    setPendingId(row.id); setPageError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("pejabat_pengelola").delete().eq("id", row.id);
+      if (error) throw error;
+      setManagers(current => current.filter(item => item.id !== row.id));
+      setNotice("Penugasan pejabat berhasil dihapus.");
+    } catch (e) { setPageError(e instanceof Error ? e.message : "Penugasan tidak dapat dihapus karena masih digunakan."); }
+    finally { setPendingId(null); }
+  }
+
   async function saveSigner(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
@@ -348,6 +361,19 @@ export default function PengelolaClient({
       setNotice("Status penandatangan berhasil diperbarui.");
     }
     setPendingId(null);
+  }
+
+  async function deleteSigner(row: SignerRecord) {
+    if (!window.confirm("Hapus permanen penandatangan SP " + employeeName(row.pegawai_id, employees) + "? Jika sudah digunakan pada dokumen SP, penghapusan akan ditolak.")) return;
+    setPendingId(row.id); setPageError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("pejabat_dokumen").delete().eq("id", row.id);
+      if (error) throw error;
+      setSigners(current => current.filter(item => item.id !== row.id));
+      setNotice("Data penandatangan SP berhasil dihapus.");
+    } catch (e) { setPageError(e instanceof Error ? e.message : "Penandatangan tidak dapat dihapus karena masih digunakan."); }
+    finally { setPendingId(null); }
   }
 
   function closeModal() {
@@ -406,7 +432,7 @@ export default function PengelolaClient({
                 <td className="official-scope">{scope}</td>
                 <td>{statusText(row.status_penugasan)}</td>
                 <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
-                <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah penugasan" aria-label="Ubah penugasan" onClick={() => openEditManager(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleManager(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button></div></td>
+                <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah penugasan" aria-label="Ubah penugasan" onClick={() => openEditManager(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleManager(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus penugasan" aria-label="Hapus penugasan" disabled={pendingId === row.id} onClick={() => deleteManager(row)}><Trash2 size={14}/></button></div></td>
               </tr>;
             }) : <tr><td colSpan={6} className="master-empty">Belum ada penugasan yang sesuai.</td></tr>}</tbody>
           </table>
@@ -428,7 +454,7 @@ export default function PengelolaClient({
           return <article className="signer-card" key={row.id}>
             <div className="signer-avatar">{(person?.nama ?? "P").trim().slice(0,1).toUpperCase()}</div>
             <div className="signer-main"><div className="signer-name-row"><b>{person?.nama ?? "Pegawai tidak ditemukan"}</b><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></div><small>{person?.nip || "NIP belum diisi"}{person?.eselon ? " · Eselon " + person.eselon : ""}</small><p>{row.jabatan_dokumen}</p></div>
-            <div className="master-row-actions"><button className="master-icon-btn" title="Ubah penandatangan" aria-label="Ubah penandatangan" onClick={() => openEditSigner(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleSigner(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button></div>
+            <div className="master-row-actions"><button className="master-icon-btn" title="Ubah penandatangan" aria-label="Ubah penandatangan" onClick={() => openEditSigner(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleSigner(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus penandatangan" aria-label="Hapus penandatangan" disabled={pendingId === row.id} onClick={() => deleteSigner(row)}><Trash2 size={14}/></button></div>
           </article>;
         }) : <div className="master-empty">Belum ada daftar penandatangan SP.</div>}
       </div>
