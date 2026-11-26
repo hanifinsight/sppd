@@ -35,7 +35,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
   : await db.from("dokumen_sppd").select("id,perjalanan_id,nomor_sppd,tanggal_terbit,ppk_id,nama_ppk_snapshot,jabatan_ppk_snapshot").eq("id",documentId).maybeSingle();
  const doc=docQuery.data as R|null;
  if(!doc)notFound();
- const {data:tripData}=await db.from("perjalanan_dinas").select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,maksud_perjalanan,lokasi_acara,tanggal_acara_mulai,tanggal_acara_selesai,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,alat_angkut,status,kpa_sppd_id").eq("id",doc.perjalanan_id).maybeSingle();
+ const {data:tripData}=await db.from("perjalanan_dinas").select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,maksud_perjalanan,lokasi_acara,tanggal_acara_mulai,tanggal_acara_selesai,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,tanggal_penerimaan,alat_angkut,status,kpa_sppd_id").eq("id",doc.perjalanan_id).maybeSingle();
  const trip=tripData as R|null;
  if(!trip||trip.status!=="published")notFound();
 
@@ -142,7 +142,7 @@ export default async function PrintPage({params}:{params:Promise<{type:string;do
      {[["BBM/Tiket",bbm],["TOL",tol],["Penginapan/Hotel",hotel],...otherRows.map(r=>[v(r.jenis_biaya),Number(r.nominal||0)])].map((r,i)=><tr key={i} className={styles.costRow}><td></td><td colSpan={4} className={styles.costLabel}>{r[0]}</td><td>{Number(r[1])?"Rp "+rupiah(Number(r[1])):"—"}</td><td colSpan={2}></td></tr>)}
      <tr className={styles.total}><td colSpan={5}>Jumlah</td><td>Rp {rupiah(total)}</td><td colSpan={2} className={styles.wordsCell}>Terbilang: {terbilang(total).replace(/^./,c=>c.toUpperCase()).replace(/rupiah$/,"Rupiah")}</td></tr>
     </tbody></table>
-    <div className={styles.receiptDate}>Kajen, {date(issued)}</div>
+    <div className={styles.receiptDate}>Kajen, {trip.tanggal_penerimaan ? date(v(trip.tanggal_penerimaan)) : ""}</div>
     <div className={styles.receiptSigns}>
      <div><b>Mengetahui:</b><b>Kuasa Pengguna Anggaran</b><span>{sectionName}</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{kpa.name}</b><span>NIP. {kpa.nip||"—"}</span></div>
      <div><b>&nbsp;</b><b>PPTK</b><span>&nbsp;</span><div className={styles.receiptSignGap}/><b className={styles.underlined}>{pptk.name}</b><span>NIP. {pptk.nip||"—"}</span></div>
