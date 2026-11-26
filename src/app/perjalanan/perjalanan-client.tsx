@@ -271,7 +271,12 @@ export default function PerjalananClient({
         tempat_tujuan: form.tempat_tujuan.trim(), provinsi_tujuan: form.provinsi_tujuan,
         tanggal_berangkat: form.tanggal_berangkat, tanggal_kembali: form.tanggal_kembali,
         alat_angkut: form.alat_angkut.trim(),
-        ...(editingTrip?.status === "published" ? { penandatangan_sp_id: form.penandatangan_sp_id } : {})
+        ...(editingTrip?.status === "published" ? {
+          penandatangan_sp_id: form.penandatangan_sp_id,
+          tanggal_sp: form.tanggal_sp,
+          tanggal_sppd: form.tanggal_sppd,
+          tanggal_penerimaan: form.tanggal_penerimaan
+        } : {})
       },
       peserta: form.peserta_ids.map((pegawai_id) => ({ pegawai_id })),
       pengikut: form.pengikut.filter((row) => row.nama.trim()).map((row) => ({
@@ -291,15 +296,6 @@ export default function PerjalananClient({
         kpa_sppd_id: selectedKpa.id
       }).eq("id", tripId);
       if (managerError) throw new Error("Perjalanan tersimpan, tetapi pengaturan KPA gagal ditautkan: " + managerError.message);
-      if (editingTrip?.status === "published") {
-        const [spUpdate, sppdUpdate, receiptUpdate] = await Promise.all([
-          supabase.from("dokumen_sp").update({ tanggal_terbit: form.tanggal_sp }).eq("perjalanan_id", tripId),
-          supabase.from("dokumen_sppd").update({ tanggal_terbit: form.tanggal_sppd }).eq("perjalanan_id", tripId),
-          supabase.from("perjalanan_dinas").update({ tanggal_penerimaan: form.tanggal_penerimaan || null }).eq("id", tripId)
-        ]);
-        const dateError = spUpdate.error || sppdUpdate.error || receiptUpdate.error;
-        if (dateError) throw new Error("Perjalanan tersimpan, tetapi tanggal dokumen gagal diperbarui: " + dateError.message);
-      }
       setShowForm(false);
       setEditingTrip(null);
       setNotice(editingTrip?.status === "published" ? "Seluruh data perjalanan terbit berhasil diperbarui. Komitmen anggaran dihitung ulang." : editingTrip ? "Draf perjalanan berhasil diperbarui." : "Draf perjalanan berhasil dibuat.");
