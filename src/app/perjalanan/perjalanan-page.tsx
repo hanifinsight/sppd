@@ -58,7 +58,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
       .select("id,pegawai_id,bagian_id")
       .eq("jenis_peran", "KPA").eq("aktif", true),
     supabase.from("perjalanan_dinas")
-      .select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,tanggal_undangan,tanggal_acara_mulai,tanggal_acara_selesai,lokasi_acara,maksud_perjalanan,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,alat_angkut,status,penandatangan_sp_id,kpa_sppd_id,created_at,updated_at")
+      .select("id,kegiatan_id,anggaran_id,jenis_perjalanan,nomor_undangan,tanggal_undangan,tanggal_penerimaan,tanggal_acara_mulai,tanggal_acara_selesai,lokasi_acara,maksud_perjalanan,tempat_berangkat,tempat_tujuan,provinsi_tujuan,tanggal_berangkat,tanggal_kembali,alat_angkut,status,penandatangan_sp_id,kpa_sppd_id,created_at,updated_at")
       .order("created_at", { ascending: false }),
     supabase.from("perjalanan_peserta").select("perjalanan_id,pegawai_id,nama_snapshot"),
     supabase.from("perjalanan_pengikut").select("perjalanan_id,nama,tanggal_lahir,keterangan"),
@@ -164,6 +164,7 @@ export default async function PerjalananPage({ startNew = false }: { startNew?: 
       jenis_perjalanan: row.jenis_perjalanan,
       nomor_undangan: row.nomor_undangan ?? "",
       tanggal_undangan: row.tanggal_undangan ?? "",
+      tanggal_penerimaan: row.tanggal_penerimaan ?? "",
       tanggal_acara_mulai: row.tanggal_acara_mulai,
       tanggal_acara_selesai: row.tanggal_acara_selesai,
       lokasi_acara: row.lokasi_acara,
