@@ -231,6 +231,13 @@ export default function PerjalananClient({
     if (!selectedBudget) return setFormError("Subkegiatan ini belum memiliki alokasi anggaran aktif.");
     if (!selectedKpa) return setFormError("Pengaturan pejabat untuk kegiatan ini belum lengkap. Hubungi Admin Global.");
     if (form.peserta_ids.length === 0) return setFormError("Pilih minimal satu pegawai sebagai peserta perjalanan.");
+    if (editingTrip?.status === "published") {
+      const signer = signers.find((item) => item.id === form.penandatangan_sp_id);
+      if (!signer) return setFormError("Pilih penandatangan SP yang aktif.");
+      const signerIsParticipant = form.peserta_ids.includes(signer.pegawai_id);
+      const isEselonII = /eselon\\s*ii|jabatan pimpinan tinggi pratama|sekretaris daerah|asisten|kepala dinas|kepala badan|staf ahli/i.test(signer.jabatan);
+      if (signerIsParticipant && !isEselonII) return setFormError("Penandatangan SP tidak boleh menjadi peserta perjalanan dinas, kecuali pejabat Eselon II.");
+    }
     if (!form.tanggal_berangkat || !form.tanggal_kembali || !form.tanggal_acara_mulai || !form.tanggal_acara_selesai) return setFormError("Lengkapi tanggal perjalanan dan tanggal acara.");
     if (form.tanggal_kembali < form.tanggal_berangkat) return setFormError("Tanggal kembali tidak boleh sebelum tanggal berangkat.");
     if (availabilityChecking) return setFormError("Tunggu sebentar, sistem sedang memeriksa ketersediaan pegawai.");
@@ -257,7 +264,8 @@ export default function PerjalananClient({
         maksud_perjalanan: form.maksud_perjalanan.trim(), tempat_berangkat: form.tempat_berangkat.trim(),
         tempat_tujuan: form.tempat_tujuan.trim(), provinsi_tujuan: form.provinsi_tujuan,
         tanggal_berangkat: form.tanggal_berangkat, tanggal_kembali: form.tanggal_kembali,
-        alat_angkut: form.alat_angkut.trim()
+        alat_angkut: form.alat_angkut.trim(),
+        ...(editingTrip?.status === "published" ? { penandatangan_sp_id: form.penandatangan_sp_id } : {})
       },
       peserta: form.peserta_ids.map((pegawai_id) => ({ pegawai_id })),
       pengikut: form.pengikut.filter((row) => row.nama.trim()).map((row) => ({
@@ -487,8 +495,17 @@ export default function PerjalananClient({
                 </div>
                 {form.peserta_ids.length > 4 && <div className="trip-attachment-hint"><FileText size={16}/><span>Lebih dari 4 peserta. Daftar nama pegawai akan ditempatkan pada lampiran dokumen.</span></div>}
               </section>
+              {editingTrip?.status === "published" && <section className="trip-form-section">
+                <div className="trip-section-title"><span>04</span><div><h3>Penandatangan Surat Perintah</h3><p>Pejabat yang menjadi peserta tidak boleh menandatangani SP sendiri, kecuali Eselon II.</p></div></div>
+                <label className="trip-field trip-field-wide">Penandatangan SP
+                  <select required value={form.penandatangan_sp_id} onChange={(event) => updateForm("penandatangan_sp_id", event.target.value)}>
+                    <option value="">Pilih penandatangan SP</option>
+                    {signers.map((signer) => <option value={signer.id} key={signer.id}>{signer.nama} — {signer.jabatan}</option>)}
+                  </select>
+                </label>
+              </section>}
               <section className="trip-form-section">
-                <div className="trip-section-title"><span>04</span><div><h3>Pengikut dan biaya lainnya</h3><p>Pengikut bersifat opsional. BBM dan tol diinput manual untuk rombongan.</p></div></div>
+                <div className="trip-section-title"><span>{editingTrip?.status === "published" ? "05" : "04"}</span><div><h3>Pengikut dan biaya lainnya</h3><p>Pengikut bersifat opsional. BBM dan tol diinput manual untuk rombongan.</p></div></div>
                 <div className="trip-companion-list">{form.pengikut.map((person, index) => <div className="trip-companion-row" key={index}>
                   <label className="trip-field">Nama pengikut<input value={person.nama} onChange={(event) => updateCompanion(index, "nama", event.target.value)} placeholder="Nama lengkap" /></label>
                   <label className="trip-field">Tanggal lahir<input type="date" value={person.tanggal_lahir} onChange={(event) => updateCompanion(index, "tanggal_lahir", event.target.value)} /></label>
