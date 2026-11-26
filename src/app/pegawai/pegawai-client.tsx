@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { BadgeCheck, BriefcaseBusiness, Edit3, Plus, Search, Users, UserRound, X } from "lucide-react";
+import { BadgeCheck, BriefcaseBusiness, Edit3, Plus, Search, Users, UserRound, X, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export type ReferenceOption = { id: string; nama: string; aktif: boolean; detail?: string };
@@ -173,6 +173,28 @@ export default function PegawaiClient({
     setPendingId(null);
   }
 
+  async function deleteEmployee(row: PegawaiRecord) {
+    if (!window.confirm("Hapus permanen data pegawai " + row.nama + "? Penghapusan hanya berhasil jika pegawai belum digunakan dalam perjalanan dinas atau penugasan.")) return;
+    setPendingId(row.id); setError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const checks = await Promise.all([
+        supabase.from("perjalanan_peserta").select("id", { count: "exact", head: true }).eq("pegawai_id", row.id),
+        supabase.from("pejabat_dokumen").select("id", { count: "exact", head: true }).eq("pegawai_id", row.id),
+        supabase.from("pejabat_pengelola").select("id", { count: "exact", head: true }).eq("pegawai_id", row.id)
+      ]);
+      const failed = checks.find(x => x.error);
+      if (failed?.error) throw new Error("Pemeriksaan relasi gagal: " + failed.error.message);
+      const used = checks.reduce((sum, x) => sum + (x.count ?? 0), 0);
+      if (used > 0) throw new Error("Pegawai tidak dapat dihapus karena masih tercatat sebagai peserta atau pejabat pengelola/penandatangan. Nonaktifkan pegawai jika sudah tidak digunakan.");
+      const { error: deleteError } = await supabase.from("pegawai").delete().eq("id", row.id);
+      if (deleteError) throw deleteError;
+      setRows(current => current.filter(item => item.id !== row.id));
+      setNotice("Data pegawai berhasil dihapus.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Gagal menghapus data pegawai."); }
+    finally { setPendingId(null); }
+  }
+
   const statusLabel = (value: string) => value === "NON_ASN" ? "Non-ASN" : value;
 
   return <>
@@ -215,7 +237,7 @@ export default function PegawaiClient({
               <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
               <td><div className="master-row-actions">
                 <button className="master-icon-btn" title="Ubah pegawai" aria-label="Ubah pegawai" onClick={() => openEdit(row)}><Edit3 size={14}/></button>
-                <button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActive(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>
+                <button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleActive(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button>\n                <button className="master-icon-btn" title="Hapus pegawai" aria-label="Hapus pegawai" disabled={pendingId === row.id} onClick={() => deleteEmployee(row)}><Trash2 size={14}/></button>
               </div></td>
             </tr>) : <tr><td colSpan={7} className="master-empty"><UserRound size={22}/><div>Tidak ada data pegawai yang sesuai dengan filter.</div></td></tr>}
           </tbody>
