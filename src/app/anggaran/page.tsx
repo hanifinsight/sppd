@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AdminShell from "@/components/admin-shell";
 import AnggaranClient, {
@@ -130,6 +131,7 @@ export default async function AnggaranPage() {
   });
 
   return <AdminShell username={profile.username ?? "admin"} active="anggaran">
+    <div className="master-page-head"><div><div className="eyebrow">RIWAYAT PERUBAHAN PAGU</div><p>Setiap perubahan rekening belanja tercatat berurutan dan dapat ditelusuri.</p></div><Link className="master-secondary-btn" href="/anggaran/riwayat">Lihat Riwayat Mutasi</Link></div>
     <AnggaranClient
       initialActivities={activities.map((row) => ({ ...row, pptk_names: pptkByActivity.get(row.id) ?? [] }))}
       initialAccounts={accounts}
