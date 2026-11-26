@@ -78,6 +78,7 @@ export default function PerjalananClient({
   const [form, setForm] = useState<TripForm>(() => emptyForm(provinces.includes("Jawa Tengah") ? "Jawa Tengah" : provinces[0] ?? "", activities[0]?.id ?? ""));
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
+  const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
   const [participantSearch, setParticipantSearch] = useState("");
   const [resultTrip, setResultTrip] = useState<TripRecord | null>(null);
@@ -299,16 +300,16 @@ export default function PerjalananClient({
   }
 
   async function deleteDraft(trip: TripRecord) {
-    if (trip.status !== "draft") return setFormError("Hanya draf yang boleh dihapus. Perjalanan terbit/dibatalkan dipertahankan sebagai riwayat.");
+    if (trip.status !== "draft") return setActionError("Hanya draf yang boleh dihapus. Perjalanan terbit/dibatalkan dipertahankan sebagai riwayat.");
     if (!window.confirm("Hapus permanen draf perjalanan ke " + trip.tempat_tujuan + "? Data yang dihapus tidak dapat dipulihkan.")) return;
-    setActionBusy(trip.id); setFormError(""); setNotice("");
+    setActionBusy(trip.id); setActionError(""); setNotice("");
     try {
       const supabase = createClient();
       const { error } = await supabase.from("perjalanan_dinas").delete().eq("id", trip.id).eq("status", "draft");
       if (error) throw error;
       setTrips(current => current.filter(item => item.id !== trip.id));
       setNotice("Draf perjalanan berhasil dihapus.");
-    } catch (e) { setFormError(e instanceof Error ? e.message : "Draf tidak dapat dihapus. Periksa relasi data."); }
+    } catch (e) { setActionError(e instanceof Error ? e.message : "Draf tidak dapat dihapus. Periksa relasi data."); }
     finally { setActionBusy(""); }
   }
 
@@ -409,7 +410,7 @@ export default function PerjalananClient({
         <button className="primary-btn" onClick={openNew} disabled={activities.length === 0}><Plus size={17}/> Buat perjalanan</button>
       </div>
       {notice && <div className="trip-notice"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={() => setNotice("")} aria-label="Tutup"><X size={15}/></button></div>}
-      {pageError && <div className="master-feedback error">{pageError}</div>}
+      {pageError && <div className="master-feedback error">{pageError}</div>}{actionError && <div className="master-feedback error">{actionError}</div>}
       <div className="trip-stats">
         <article><span>Total perjalanan</span><strong>{trips.length}</strong><small>Dalam lingkup akses akun</small></article>
         <article><span>Draf</span><strong>{activeDrafts}</strong><small>Menunggu pemeriksaan</small></article>
