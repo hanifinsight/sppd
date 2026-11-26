@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle, Check, CheckCircle2, ClipboardCheck, Clock3, Eye, FileText,
-  MapPin, Plus, Search, Users, Wallet, X, Edit3, UserRound, Trash2, Plane
+  MapPin, Plus, Search, Users, Wallet, X, Edit3, UserRound, Trash2, Plane, Ban
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -95,6 +95,10 @@ export default function PerjalananClient({
   });
   const [issueError, setIssueError] = useState("");
   const [issueBusy, setIssueBusy] = useState(false);
+  const [cancellingTrip, setCancellingTrip] = useState<TripRecord | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
 
   useEffect(() => {
@@ -321,6 +325,27 @@ export default function PerjalananClient({
     finally { setActionBusy(""); }
   }
 
+  async function cancelTrip() {
+    if (!cancellingTrip) return;
+    if (!cancelReason.trim()) { setCancelError("Alasan pembatalan wajib diisi."); return; }
+    setCancelBusy(true); setCancelError(""); setActionError(""); setNotice("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc("sppd_batalkan_perjalanan", {
+        p_perjalanan_id: cancellingTrip.id,
+        p_alasan: cancelReason.trim()
+      });
+      if (error) throw new Error(error.message);
+      setTrips(current => current.map(item => item.id === cancellingTrip.id
+        ? { ...item, status: "cancelled" } : item));
+      setNotice("Perjalanan dinas berhasil dibatalkan. Dokumen dan riwayat tetap tersimpan.");
+      setCancellingTrip(null); setCancelReason("");
+      router.refresh();
+    } catch (error) {
+      setCancelError(error instanceof Error ? error.message : "Pembatalan perjalanan gagal diproses.");
+    } finally { setCancelBusy(false); }
+  }
+
   async function validateTrip(trip: TripRecord) {
     setActionBusy(trip.id); setValidation(null); setPreview(null); setResultTrip(trip);
     try {
@@ -454,6 +479,7 @@ export default function PerjalananClient({
                   {trip.status === "draft" && <button onClick={() => validateTrip(trip)} title="Validasi draf" disabled={actionBusy === trip.id}><ClipboardCheck size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => previewCosts(trip)} title="Pratinjau biaya" disabled={actionBusy === trip.id}><Eye size={15}/></button>}
                   {trip.status === "draft" && <button onClick={() => openIssue(trip)} title="Terbitkan SP dan SPPD"><FileText size={15}/></button>}\n                  {trip.status === "draft" && <button onClick={() => deleteDraft(trip)} title="Hapus draf" disabled={actionBusy === trip.id}><Trash2 size={15}/></button>}
+                  {(trip.status === "draft" || trip.status === "published") && <button onClick={() => { setCancellingTrip(trip); setCancelReason(""); setCancelError(""); }} title="Batalkan perjalanan" disabled={cancelBusy}><Ban size={15}/><span>Batalkan</span></button>}
                   
                 </div></td>
               </tr>
@@ -616,6 +642,27 @@ export default function PerjalananClient({
               <button type="submit" className="primary-btn" disabled={issueBusy}>{issueBusy ? "Memproses..." : <><FileText size={16}/> Terbitkan</>}</button>
             </div></div>
           </form>
+        </section>
+      </div>}
+
+      {cancellingTrip && <div className="trip-modal-backdrop" role="presentation">
+        <section className="trip-result-modal" role="dialog" aria-modal="true" aria-labelledby="trip-cancel-title">
+          <div className="trip-modal-header">
+            <div><span className="eyebrow">PEMBATALAN PERJALANAN DINAS</span><h2 id="trip-cancel-title">Batalkan perjalanan?</h2><p>{cancellingTrip.maksud_perjalanan} · {cancellingTrip.tempat_tujuan}</p></div>
+            <button className="trip-close" onClick={() => setCancellingTrip(null)} aria-label="Tutup"><X size={18}/></button>
+          </div>
+          <div className="trip-result-body">
+            <div className="trip-validation-banner invalid"><AlertCircle size={19}/><div><b>Pembatalan dilakukan langsung</b><span>Status perjalanan akan menjadi Dibatalkan. SP/SPPD dan data perjalanan tetap tersimpan sebagai arsip.</span></div></div>
+            <label className="trip-field trip-field-wide">Alasan pembatalan
+              <textarea rows={4} maxLength={1000} value={cancelReason} onChange={event => setCancelReason(event.target.value)} placeholder="Tuliskan alasan pembatalan perjalanan dinas..." />
+              <small className="trip-field-note">{cancelReason.length}/1000 karakter · wajib diisi</small>
+            </label>
+            {cancelError && <div className="trip-form-error"><AlertCircle size={16}/>{cancelError}</div>}
+          </div>
+          <div className="trip-modal-footer"><span><Ban size={14}/> Tindakan ini tidak dapat dibatalkan melalui edit biasa.</span><div>
+            <button type="button" className="secondary-btn" onClick={() => setCancellingTrip(null)} disabled={cancelBusy}>Kembali</button>
+            <button type="button" className="primary-btn" onClick={cancelTrip} disabled={cancelBusy || !cancelReason.trim()}>{cancelBusy ? "Membatalkan..." : <><Ban size={16}/> Konfirmasi pembatalan</>}</button>
+          </div></div>
         </section>
       </div>}
 
