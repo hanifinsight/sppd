@@ -21,7 +21,7 @@ export type AccountRecord = {
   id: string;
   kode_rekening: string;
   nama_rekening: string;
-   aktif: boolean;
+  aktif: boolean;
 };
 export type BudgetRecord = {
   id: string;
@@ -531,14 +531,14 @@ export default function AnggaranClient({
       </div>
       <div className="master-table-card">
         <div className="master-table-wrap"><table className="master-table">
-          <thead><tr><th>KODE REKENING</th><th>NAMA REKENING BELANJA</th><th>KATEGORI</th><th>DIPAKAI PADA ALOKASI</th><th>STATUS</th><th>AKSI</th></tr></thead>
+          <thead><tr><th>KODE REKENING</th><th>NAMA REKENING BELANJA</th><th>DIPAKAI PADA ALOKASI</th><th>STATUS</th><th>AKSI</th></tr></thead>
           <tbody>{filteredAccounts.length ? filteredAccounts.map((row) => <tr key={row.id}>
             <td><strong>{row.kode_rekening}</strong></td><td>{row.nama_rekening}</td>
             
             <td>{budgets.filter((budget) => budget.rekening_id === row.id).length} alokasi</td>
             <td><span className={"master-status " + (row.aktif ? "is-active" : "is-inactive")}>{row.aktif ? "Aktif" : "Nonaktif"}</span></td>
             <td><div className="master-row-actions"><button className="master-icon-btn" title="Ubah rekening" aria-label="Ubah rekening" onClick={() => openEditAccount(row)}><Edit3 size={14}/></button><button className="master-secondary-btn" disabled={pendingId === row.id} onClick={() => toggleAccount(row)}>{pendingId === row.id ? "..." : row.aktif ? "Nonaktifkan" : "Aktifkan"}</button><button className="master-icon-btn" title="Hapus rekening" aria-label="Hapus rekening" disabled={pendingId === row.id} onClick={() => deleteAccount(row)}><Trash2 size={14}/></button></div></td>
-          </tr>) : <tr><td colSpan={6} className="master-empty">Tidak ada rekening belanja yang sesuai.</td></tr>}</tbody>
+          </tr>) : <tr><td colSpan={5} className="master-empty">Tidak ada rekening belanja yang sesuai.</td></tr>}</tbody>
         </table></div>
         <div className="master-table-foot"><span>Menampilkan <b>{filteredAccounts.length}</b> dari <b>{accounts.length}</b> rekening</span><span>Rekening nonaktif tidak muncul untuk alokasi baru</span></div>
       </div>
