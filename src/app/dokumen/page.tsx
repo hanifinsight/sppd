@@ -71,7 +71,7 @@ export default async function DokumenPage() {
   }
 
   const documents: TripRecord[] = trips
-    .filter((trip) => spMap.has(trip.id) || sppdMap.has(trip.id))
+    .filter((trip) => trip.status === "published" && (spMap.has(trip.id) || sppdMap.has(trip.id)))
     .map((trip) => {
       const activity = activityMap.get(trip.kegiatan_id);
       const sp = spMap.get(trip.id);
