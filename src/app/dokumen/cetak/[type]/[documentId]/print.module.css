@@ -18,12 +18,13 @@
 .signerIntro .line{grid-template-columns:23mm 2mm 1fr;column-gap:3mm}
 .line>span{font-weight:400}.line>b{font-weight:400}
 .command{text-align:center;font-weight:700;margin:3mm 0 6mm;letter-spacing:.4px;font-size:10pt}
-.spGrid{display:grid;grid-template-columns:28mm 1fr;gap:3mm;margin:0 0 4.5mm;line-height:1.55}
+.spGrid{display:grid;grid-template-columns:28mm 1fr;gap:3mm;margin:0 0 2.1mm;line-height:1.15}
 .spGrid>div:first-child:after{content:":";float:right;margin-right:2mm}
+.spGrid>div:last-child{text-align:justify}
 .peopleList{display:block;list-style-type:decimal;list-style-position:outside;margin:0;padding-left:9mm}.peopleList li{display:list-item;list-style:decimal;padding:0 0 3mm 1mm}.peopleList li::marker{content:counter(list-item) ". ";font-weight:700;color:#111}
 .peopleList li>div{display:grid;grid-template-columns:19mm 4mm 1fr}
 .peopleList li span{font-weight:400}.italic{font-style:italic;font-size:9pt;margin:2mm 0 0}
-.closing{line-height:1.6;text-align:justify;margin:7mm 0 0}
+.closing{line-height:1.15;text-align:justify;margin:0 0 2.1mm}
 .spSign{width:68mm;margin:9mm 6mm 0 auto;text-align:center;line-height:1.5}
 .spSign>b{display:block;margin-top:2mm}.signGap{height:23mm}.underlined{text-decoration:underline}
 .spdMeta{display:flex;flex-direction:column;align-items:flex-end;gap:1mm;margin:2mm 0 4mm}
