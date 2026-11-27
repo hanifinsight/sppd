@@ -2,13 +2,13 @@
 .toolbar{width:210mm;margin:0 auto 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .toolbar a{font-size:12px;color:#236f5b;text-decoration:none;font-weight:700}
 .printButton{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:#16775f;color:#fff;padding:10px 15px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
-.paper{position:relative;width:210mm;min-height:297mm;margin:0 auto 16px;padding:12mm 15mm 13mm;background:#fff;box-shadow:0 3px 18px #132d3818;box-sizing:border-box;page-break-after:always;break-after:page;color:#111;font:10pt Arial,Helvetica,sans-serif}
+.paper{position:relative;width:210mm;min-height:297mm;margin:0 auto 16px;padding:10mm 5mm 10mm 7mm;background:#fff;box-shadow:0 3px 18px #132d3818;box-sizing:border-box;page-break-after:always;break-after:page;color:#111;font:10pt Arial,Helvetica,sans-serif}
 .paper:last-child{page-break-after:auto;break-after:auto}
 .header{display:grid;grid-template-columns:22mm 1fr;gap:3mm;align-items:center;border-bottom:3px double #111;padding:0 0 3mm;margin-bottom:5mm;min-height:24mm}
 .header img{object-fit:contain;width:20mm;height:24mm}
 .header>div{text-align:center;display:flex;flex-direction:column;align-items:center;gap:1mm}
-.header>div>div{font-weight:700;font-size:11pt}.header strong{font-size:17pt;line-height:1.1}
-.header small{font-size:7.2pt;line-height:1.25}
+.header>div>div{font-weight:700;font-size:15pt}.header strong{font-size:20pt;line-height:1.1}
+.header small{font-size:10pt;line-height:1.2}
 .title{text-align:center;font-weight:700;margin:5mm 0 1.5mm;font-size:13pt}
 .docNumber{text-align:center;margin:0 0 8mm;font-size:10pt;min-height:6mm;line-height:6mm}
 .spTitleBlock{display:flex;flex-direction:column;align-items:center;width:max-content;max-width:100%;margin:5mm auto 8mm}.spTitleBlock .title{display:block;width:max-content;max-width:100%;margin:0 0 1.5mm;text-align:center;white-space:nowrap}.spTitleBlock .docNumber{display:block;box-sizing:border-box;width:100%;text-align:left;margin:0;min-height:6mm;line-height:6mm;font-size:10pt}
@@ -77,17 +77,17 @@
 .receiptSigns>div{display:flex;flex-direction:column;align-items:center;min-height:48mm}
 .receiptSigns span{min-height:5mm}.receiptSigns b{line-height:1.35}.receiptSigns .receiptSignGap{height:23mm}
 @page{size:A4 portrait;margin:0}
-@media print{.screen{padding:0;background:#fff;min-height:0}.toolbar{display:none!important}.paper{width:210mm;min-height:297mm;margin:0;box-shadow:none;padding:12mm 15mm 13mm;break-after:page;page-break-after:always}.paper:last-child{break-after:auto;page-break-after:auto}}
+@media print{.screen{padding:0;background:#fff;min-height:0}.toolbar{display:none!important}.paper{width:210mm;min-height:297mm;margin:0;box-shadow:none;padding:10mm 5mm 10mm 7mm;break-after:page;page-break-after:always}.paper:last-child{break-after:auto;page-break-after:auto}}
 @media screen and (max-width:760px){.screen{padding:10px 6px}.toolbar,.paper{width:100%}.paper{min-height:0;padding:22px 18px}.header{grid-template-columns:18mm 1fr}.header strong{font-size:13pt}.header small{font-size:6.5pt}.spd{font-size:7.8pt}.receipt{font-size:6.8pt}.receipt th:nth-child(n){width:auto}.receiptSigns{gap:2mm;font-size:6.8pt}.companion{grid-template-columns:1fr}}
 
 
 /* SPPD: tata letak cetak dipadatkan agar muat dalam satu lembar A4 */
-.sppdPaper{padding:8mm 12mm 8mm;font-size:8.2pt}
+.sppdPaper{padding:10mm 5mm 10mm 7mm;font-size:8.2pt}
 .sppdPaper .header{grid-template-columns:19mm 1fr;gap:2.5mm;padding-bottom:2mm;margin-bottom:2.5mm;min-height:19mm}
 .sppdPaper .header img{width:17mm;height:19mm}
-.sppdPaper .header>div>div{font-size:9.5pt}
-.sppdPaper .header strong{font-size:14pt}
-.sppdPaper .header small{font-size:6.4pt;line-height:1.15}
+.sppdPaper .header>div>div{font-size:15pt}
+.sppdPaper .header strong{font-size:20pt}
+.sppdPaper .header small{font-size:10pt;line-height:1.2}
 .sppdPaper .spdMeta{gap:.5mm;margin:1mm 0 2mm}
 .sppdPaper .spdMeta>div{font-size:7.5pt;line-height:1.2}
 .sppdPaper .title{font-size:11pt;margin:2mm 0 1.5mm}
@@ -102,6 +102,6 @@
 .sppdPaper .spdSign>div:first-child{margin-bottom:1mm}
 .sppdPaper .spdSign .signGap{height:12mm}
 @media print{
- .sppdPaper{width:210mm;height:297mm;min-height:0;margin:0;padding:8mm 12mm 8mm;box-sizing:border-box;break-after:auto;page-break-after:auto}
+ .sppdPaper{width:210mm;height:297mm;min-height:0;margin:0;padding:10mm 5mm 10mm 7mm;box-sizing:border-box;break-after:auto;page-break-after:auto}
  .sppdPaper .spd tr,.sppdPaper .spdSign{break-inside:avoid;page-break-inside:avoid}
 }
