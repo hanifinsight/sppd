@@ -145,6 +145,10 @@ export default function PerjalananClient({
     return text.includes(search.toLowerCase()) && (statusFilter === "all" || trip.status === statusFilter);
   }), [trips, search, statusFilter]);
 
+  const selectedYear = form.tanggal_berangkat ? Number(form.tanggal_berangkat.slice(0, 4)) : null;
+  const selectableActivities = selectedYear
+    ? activities.filter((row) => row.tahun === selectedYear)
+    : activities;
   const selectedActivity = activities.find((row) => row.id === form.kegiatan_id);
   const activityBudgets = budgets.filter((row) => row.kegiatan_id === form.kegiatan_id);
   const selectedBudget = activityBudgets.find((row) => row.id === form.anggaran_id) ?? activityBudgets[0];
@@ -168,6 +172,17 @@ export default function PerjalananClient({
   const activeSigners = signers;
 
   function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
+    if (key === "tanggal_berangkat") {
+      const year = String(value).slice(0, 4);
+      setForm((current) => {
+        const activity = activities.find((row) => row.id === current.kegiatan_id);
+        if (activity && activity.tahun !== Number(year)) {
+          return { ...current, tanggal_berangkat: value as string, kegiatan_id: "", anggaran_id: "", penandatangan_sp_id: "" };
+        }
+        return { ...current, tanggal_berangkat: value as string };
+      });
+      return;
+    }
     setForm((current) => ({ ...current, [key]: value }));
   }
   function openNew() {
@@ -250,6 +265,10 @@ export default function PerjalananClient({
     }
     if (!form.tanggal_berangkat || !form.tanggal_kembali || !form.tanggal_acara_mulai || !form.tanggal_acara_selesai) return setFormError("Lengkapi tanggal perjalanan dan tanggal acara.");
     if (form.tanggal_kembali < form.tanggal_berangkat) return setFormError("Tanggal kembali tidak boleh sebelum tanggal berangkat.");
+    const departureYear = Number(form.tanggal_berangkat.slice(0, 4));
+    const returnYear = Number(form.tanggal_kembali.slice(0, 4));
+    if (departureYear !== returnYear) return setFormError("Perjalanan dinas tidak boleh melintasi tahun anggaran. Pisahkan perjalanan sesuai tahun anggaran masing-masing.");
+    if (selectedActivity.tahun !== departureYear) return setFormError("Tahun anggaran subkegiatan (" + selectedActivity.tahun + ") tidak sesuai dengan tahun perjalanan (" + departureYear + "). Pilih subkegiatan pada tahun yang sama.");
     if (availabilityChecking) return setFormError("Tunggu sebentar, sistem sedang memeriksa ketersediaan pegawai.");
     if (availabilityError) return setFormError(availabilityError);
     if (form.tanggal_acara_selesai < form.tanggal_acara_mulai) return setFormError("Tanggal acara selesai tidak boleh sebelum tanggal mulai.");
@@ -502,8 +521,9 @@ export default function PerjalananClient({
                 <div className="trip-form-grid">
                   <label className="trip-field trip-field-wide">Subkegiatan
                     <select required value={form.kegiatan_id} onChange={(event) => handleActivityChange(event.target.value)}>
-                      <option value="">Pilih subkegiatan</option>{activities.map((item) => <option value={item.id} key={item.id}>{item.kode ? item.kode + " — " : ""}{item.nama} · {item.nama_bagian} · {item.tahun}</option>)}
+                      <option value="">Pilih subkegiatan</option>{selectableActivities.map((item) => <option value={item.id} key={item.id}>{item.kode ? item.kode + " — " : ""}{item.nama} · {item.nama_bagian} · {item.tahun}</option>)}
                     </select>
+                    {form.tanggal_berangkat && <small className="trip-field-note">Pilihan subkegiatan dibatasi untuk Tahun Anggaran {selectedYear}.</small>}
                   </label>
                   <label className="trip-field trip-field-wide">Rekening / alokasi anggaran
                     <select required value={selectedBudget?.id ?? ""} onChange={(event) => updateForm("anggaran_id", event.target.value)}>
