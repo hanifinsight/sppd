@@ -84,8 +84,8 @@
 
 /* SPPD: tipografi, jarak paragraf, dan kop surat */
 .sppdPaper{padding:9mm 6mm 9mm 7mm;font-size:8.5pt}
-.sppdPaper .header{grid-template-columns:21mm 1fr;gap:2.5mm;align-items:center;padding-bottom:2.5mm;margin-bottom:3mm;min-height:22mm}
-.sppdPaper .header img{width:19mm;height:21mm;max-height:21mm;object-fit:contain;align-self:center}
+.sppdPaper .header{grid-template-columns:24mm 1fr;gap:2.5mm;align-items:center;padding-bottom:2.5mm;margin-bottom:3mm;min-height:24mm}
+.sppdPaper .header img{width:22mm;height:24mm;max-height:24mm;object-fit:contain;align-self:center}
 .sppdPaper .header>div{gap:.6mm}
 .sppdPaper .header>div>div{font-size:12pt;line-height:1.15}
 .sppdPaper .header strong{font-size:17pt;line-height:1.08}
